@@ -9,6 +9,9 @@ static bool isprint(char c) {
 
 void assert(bool flag) {
     if (!flag) {
+        if (g_hardware_inited) {
+            putstring("ASSERT\r\n");
+        }
         while (1) __asm("bkpt 99");
     }
 }

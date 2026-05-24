@@ -91,6 +91,10 @@ hardware_init:
         orr     r1,     r2
         str     r1,     [r0]
 
+        ldr     r0,     =g_hardware_inited
+        movs    r1,     1
+        strb    r1,     [r0]
+
         pop     {pc}
 
         .global putchar
@@ -151,3 +155,7 @@ getchar.check_rx_register_not_empty:
         ldr     r1,     =USART2_DR
         ldrb    r0,     [r1]
         bx      lr
+
+        .bss
+        .global g_hardware_inited
+g_hardware_inited:        .byte   0
