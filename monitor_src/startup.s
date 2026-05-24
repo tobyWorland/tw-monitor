@@ -12,27 +12,28 @@ startup_entry:
 
         // TODO: Set VTOR to vector table in ram
 
+        // TODO: Copy .data if started from flash
+
+        // Clear .bss
+        ldr     r0,     =start_bss
+        ldr     r1,     =end_bss // R1 holds the number of words to zero out
+                                 // (linker script ensures end-start will be in whole worlds)
+        sub     r1,     r0
+        asr     r1,     2 // div 4
+        movs    r2,     0
+1:
+        cbz     r1,     2f
+        str     r2,     [r0],   4
+        subs    r1,     1
+        b       1b
+2:
+
         bl      hardware_init
 
         ldr     r0,     =str_monitor
         bl      putstring
 
-1:
-        bl      getchar
-
-        // Check char is in printable range
-        cmp     r0,     ' '
-        ble     1b
-        cmp     r0,     '~'
-        bgt     1b
-
-        mov     r4,     r0
-        ldr     r0,     =str_char
-        bl      putstring
-        mov     r0,     r4
-        bl      putchar
-        bl      putnewline
-        b       1b
+        bl      monitor_main
 
         .global hang
         .type   hang, %function
@@ -42,4 +43,3 @@ hang:
 
         .data
 str_monitor:    .asciz "Monitor\r\n"
-str_char:       .asciz "CHAR: "
