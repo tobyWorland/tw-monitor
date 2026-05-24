@@ -6,7 +6,7 @@ SRC_DIR=monitor_src
 ASFLAGS=-g
 
 LINKER_SCRIPT=link_sram.ld
-OBJ_NAMES=startup.o
+OBJ_NAMES=startup.o hardware.o
 BUILD_OBJS=$(addprefix $(BUILD_DIR)/,$(OBJ_NAMES))
 
 $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)

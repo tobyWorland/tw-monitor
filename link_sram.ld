@@ -14,7 +14,12 @@ SECTIONS {
 		*(.text);
 	}
 
+	. = ALIGN(4);
+	.data : {
+		*(.data);
+	}
+
 	/* Stack */
 	stack_initial_top = sram_end;
-	stack_ceiling = initial_sp - stack_size;
+	stack_ceiling = stack_initial_top - stack_size;
 }
