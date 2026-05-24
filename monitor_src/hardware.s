@@ -1,6 +1,6 @@
 /* vim: set tabstop=8:shiftwidth=8:expandtab */
 	.syntax	unified
-	.cpu	cortex-m4	
+	.cpu	cortex-m4
 	.thumb
 
 	.set	RCC_BASE,		0x40023800
@@ -19,7 +19,6 @@
 	.set	GPIO_MODER_CNF_OUTPUT,	1
 	.set	GPIO_MODER_CNF_ALTFUN,	2
 	.set	GPIO_MODER_CNF_ANALOG,	3
-	
 
 	.set	USART2_BASE,		0x40004400
 	.set	USART2_SR,		USART2_BASE + 0x00
@@ -35,11 +34,11 @@
 	.set	USART_SR_RXNE,		(1 << 5)
 
 	.global	hardware_init
-	.type 	hardware_init, %function
+	.type	hardware_init, %function
 hardware_init:
 	push	{lr}
 
-	// Enable peripheral clock for GPIO A 
+	// Enable peripheral clock for GPIO A
 	ldr	r0,	=RCC_AHB1_ENR
 	movs	r1,	(1 << RCC_AHB1_OFF_GPIOA)
 	str	r1,	[r0]
