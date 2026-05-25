@@ -90,6 +90,11 @@ void print_hexword(uint32_t address) {
     putstring(ptr);
 }
 
+void print_byte(uint8_t byte) {
+    putchar(digit_to_char(byte >> 4));
+    putchar(digit_to_char(byte & 0x0F));
+}
+
 uint32_t gethexword(void) {
     uint32_t result = 0;
 
