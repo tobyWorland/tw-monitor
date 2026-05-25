@@ -1,5 +1,7 @@
 #include "hardware.h"
 
+#include "vt.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -7,6 +9,8 @@ static bool isprint(char c) {
     return !((c <= ' ') || (c > '~'));
 }
 
+void assert(bool flag); // TODO: Put into header
+#ifndef HOST
 void assert(bool flag) {
     if (!flag) {
         if (g_hardware_inited) {
@@ -15,13 +19,15 @@ void assert(bool flag) {
         while (1) __asm("bkpt 99");
     }
 }
+#endif
 
 char digit_to_char(uint8_t digit) {
-    assert(digit <= 0xF);
     if (digit < 10) {
         return digit + '0';
-    } else {
+    } else if (digit <= 0xF) {
         return digit - 10 + 'A';
+    } else {
+        return '\0';
     }
 }
 
@@ -39,8 +45,7 @@ uint8_t char_to_digit(char c) {
     } else if (c >= 'A' && c <= 'F') {
         return c - 'A' + 10;
     } else {
-        assert(false);
-        __builtin_unreachable();
+        return 0xFF;
     }
 }
 
@@ -60,6 +65,56 @@ void test() {
         putchar(digit_to_char(char_to_digit(c)));
         putnewline();
     }
+
+    assert(digit_to_char(0xff) == '\0');
+    assert(char_to_digit('Z') == 0xFF);
+}
+
+void print_hexword(uint32_t address) {
+    char pad[10];
+    char *ptr = pad + sizeof(pad);
+    *--ptr = '\0';
+
+    for (int i = 0; i < 4; i++) {
+        *--ptr = digit_to_char(address & 0xF);
+        address >>= 4;
+    }
+
+    *--ptr = ' ';
+
+    for (int i = 0; i < 4; i++) {
+        *--ptr = digit_to_char(address & 0xF);
+        address >>= 4;
+    }
+
+    putstring(ptr);
+}
+
+uint32_t gethexword(void) {
+    uint32_t result = 0;
+
+    while (1) {
+        vt_clearline(); // TODO: Don't clear the whole line just the part printed
+        putchar('\r');
+        print_hexword(result);
+
+        char c = getchar();
+
+        if (c == 127) { // backspace will send delete which is 127
+            result >>= 4;
+        } else if (c == '\r') {
+            break;
+        }
+
+        uint8_t digit = char_to_digit(c);
+        if (digit != 0xFF) {
+            result <<= 4;
+            result |= digit;
+        }
+    }
+    putnewline();
+
+    return result;
 }
 
 void monitor_main() {
