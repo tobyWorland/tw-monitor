@@ -23,10 +23,10 @@ all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword $(BUILD_DIR)/demo_test
 $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)
 	$(LD) -T $(LINKER_SCRIPT) -o $@ $(BUILD_OBJS)
 
-$(BUILD_DIR)/demo_gethexword: demos/gethexword.c demos/fakes.c $(BUILD_DIR)/demo_monitor_redefined.a
+$(BUILD_DIR)/demo_gethexword: demos/gethexword.c demos/fakes.c demos/demo_support.c $(BUILD_DIR)/demo_monitor_redefined.a
 	$(HOST_CC) -g -o $@ $^
 
-$(BUILD_DIR)/demo_test: demos/test.c demos/fakes.c $(BUILD_DIR)/demo_monitor_redefined.a
+$(BUILD_DIR)/demo_test: demos/test.c demos/fakes.c demos/demo_support.c $(BUILD_DIR)/demo_monitor_redefined.a
 	$(HOST_CC) -g -o $@ $^
 
 $(BUILD_DIR)/demo_monitor.a: $(HOST_BUILD_OBJS)
