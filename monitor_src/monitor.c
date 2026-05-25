@@ -122,11 +122,13 @@ uint32_t gethexword(void) {
     return result;
 }
 
+#ifndef HOST
 void monitor_main() {
     char c;
 
     test();
 
+#if 0
     while (1) {
         c = getchar();
 
@@ -136,4 +138,18 @@ void monitor_main() {
             putnewline();
         }
     }
+#endif
+
+    while (1) {
+        uint32_t addr = gethexword();
+        print_hexword(addr);
+
+        uint8_t *addr_as_byte_ptr = (void*)addr;
+        for (int i = 0; i < 16; i++) {
+            putchar(' ');
+            print_byte(*addr_as_byte_ptr++);
+        }
+        putnewline();
+    }
 }
+#endif
