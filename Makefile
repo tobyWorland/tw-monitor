@@ -17,16 +17,17 @@ ASM_OBJ_NAMES=startup.o hardware.o
 OBJ_NAMES=$(ASM_OBJ_NAMES) $(C_OBJ_NAMES)
 BUILD_OBJS=$(addprefix $(BUILD_DIR)/,$(OBJ_NAMES))
 HOST_BUILD_OBJS=$(addprefix $(B_HOST_DIR)/,$(C_OBJ_NAMES))
+DEMO_DEPS=$(BUILD_DIR)/demo_monitor_redefined.a $(B_HOST_DIR)/demo/fakes.o $(B_HOST_DIR)/demo/demo_support.o
 
 all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword $(BUILD_DIR)/demo_test
 
 $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)
 	$(LD) -T $(LINKER_SCRIPT) -o $@ $(BUILD_OBJS)
 
-$(BUILD_DIR)/demo_gethexword: demos/gethexword.c demos/fakes.c demos/demo_support.c $(BUILD_DIR)/demo_monitor_redefined.a
+$(BUILD_DIR)/demo_gethexword: demos/gethexword.c $(DEMO_DEPS)
 	$(HOST_CC) -g -o $@ $^
 
-$(BUILD_DIR)/demo_test: demos/test.c demos/fakes.c demos/demo_support.c $(BUILD_DIR)/demo_monitor_redefined.a
+$(BUILD_DIR)/demo_test: demos/test.c $(DEMO_DEPS)
 	$(HOST_CC) -g -o $@ $^
 
 $(BUILD_DIR)/demo_monitor.a: $(HOST_BUILD_OBJS)
@@ -42,7 +43,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(B_HOST_DIR):
-	mkdir -p $(B_HOST_DIR)
+	mkdir -p $(B_HOST_DIR)/demo
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -52,6 +53,9 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 $(B_HOST_DIR)/%.o: $(SRC_DIR)/%.c
 	$(HOST_CC) -g -c -DHOST -ffreestanding -o $@ $<
+
+$(B_HOST_DIR)/demo/%.o: demos/%.c
+	$(HOST_CC) -g -c -o $@ $<
 
 .PHONY: clean
 clean:
