@@ -7,6 +7,8 @@ static bool isprint(char c) {
     return !((c <= ' ') || (c > '~'));
 }
 
+void assert(bool flag); // TODO: Put into header
+#ifndef HOST
 void assert(bool flag) {
     if (!flag) {
         if (g_hardware_inited) {
@@ -15,6 +17,7 @@ void assert(bool flag) {
         while (1) __asm("bkpt 99");
     }
 }
+#endif
 
 char digit_to_char(uint8_t digit) {
     assert(digit <= 0xF);
@@ -60,6 +63,16 @@ void test() {
         putchar(digit_to_char(char_to_digit(c)));
         putnewline();
     }
+}
+
+uint32_t gethexword(void) {
+    uint32_t result = 0;
+    // FIXME:
+
+    putstring("FIXME");
+    putnewline();
+
+    return result;
 }
 
 void monitor_main() {
