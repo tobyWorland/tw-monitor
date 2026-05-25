@@ -1,5 +1,7 @@
 #include "hardware.h"
 
+#include "vt.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -69,7 +71,14 @@ uint32_t gethexword(void) {
     uint32_t result = 0;
     // FIXME:
 
-    putstring("FIXME");
+    while (1) {
+        vt_clearline(); // TODO: Don't clear the whole line just the part printed
+        putchar('\r');
+        putstring("0000 0000");
+        if (getchar() == 'q') {
+            break;
+        }
+    }
     putnewline();
 
     return result;
