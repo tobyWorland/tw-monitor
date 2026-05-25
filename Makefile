@@ -12,7 +12,7 @@ ASFLAGS=-g
 CFLAGS=-mcpu=cortex-m4 -mthumb -ffreestanding -g -Og
 
 LINKER_SCRIPT=link_sram.ld
-C_OBJ_NAMES=monitor.o vt.o
+C_OBJ_NAMES=monitor.o vt.o assert.o
 ASM_OBJ_NAMES=startup.o hardware.o
 OBJ_NAMES=$(ASM_OBJ_NAMES) $(C_OBJ_NAMES)
 BUILD_OBJS=$(addprefix $(BUILD_DIR)/,$(OBJ_NAMES))

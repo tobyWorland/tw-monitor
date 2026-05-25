@@ -1,5 +1,5 @@
+#include "assert.h"
 #include "hardware.h"
-
 #include "vt.h"
 
 #include <stdbool.h>
@@ -8,18 +8,6 @@
 static bool isprint(char c) {
     return !((c <= ' ') || (c > '~'));
 }
-
-void assert(bool flag); // TODO: Put into header
-#ifndef HOST
-void assert(bool flag) {
-    if (!flag) {
-        if (g_hardware_inited) {
-            putstring("ASSERT\r\n");
-        }
-        while (1) __asm("bkpt 99");
-    }
-}
-#endif
 
 char digit_to_char(uint8_t digit) {
     if (digit < 10) {
