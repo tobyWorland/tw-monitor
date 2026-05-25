@@ -5,7 +5,7 @@ void putstring(const char *string) {
 	printf("%s", string);
 }
 void putnewline() {
-	puts("");
+	printf("\r\n");
 }
 
 void fake_assert(bool flag) {
