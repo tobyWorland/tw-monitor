@@ -91,15 +91,25 @@ void print_hexword(uint32_t address) {
 }
 
 uint32_t gethexword(void) {
-    uint32_t result = 0xDEADBEEF;
-    // FIXME:
+    uint32_t result = 0;
 
     while (1) {
         vt_clearline(); // TODO: Don't clear the whole line just the part printed
         putchar('\r');
         print_hexword(result);
-        if (getchar() == 'q') {
+
+        char c = getchar();
+
+        if (c == 127) { // backspace will send delete which is 127
+            result >>= 4;
+        } else if (c == '\r') {
             break;
+        }
+
+        uint8_t digit = char_to_digit(c);
+        if (digit != 0xFF) {
+            result <<= 4;
+            result |= digit;
         }
     }
     putnewline();
