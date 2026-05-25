@@ -1,41 +1,10 @@
 #include "assert.h"
+#include "char.h"
 #include "hardware.h"
 #include "vt.h"
 
 #include <stdbool.h>
 #include <stdint.h>
-
-static bool isprint(char c) {
-    return !((c <= ' ') || (c > '~'));
-}
-
-char digit_to_char(uint8_t digit) {
-    if (digit < 10) {
-        return digit + '0';
-    } else if (digit <= 0xF) {
-        return digit - 10 + 'A';
-    } else {
-        return '\0';
-    }
-}
-
-char char_to_upper(char c) {
-    if (c >= 'a' && c <= 'z') {
-        c -= 'a' - 'A';
-    }
-    return c;
-}
-
-uint8_t char_to_digit(char c) {
-    c = char_to_upper(c);
-    if (c >= '0' && c <= '9') {
-        return c - '0';
-    } else if (c >= 'A' && c <= 'F') {
-        return c - 'A' + 10;
-    } else {
-        return 0xFF;
-    }
-}
 
 void test() {
     for (int i = 0; i <= 0xF; i++) {
