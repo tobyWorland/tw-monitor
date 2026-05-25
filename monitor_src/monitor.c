@@ -22,11 +22,12 @@ void assert(bool flag) {
 #endif
 
 char digit_to_char(uint8_t digit) {
-    assert(digit <= 0xF);
     if (digit < 10) {
         return digit + '0';
-    } else {
+    } else if (digit <= 0xF) {
         return digit - 10 + 'A';
+    } else {
+        return '\0';
     }
 }
 
@@ -44,8 +45,7 @@ uint8_t char_to_digit(char c) {
     } else if (c >= 'A' && c <= 'F') {
         return c - 'A' + 10;
     } else {
-        assert(false);
-        __builtin_unreachable();
+        return 0xFF;
     }
 }
 
@@ -65,6 +65,9 @@ void test() {
         putchar(digit_to_char(char_to_digit(c)));
         putnewline();
     }
+
+    assert(digit_to_char(0xff) == '\0');
+    assert(char_to_digit('Z') == 0xFF);
 }
 
 void print_hexword(uint32_t address) {
