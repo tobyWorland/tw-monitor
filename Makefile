@@ -18,13 +18,16 @@ OBJ_NAMES=$(ASM_OBJ_NAMES) $(C_OBJ_NAMES)
 BUILD_OBJS=$(addprefix $(BUILD_DIR)/,$(OBJ_NAMES))
 HOST_BUILD_OBJS=$(addprefix $(B_HOST_DIR)/,$(C_OBJ_NAMES))
 
-all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword
+all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword $(BUILD_DIR)/demo_test
 
 $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)
 	$(LD) -T $(LINKER_SCRIPT) -o $@ $(BUILD_OBJS)
 
 $(BUILD_DIR)/demo_gethexword: demos/gethexword.c demos/fakes.c $(BUILD_DIR)/demo_monitor_redefined.a
-	$(HOST_CC) -o $@ $^
+	$(HOST_CC) -g -o $@ $^
+
+$(BUILD_DIR)/demo_test: demos/test.c demos/fakes.c $(BUILD_DIR)/demo_monitor_redefined.a
+	$(HOST_CC) -g -o $@ $^
 
 $(BUILD_DIR)/demo_monitor.a: $(HOST_BUILD_OBJS)
 	$(HOST_AR) rcs $@ $^
@@ -48,7 +51,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(B_HOST_DIR)/%.o: $(SRC_DIR)/%.c
-	$(HOST_CC) -c -DHOST -ffreestanding -o $@ $<
+	$(HOST_CC) -g -c -DHOST -ffreestanding -o $@ $<
 
 .PHONY: clean
 clean:
