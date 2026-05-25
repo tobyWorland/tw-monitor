@@ -67,14 +67,34 @@ void test() {
     }
 }
 
+void print_hexword(uint32_t address) {
+    char pad[10];
+    char *ptr = pad + sizeof(pad);
+    *--ptr = '\0';
+
+    for (int i = 0; i < 4; i++) {
+        *--ptr = digit_to_char(address & 0xF);
+        address >>= 4;
+    }
+
+    *--ptr = ' ';
+
+    for (int i = 0; i < 4; i++) {
+        *--ptr = digit_to_char(address & 0xF);
+        address >>= 4;
+    }
+
+    putstring(ptr);
+}
+
 uint32_t gethexword(void) {
-    uint32_t result = 0;
+    uint32_t result = 0xDEADBEEF;
     // FIXME:
 
     while (1) {
         vt_clearline(); // TODO: Don't clear the whole line just the part printed
         putchar('\r');
-        putstring("0000 0000");
+        print_hexword(result);
         if (getchar() == 'q') {
             break;
         }
