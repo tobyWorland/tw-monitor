@@ -70,7 +70,7 @@ void test() {
     assert(char_to_digit('Z') == 0xFF);
 }
 
-void print_hexword(uint32_t address) {
+void puthexword(uint32_t address) {
     char pad[10];
     char *ptr = pad + sizeof(pad);
     *--ptr = '\0';
@@ -90,7 +90,7 @@ void print_hexword(uint32_t address) {
     putstring(ptr);
 }
 
-void print_byte(uint8_t byte) {
+void putbyte(uint8_t byte) {
     putchar(digit_to_char(byte >> 4));
     putchar(digit_to_char(byte & 0x0F));
 }
@@ -101,7 +101,7 @@ uint32_t gethexword(void) {
     while (1) {
         vt_clearline(); // TODO: Don't clear the whole line just the part printed
         putchar('\r');
-        print_hexword(result);
+        puthexword(result);
 
         char c = getchar();
 
@@ -142,12 +142,12 @@ void monitor_main() {
 
     while (1) {
         uint32_t addr = gethexword();
-        print_hexword(addr);
+        puthexword(addr);
 
         uint8_t *addr_as_byte_ptr = (void*)addr;
         for (int i = 0; i < 16; i++) {
             putchar(' ');
-            print_byte(*addr_as_byte_ptr++);
+            putbyte(*addr_as_byte_ptr++);
         }
         putnewline();
     }
