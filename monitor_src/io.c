@@ -4,6 +4,25 @@
 #include "hardware.h"
 #include "vt.h"
 
+// TODO: Support using something (like another display) other than USART2
+#ifndef HOST
+void putchar(char c) {
+    usart2_putchar(c);
+}
+
+void putstring(const char *string) {
+    usart2_putstring(string);
+}
+
+void putnewline(void) {
+    usart2_putnewline();
+}
+
+char getchar(void) {
+    return usart2_getchar();
+}
+#endif
+
 void puthexword(uint32_t address) {
     char pad[10];
     char *ptr = pad + sizeof(pad);

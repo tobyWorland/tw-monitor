@@ -7,9 +7,9 @@
 
 extern uint8_t g_hardware_inited;
 
-void putchar(char c);
-void putstring(const char *string);
-void putnewline(void);
-char getchar(void);
+void usart2_putchar(char c);
+void usart2_putstring(const char *string);
+void usart2_putnewline(void);
+char usart2_getchar(void);
 
 #endif

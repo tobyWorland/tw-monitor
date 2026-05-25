@@ -1,5 +1,6 @@
 #include "assert.h"
 #include "hardware.h"
+#include "io.h"
 
 #ifndef HOST
 void assert(bool flag) {

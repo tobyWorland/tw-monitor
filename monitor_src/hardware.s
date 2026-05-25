@@ -97,26 +97,26 @@ hardware_init:
 
         pop     {pc}
 
-        .global putchar
-        .type   putchar, %function
+        .global usart2_putchar
+        .type   usart2_putchar, %function
         // Inputs: R0 = byte to transmit over USART2
-putchar:
+usart2_putchar:
         ldr     r1,     =USART2_SR
         movs    r2,     USART_SR_TXE
-putchar.check_tx_register_empty:
+usart2_putchar.check_tx_register_empty:
         ldr     r3,     [r1]
         tst     r3,     r2
-        beq     putchar.check_tx_register_empty
+        beq     usart2_putchar.check_tx_register_empty
 
         // Transmit character
         ldr     r1,     =USART2_DR
         strb    r0,     [r1]
         bx      lr
 
-        .global putstring
-        .type   putstring, %function
+        .global usart2_putstring
+        .type   usart2_putstring, %function
         // Inputs: R0 = zero terminated string to transmit over USART2
-putstring:
+usart2_putstring:
         push    {r4, lr}
         mov     r4,     r0
 
@@ -130,9 +130,9 @@ putstring:
 2:
         pop     {r4, pc}
 
-        .global putnewline
-        .type   putnewline, %function
-putnewline:
+        .global usart2_putnewline
+        .type   usart2_putnewline, %function
+usart2_putnewline:
         push    {lr}
         movs    r0,     '\r'
         bl      putchar
@@ -140,16 +140,16 @@ putnewline:
         bl      putchar
         pop     {pc}
 
-        .global getchar
-        .type   getchar, %function
+        .global usart2_getchar
+        .type   usart2_getchar, %function
         // Returns: R0 = byte received from USART2
-getchar:
+usart2_getchar:
         ldr     r1,     =USART2_SR
         movs    r2,     USART_SR_RXNE
-getchar.check_rx_register_not_empty:
+usart2_getchar.check_rx_register_not_empty:
         ldr     r3,     [r1]
         tst     r3,     r2
-        beq     getchar.check_rx_register_not_empty
+        beq     usart2_getchar.check_rx_register_not_empty
 
         // Get the received byte
         ldr     r1,     =USART2_DR
