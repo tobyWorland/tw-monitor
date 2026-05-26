@@ -12,14 +12,14 @@ ASFLAGS=-g
 CFLAGS=-mcpu=cortex-m4 -mthumb -ffreestanding -g -Og
 
 LINKER_SCRIPT=link_sram.ld
-C_OBJ_NAMES=monitor.o vt.o assert.o char.o io.o
+C_OBJ_NAMES=monitor.o vt.o assert.o char.o io.o menu.o
 ASM_OBJ_NAMES=startup.o hardware.o
 OBJ_NAMES=$(ASM_OBJ_NAMES) $(C_OBJ_NAMES)
 BUILD_OBJS=$(addprefix $(BUILD_DIR)/,$(OBJ_NAMES))
 HOST_BUILD_OBJS=$(addprefix $(B_HOST_DIR)/,$(C_OBJ_NAMES))
 DEMO_DEPS=$(BUILD_DIR)/demo_monitor_redefined.a $(B_HOST_DIR)/demo/fakes.o $(B_HOST_DIR)/demo/demo_support.o
 
-all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword $(BUILD_DIR)/demo_test
+all: $(BUILD_DIR)/monitor $(BUILD_DIR)/demo_gethexword $(BUILD_DIR)/demo_test $(BUILD_DIR)/demo_menu
 
 $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)
 	$(LD) -T $(LINKER_SCRIPT) -o $@ $(BUILD_OBJS)
@@ -28,6 +28,9 @@ $(BUILD_DIR)/demo_gethexword: demos/gethexword.c $(DEMO_DEPS)
 	$(HOST_CC) -g -o $@ $^
 
 $(BUILD_DIR)/demo_test: demos/test.c $(DEMO_DEPS)
+	$(HOST_CC) -g -o $@ $^
+
+$(BUILD_DIR)/demo_menu: demos/menu.c $(DEMO_DEPS)
 	$(HOST_CC) -g -o $@ $^
 
 $(BUILD_DIR)/demo_monitor.a: $(HOST_BUILD_OBJS)
