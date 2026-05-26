@@ -3,6 +3,8 @@
         .cpu    cortex-m4
         .thumb
 
+        .set    SCB_VTOR,    0xE000ED08 // Vector Table Offset Register
+
         .global startup_entry
         .type   startup_entry, %function
 startup_entry:
@@ -10,7 +12,10 @@ startup_entry:
         ldr     r0,     =stack_initial_top
         mov     sp,     r0
 
-        // TODO: Set VTOR to vector table in ram
+        // Set VTOR to vector table in ram
+        ldr     r0,     =vector_table
+        ldr     r1,     =SCB_VTOR
+        str     r0,     [r1]
 
         // TODO: Copy .data if started from flash
 
@@ -36,3 +41,8 @@ startup_entry:
 hang:
         bkpt    90
         b       hang
+
+        .global hardfault_handler
+        .type   hardfault_handler, %function
+hardfault_handler:
+        b       .

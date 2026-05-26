@@ -10,8 +10,14 @@ ENTRY(startup_entry);
 SECTIONS {
 	. = sram_start;
 
+	.vect : {
+		*(.vect);
+	}
+
+	. = ALIGN(4);
 	.text : {
 		*(.text);
+		*(.rodata*);
 	}
 
 	. = ALIGN(4);
