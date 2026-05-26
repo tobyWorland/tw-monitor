@@ -48,6 +48,73 @@ void hidden() { // TOOD: Remove
     putstring("Hidden function called!\r\n");
 }
 
+void monitor_enter(void *addr) {
+    uint8_t *addr_as_byte_ptr = (void*)addr;
+    uint8_t current_byte = *addr_as_byte_ptr;
+    unsigned digit_idx = 0;
+    unsigned col = 0;
+
+    puthexword((uint32_t)addr_as_byte_ptr);
+    putchar(' ');
+
+    while (1) {
+        char c;
+        uint8_t digit;
+
+        putbyte(current_byte);
+
+        if (digit_idx >= 2) {
+            *addr_as_byte_ptr = current_byte;
+            current_byte = *++addr_as_byte_ptr;
+            digit_idx = 0;
+
+            if (++col == 16) {
+                putnewline();
+                puthexword((uint32_t)addr_as_byte_ptr);
+                col = 0;
+            }
+
+            putchar(' ');
+            putbyte(current_byte);
+        }
+
+        c = getchar();
+
+        if (c == '\r') {
+            break;
+        } else if (c == 127 || c == '\b') { // backspace will send delete which is 127 on host
+            if (digit_idx == 0) {
+                // Go back a byte
+                if (col > 0) {
+                    col--;
+                    addr_as_byte_ptr--;
+                    putstring("\b\b\b   \b\b\b");
+
+                    current_byte = *addr_as_byte_ptr;
+                    digit_idx = 0;
+                } else {
+                    // TODO: handle going back a row
+                }
+            } else {
+                // Reload byte from memory
+                current_byte = *addr_as_byte_ptr;
+                digit_idx = 0;
+            }
+        } else if (c == ' ') { // Leave byte as is and enter the next one
+            digit_idx = 2;
+        } else if ((digit = char_to_digit(c)) != 0xFF) {
+            current_byte <<= 4;
+            current_byte |= digit;
+            digit_idx++;
+        }
+
+        putstring("\b\b  \b\b");
+    }
+
+    *addr_as_byte_ptr = current_byte;
+    putnewline();
+}
+
 void monitor_main() {
     char c;
 
@@ -70,8 +137,8 @@ void monitor_main() {
         uint32_t addr = gethexword();
         monitor_memdump((void*)addr);
 #else
-        volatile uint32_t addr;
-        volatile char opt;
+        volatile uint32_t addr = 0x20000000 + 1024*8;
+        volatile char opt = 'e';
 
         // set addr=&sram_start
         // set addr=hidden then set addr|=1
@@ -85,6 +152,9 @@ void monitor_main() {
             break;
         case 'c':
             monitor_call_function((void*)addr);
+            break;
+        case 'e':
+            monitor_enter((void*)addr);
             break;
         default: __asm("bkpt 9"); // Bad option
         }
