@@ -10,6 +10,10 @@ void putchar(char c) {
     usart2_putchar(c);
 }
 
+char getchar(void) {
+    return usart2_getchar();
+}
+
 void putstring(const char *string) {
     usart2_putstring(string);
 }
@@ -17,10 +21,8 @@ void putstring(const char *string) {
 void putnewline(void) {
     usart2_putnewline();
 }
+#else
 
-char getchar(void) {
-    return usart2_getchar();
-}
 #endif
 
 void puthexword(uint32_t address) {

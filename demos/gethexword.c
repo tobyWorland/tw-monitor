@@ -1,9 +1,8 @@
 #include "demo_support.h"
 
-#include <stdint.h>
+#include "../monitor_src/io.h"
 
-void gethexword(); // TODO:
-void putbyte(uint8_t b); // TODO:
+#include <stdint.h>
 
 int main() {
     demo_make_term_raw();

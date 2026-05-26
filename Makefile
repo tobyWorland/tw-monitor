@@ -25,13 +25,13 @@ $(BUILD_DIR)/monitor: $(LINKER_SCRIPT) $(BUILD_OBJS)
 	$(LD) -T $(LINKER_SCRIPT) -o $@ $(BUILD_OBJS)
 
 $(BUILD_DIR)/demo_gethexword: demos/gethexword.c $(DEMO_DEPS)
-	$(HOST_CC) -g -o $@ $^
+	$(HOST_CC) -DHOST -g -o $@ $^
 
 $(BUILD_DIR)/demo_test: demos/test.c $(DEMO_DEPS)
-	$(HOST_CC) -g -o $@ $^
+	$(HOST_CC) -DHOST -g -o $@ $^
 
 $(BUILD_DIR)/demo_menu: demos/menu.c $(DEMO_DEPS)
-	$(HOST_CC) -g -o $@ $^
+	$(HOST_CC) -DHOST -g -o $@ $^
 
 $(BUILD_DIR)/demo_monitor.a: $(HOST_BUILD_OBJS)
 	$(HOST_AR) rcs $@ $^
@@ -58,7 +58,7 @@ $(B_HOST_DIR)/%.o: $(SRC_DIR)/%.c
 	$(HOST_CC) -g -c -DHOST -ffreestanding -o $@ $<
 
 $(B_HOST_DIR)/demo/%.o: demos/%.c
-	$(HOST_CC) -g -c -o $@ $<
+	$(HOST_CC) -g -c -DHOST -o $@ $<
 
 .PHONY: clean
 clean:
