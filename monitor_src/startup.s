@@ -68,7 +68,8 @@ hardfault_handler:
         ldr     r0,     =str_hardfault
         bl      putstring
 
-        // TODO: Print fault information
+        // Print fault information
+        bl      print_fault_state
 
         // Print registers
         pop     {lr}
