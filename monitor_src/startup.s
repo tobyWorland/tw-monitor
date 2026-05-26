@@ -69,7 +69,23 @@ hardfault_handler:
         bl      putstring
 
         // TODO: Print fault information
-        // TODO: Print registers
+
+        // Print registers
+        pop     {lr}
+        ldr     r12,    =registers
+        ldmia   sp,     {r0-r3}
+        stm     r12!,   {r0-r3}
+        stm     r12!,   {r4-r11}
+        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_R12]
+        str     r0,     [r12],  4
+        mov     r0,     sp
+        str     r0,     [r12],  4
+        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_LR]
+        str     r0,     [r12],  4
+        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_PC]
+        str     r0,     [r12],  4
+        push    {lr}
+        bl      print_registers
 
         pop     {lr}
         ands    r0,     lr,     0x0F
@@ -92,5 +108,40 @@ hardfault_handler:
 
         bx      lr
 
+print_registers:
+        push    {r4, r5, lr}
+        ldr     r4,     =registers
+        mov     r5,     0
+
+1:
+        cmp     r5,     16
+        beq     2f
+
+        mov     r0,     'R'
+        bl      putchar
+        mov     r0,     r5
+        bl      putbyte
+        mov     r0,     ' '
+        bl      putchar
+        ldr     r0,     [r4],   4
+        bl      puthexword
+
+        movs    r0,     ' '
+        bl      putchar
+
+        adds    r5,     1
+
+        tst     r5,     3
+        it      eq
+        bleq    putnewline
+
+        b       1b
+2:
+        pop     {r4, r5, pc}
+
         .data
 str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
+
+        .balign 4
+registers:
+        .space  4*16 // R0-R15
