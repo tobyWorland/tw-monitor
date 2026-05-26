@@ -117,23 +117,25 @@ void monitor_enter(void *addr) {
     putnewline();
 }
 
-void monitor_main() {
-    struct menu_option options[] = {
+void monitor_main(bool surpress_init) {
+    const struct menu_option options[] = {
         { 'd',       "Memory Dump"  },
         { 'c',       "Call Address" },
         { 'e',       "Enter Bytes"  },
         { CTRL('l'), "Clear Screen" },
     };
-    uint32_t addr = 0;
+    static uint32_t addr = 0;
 
-    vt_clearscreen();
+    if (!surpress_init) {
+        vt_clearscreen();
 
-    test();
+        test();
 
-    putstring("** Monitor ready **\r\n");
-    putstring("hidden address: ");
-    puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
-    putnewline();
+        putstring("** Monitor ready **\r\n");
+        putstring("hidden address: ");
+        puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
+        putnewline();
+    }
 
     while (1) {
         char opt = menu("> ", sizeof(options)/sizeof(options[0]), options);

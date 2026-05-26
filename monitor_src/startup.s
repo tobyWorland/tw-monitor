@@ -34,6 +34,8 @@ startup_entry:
 2:
 
         bl      hardware_init
+
+        movs    r0,     0
         bl      monitor_main
 
         .global hang
@@ -42,7 +44,53 @@ hang:
         bkpt    90
         b       hang
 
+        .set    EXCEPTION_FRAME_OFF_R0,   0
+        .set    EXCEPTION_FRAME_OFF_R1,   4
+        .set    EXCEPTION_FRAME_OFF_R2,   8
+        .set    EXCEPTION_FRAME_OFF_R3,   12
+        .set    EXCEPTION_FRAME_OFF_R12,  16
+        .set    EXCEPTION_FRAME_OFF_LR,   20
+        .set    EXCEPTION_FRAME_OFF_PC,   24
+        .set    EXCEPTION_FRAME_OFF_xPSR, 28
+
+        .set    xPSR_THUMB_BIT,           (1 << 24)
+
         .global hardfault_handler
         .type   hardfault_handler, %function
 hardfault_handler:
-        b       .
+        push    {lr}
+        ldr     r0,     =g_hardware_inited
+        ldr     r0,     [r0]
+
+        cmp     r0,     0
+        beq     . // Hang if usart isn't ready
+
+        ldr     r0,     =str_hardfault
+        bl      putstring
+
+        // TODO: Print fault information
+        // TODO: Print registers
+
+        pop     {lr}
+        ands    r0,     lr,     0x0F
+        cmp     r0,     0x0D
+        beq     . // Hang if PSP is used // TODO: Handle PSP
+
+        // Modify the exception frame so we return from the hardfault into monitor_main(1)
+        adds    r0,     sp,     EXCEPTION_FRAME_OFF_PC
+        ldr     r1,     =monitor_main
+        str     r1,     [r0]
+        adds    r0,     sp,     EXCEPTION_FRAME_OFF_R0
+        movs    r1,     1 // Supress init - Don't reset addr, clear screen
+        str     r1,     [r0]
+
+        // Reset program status register
+        //   Mostly for if the thumb bit gets cleared
+        adds    r0,     sp,     EXCEPTION_FRAME_OFF_xPSR
+        ldr     r1,     =xPSR_THUMB_BIT
+        str     r1,     [r0]
+
+        bx      lr
+
+        .data
+str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
