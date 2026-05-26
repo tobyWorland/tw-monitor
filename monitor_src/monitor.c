@@ -124,7 +124,7 @@ void monitor_main() {
         { 'e', "Enter Bytes"  },
     };
 
-    uint32_t addr;
+    uint32_t addr = 0;
     char opt;
 
     test();
@@ -137,15 +137,15 @@ void monitor_main() {
         opt = menu("> ", sizeof(options)/sizeof(options[0]), options);
         switch (opt) {
         case 'd':
-            addr = gethexword();
+            addr = gethexword(addr);
             monitor_memdump((void*)addr);
             break;
         case 'c':
-            addr = gethexword();
+            addr = gethexword(addr);
             monitor_call_function((void*)addr);
             break;
         case 'e':
-            addr = gethexword();
+            addr = gethexword(addr);
             monitor_enter((void*)addr);
             break;
         }

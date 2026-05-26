@@ -50,8 +50,8 @@ void putbyte(uint8_t byte) {
     putchar(digit_to_char(byte & 0x0F));
 }
 
-uint32_t gethexword(void) {
-    uint32_t result = 0;
+uint32_t gethexword(uint32_t default_value) {
+    uint32_t result = default_value;
 
     while (1) {
         vt_clearline(); // TODO: Don't clear the whole line just the part printed

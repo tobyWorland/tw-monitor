@@ -6,7 +6,7 @@
 
 int main() {
     demo_make_term_raw();
-    gethexword();
+    gethexword(0);
     putbyte(0xCA);
     putbyte(0xFE);
     return 0;

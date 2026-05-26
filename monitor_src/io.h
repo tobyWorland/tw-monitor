@@ -13,6 +13,6 @@ void putstring(const char *string);
 void putnewline(void);
 void puthexword(uint32_t address);
 void putbyte(uint8_t byte);
-uint32_t gethexword(void);
+uint32_t gethexword(uint32_t default_value);
 
 #endif
