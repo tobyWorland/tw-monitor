@@ -119,9 +119,10 @@ void monitor_enter(void *addr) {
 
 void monitor_main() {
     struct menu_option options[] = {
-        { 'd', "Memory Dump"  },
-        { 'c', "Call Address" },
-        { 'e', "Enter Bytes"  },
+        { 'd',       "Memory Dump"  },
+        { 'c',       "Call Address" },
+        { 'e',       "Enter Bytes"  },
+        { CTRL('l'), "Clear Screen" },
     };
     uint32_t addr = 0;
 
@@ -148,6 +149,12 @@ void monitor_main() {
         case 'e':
             addr = gethexword(addr);
             monitor_enter((void*)addr);
+            break;
+        case CTRL('l'):
+            vt_clearscreen();
+            break;
+        default:
+            putstring("Error: Missing action\r\n");
             break;
         }
     }
