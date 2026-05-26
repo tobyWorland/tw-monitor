@@ -32,14 +32,16 @@ void test() {
 #ifndef HOST
 
 void monitor_memdump(void *addr) {
-    puthexword((uint32_t)addr);
+    uint8_t *addr_as_byte_ptr = (void *)addr;
 
-    uint8_t *addr_as_byte_ptr = (void*)addr;
-    for (int i = 0; i < 16; i++) {
-        putchar(' ');
-        putbyte(*addr_as_byte_ptr++);
+    for (int row = 0; row < 4; row++) {
+        puthexword((uint32_t)addr_as_byte_ptr);
+        for (int col = 0; col < 16; col++) {
+            putchar(' ');
+            putbyte(*addr_as_byte_ptr++);
+        }
+        putnewline();
     }
-    putnewline();
 }
 
 void monitor_call_function(void (*fn)()) {
