@@ -2,6 +2,7 @@
 #include "char.h"
 #include "hardware.h"
 #include "io.h"
+#include "vt.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -88,7 +89,7 @@ void monitor_enter(void *addr) {
                 if (col > 0) {
                     col--;
                     addr_as_byte_ptr--;
-                    putstring("\b\b\b   \b\b\b");
+                    vt_blank_last_n_chars(3);
 
                     current_byte = *addr_as_byte_ptr;
                     digit_idx = 0;
@@ -108,7 +109,7 @@ void monitor_enter(void *addr) {
             digit_idx++;
         }
 
-        putstring("\b\b  \b\b");
+        vt_blank_last_n_chars(2);
     }
 
     *addr_as_byte_ptr = current_byte;
