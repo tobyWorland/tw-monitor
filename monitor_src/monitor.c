@@ -82,7 +82,7 @@ void monitor_enter(void *addr) {
 
         if (c == '\r') {
             break;
-        } else if (c == 127 || c == '\b') { // backspace will send delete which is 127 on host
+        } else if (c == '\b') {
             if (digit_idx == 0) {
                 // Go back a byte
                 if (col > 0) {

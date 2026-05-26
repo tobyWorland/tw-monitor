@@ -58,7 +58,7 @@ uint32_t gethexword(void) {
 
         char c = getchar();
 
-        if (c == 127 || c == '\b') { // backspace will send delete which is 127 on host
+        if (c == '\b') {
             result >>= 4;
         } else if (c == '\r') {
             break;

@@ -1,1 +1,2 @@
 assert fake_assert
+getchar fake_getchar
