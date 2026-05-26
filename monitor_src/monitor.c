@@ -28,6 +28,18 @@ void test() {
 }
 
 #ifndef HOST
+
+void monitor_memdump(void *addr) {
+    puthexword((uint32_t)addr);
+
+    uint8_t *addr_as_byte_ptr = (void*)addr;
+    for (int i = 0; i < 16; i++) {
+        putchar(' ');
+        putbyte(*addr_as_byte_ptr++);
+    }
+    putnewline();
+}
+
 void monitor_main() {
     char c;
 
@@ -47,14 +59,7 @@ void monitor_main() {
 
     while (1) {
         uint32_t addr = gethexword();
-        puthexword(addr);
-
-        uint8_t *addr_as_byte_ptr = (void*)addr;
-        for (int i = 0; i < 16; i++) {
-            putchar(' ');
-            putbyte(*addr_as_byte_ptr++);
-        }
-        putnewline();
+        monitor_memdump((void*)addr);
     }
 }
 #endif
