@@ -2,6 +2,7 @@
 #include "char.h"
 #include "hardware.h"
 #include "io.h"
+#include "menu.h"
 #include "vt.h"
 
 #include <stdbool.h>
@@ -117,49 +118,37 @@ void monitor_enter(void *addr) {
 }
 
 void monitor_main() {
-    char c;
+    struct menu_option options[] = {
+        { 'd', "Memory Dump"  },
+        { 'c', "Call Address" },
+        { 'e', "Enter Bytes"  },
+    };
+
+    uint32_t addr;
+    char opt;
 
     test();
 
-#if 0
-    while (1) {
-        c = getchar();
-
-        if (isprint(c)) {
-            putstring("CHAR: ");
-            putchar(c);
-            putnewline();
-        }
-    }
-#endif
+    putstring("hidden address: ");
+    puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
+    putnewline();
 
     while (1) {
-#if 0
-        uint32_t addr = gethexword();
-        monitor_memdump((void*)addr);
-#else
-        volatile uint32_t addr = 0x20000000 + 1024*8;
-        volatile char opt = 'e';
-
-        // set addr=&sram_start
-        // set addr=hidden then set addr|=1
-        // For dump: set opt='d'
-        // For call: set opt='c'
-        __asm("bkpt 1");
-
+        opt = menu("> ", sizeof(options)/sizeof(options[0]), options);
         switch (opt) {
         case 'd':
+            addr = gethexword();
             monitor_memdump((void*)addr);
             break;
         case 'c':
+            addr = gethexword();
             monitor_call_function((void*)addr);
             break;
         case 'e':
+            addr = gethexword();
             monitor_enter((void*)addr);
             break;
-        default: __asm("bkpt 9"); // Bad option
         }
-#endif
     }
 }
 #endif
