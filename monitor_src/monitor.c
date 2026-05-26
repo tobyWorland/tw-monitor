@@ -123,9 +123,7 @@ void monitor_main() {
         { 'c', "Call Address" },
         { 'e', "Enter Bytes"  },
     };
-
     uint32_t addr = 0;
-    char opt;
 
     test();
 
@@ -134,7 +132,7 @@ void monitor_main() {
     putnewline();
 
     while (1) {
-        opt = menu("> ", sizeof(options)/sizeof(options[0]), options);
+        char opt = menu("> ", sizeof(options)/sizeof(options[0]), options);
         switch (opt) {
         case 'd':
             addr = gethexword(addr);
