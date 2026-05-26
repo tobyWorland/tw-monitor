@@ -2,10 +2,11 @@
 #include <stdio.h>
 
 void putstring(const char *string) {
-	printf("%s", string);
+    printf("%s", string);
 }
+
 void putnewline() {
-	printf("\r\n");
+    printf("\r\n");
 }
 
 char fake_getchar() {
@@ -17,5 +18,5 @@ char fake_getchar() {
 }
 
 void fake_assert(bool flag) {
-	assert(flag);
+    assert(flag);
 }
