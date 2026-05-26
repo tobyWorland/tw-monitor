@@ -40,6 +40,14 @@ void monitor_memdump(void *addr) {
     putnewline();
 }
 
+void monitor_call_function(void (*fn)()) {
+    fn();
+}
+
+void hidden() { // TOOD: Remove
+    putstring("Hidden function called!\r\n");
+}
+
 void monitor_main() {
     char c;
 
@@ -58,8 +66,29 @@ void monitor_main() {
 #endif
 
     while (1) {
+#if 0
         uint32_t addr = gethexword();
         monitor_memdump((void*)addr);
+#else
+        volatile uint32_t addr;
+        volatile char opt;
+
+        // set addr=&sram_start
+        // set addr=hidden then set addr|=1
+        // For dump: set opt='d'
+        // For call: set opt='c'
+        __asm("bkpt 1");
+
+        switch (opt) {
+        case 'd':
+            monitor_memdump((void*)addr);
+            break;
+        case 'c':
+            monitor_call_function((void*)addr);
+            break;
+        default: __asm("bkpt 9"); // Bad option
+        }
+#endif
     }
 }
 #endif
