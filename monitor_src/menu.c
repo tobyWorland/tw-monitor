@@ -1,6 +1,7 @@
 #include "menu.h"
 
 #include "assert.h"
+#include "char.h"
 #include "io.h"
 
 char menu(const char *prompt, unsigned option_count, struct menu_option *options) {
@@ -15,9 +16,17 @@ char menu(const char *prompt, unsigned option_count, struct menu_option *options
             putstring("?\r\n");
             for (unsigned i = 0; i < option_count; i++) {
                 const struct menu_option *opt = &options[i];
-                putstring(" * '");
-                putchar(opt->key);
-                putstring("' - ");
+                putstring(" * ");
+                if (IS_CTRL(opt->key)) {
+                    putstring("c-");
+                    putchar(opt->key + 'A' - 1); // -1 as C-A is 1 not 0
+                } else {
+                    assert(char_isprint(c));
+                    putchar('\'');
+                    putchar(opt->key);
+                    putchar('\'');
+                }
+                putstring(" - ");
                 putstring(opt->name);
                 putnewline();
             }
