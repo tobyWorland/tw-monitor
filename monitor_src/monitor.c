@@ -125,8 +125,11 @@ void monitor_main() {
     };
     uint32_t addr = 0;
 
+    vt_clearscreen();
+
     test();
 
+    putstring("** Monitor ready **\r\n");
     putstring("hidden address: ");
     puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
     putnewline();

@@ -2,6 +2,10 @@
 
 #include "io.h"
 
+void vt_clearscreen(void) {
+    putstring("\e[2J\e[H");
+}
+
 void vt_clearline(void) {
     putstring("\e[2K");
 }

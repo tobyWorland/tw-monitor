@@ -29,10 +29,6 @@ startup_entry:
 2:
 
         bl      hardware_init
-
-        ldr     r0,     =str_monitor
-        bl      putstring
-
         bl      monitor_main
 
         .global hang
@@ -40,6 +36,3 @@ startup_entry:
 hang:
         bkpt    90
         b       hang
-
-        .data
-str_monitor:    .asciz "Monitor\r\n"
