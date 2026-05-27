@@ -4,6 +4,7 @@ project(toplevel)
 enable_language(C ASM)
 
 add_subdirectory(monitor_src)
-if(NOT CROSS_COMPILING)
+if(NOT CMAKE_CROSSCOMPILING)
 add_subdirectory(demos)
+add_subdirectory(tests)
 endif()
