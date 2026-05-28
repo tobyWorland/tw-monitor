@@ -27,10 +27,10 @@ SECTIONS {
 
 	. = ALIGN(4);
 	.bss (NOLOAD) : {
-		start_bss = .;
+		bss_vma_start = .;
 		*(.bss);
 		. = ALIGN(4);
-		end_bss = .;
+		bss_vma_end = .;
 	}
 
 	/* Stack */

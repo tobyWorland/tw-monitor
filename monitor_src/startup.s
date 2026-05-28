@@ -34,9 +34,9 @@ startup_entry:
 .endif
 
         // Clear .bss
-        ldr     r0,     =start_bss
-        ldr     r1,     =end_bss // R1 holds the number of words to zero out
-                                 // (linker script ensures end-start will be in whole worlds)
+        ldr     r0,     =bss_vma_start
+        ldr     r1,     =bss_vma_end // R1 holds the number of words to zero out
+                                     // (linker script ensures end-start will be in whole worlds)
         subs    r1,     r0
         asrs    r1,     2 // div 4
         movs    r2,     0
