@@ -3,6 +3,7 @@
 #include "assert.h"
 #include "char.h"
 #include "io.h"
+#include "util.h"
 
 char menu(const char *prompt, unsigned option_count,
           const struct menu_option *options) {
@@ -52,7 +53,5 @@ bool menu_preset_continue(const char *prompt) {
         {'c', "Continue"},
         {'q', "Quit"    },
     };
-    return menu(prompt,
-                sizeof(continue_options) / sizeof(continue_options[0]),
-                continue_options) == 'c';
+    return menu(prompt, ARR_LEN(continue_options), continue_options) == 'c';
 }

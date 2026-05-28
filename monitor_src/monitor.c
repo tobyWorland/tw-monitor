@@ -4,6 +4,7 @@
 #include "io.h"
 #include "menu.h"
 #include "thumb_asm.h"
+#include "util.h"
 #include "vt.h"
 
 #include <stdbool.h>
@@ -148,7 +149,7 @@ void monitor_main(bool surpress_init) {
     }
 
     while (1) {
-        char opt = menu("> ", sizeof(options) / sizeof(options[0]), options);
+        char opt = menu("> ", ARR_LEN(options), options);
         switch (opt) {
         case 'd':
             addr = gethexword(addr);

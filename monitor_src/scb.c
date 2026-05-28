@@ -1,6 +1,7 @@
 #include "scb.h"
 
 #include "io.h"
+#include "util.h"
 
 #include <stdint.h>
 
@@ -9,8 +10,6 @@ volatile uint32_t *scb_cfsr = (void*)0xE000ED28; // Configurable Fault Status Re
 volatile uint32_t *scb_hfsr = (void*)0xE000ED2C; // Hard Fault Status Register
 volatile uint32_t *scb_mmar = (void*)0xE000ED34; // Memory Management fault Address Register
 volatile uint32_t *scb_bfar = (void*)0xE000ED28; // Bus Fault Address Register
-
-#define BIT(N) (1 << N) // TODO: move to a util header
 
 #define HFSR_FORCED      BIT(30)
 #define HFSR_VECTTBL     BIT(1)
