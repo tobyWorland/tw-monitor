@@ -1,7 +1,7 @@
 #include "char.h"
 
 bool char_isprint(char c) {
-    return !((c <= ' ') || (c > '~'));
+    return !((c < ' ') || (c > '~'));
 }
 
 char char_to_upper(char c) {

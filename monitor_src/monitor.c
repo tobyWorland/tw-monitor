@@ -8,27 +8,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void test() {
-    for (int i = 0; i <= 0xF; i++) {
-        putstring("Test: I => ");
-        putchar(digit_to_char(i));
-        putnewline();
-        assert(char_to_digit(digit_to_char(i)) == i);
-    }
-
-    putstring("lowercase test\r\n");
-    for (char c = 'a'; c <= 'f'; c++) {
-        putstring("Test: ");
-        putchar(c);
-        putstring(" => ");
-        putchar(digit_to_char(char_to_digit(c)));
-        putnewline();
-    }
-
-    assert(digit_to_char(0xff) == '\0');
-    assert(char_to_digit('Z') == 0xFF);
-}
-
 #ifndef HOST
 
 void monitor_memdump(void *addr) {
@@ -130,8 +109,6 @@ void monitor_main(bool surpress_init) {
 
     if (!surpress_init) {
         vt_clearscreen();
-
-        test();
 
         putstring("** Monitor ready **\r\n");
         putstring("hidden address: ");
