@@ -17,7 +17,7 @@ int main() {
         {'s',       "Submenu"         },
     };
     char picked =
-        menu("Demo menu? ", sizeof(options) / sizeof(options[0]), options);
+        menu("Demo menu? ", sizeof(options) / sizeof(options[0]), options, "s");
 
     if (picked == 's') {
         struct menu_option suboptions[] = {

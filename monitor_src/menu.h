@@ -15,7 +15,7 @@ enum menu_warning_fix_result {
 };
 
 char menu(const char *prompt, unsigned option_count,
-          const struct menu_option *options);
+          const struct menu_option *options, const char *submenu_keys);
 char submenu(const char *prompt, unsigned option_count,
              const struct menu_option *options);
 

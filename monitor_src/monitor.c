@@ -9,6 +9,7 @@
 #include "vt.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifndef HOST
@@ -87,6 +88,7 @@ void hidden() { // TOOD: Remove
     putstring("Hidden function called!\r\n");
 }
 
+// TODO: Take type - bytes, half words, words, instructions
 void monitor_enter(void *addr) {
     uint8_t *addr_as_byte_ptr = (void *)addr;
     uint8_t current_byte = *addr_as_byte_ptr;
@@ -174,7 +176,7 @@ void monitor_main(bool surpress_init) {
     }
 
     while (1) {
-        char opt = menu("> ", ARR_LEN(options), options);
+        char opt = menu("> ", ARR_LEN(options), options, NULL);
         switch (opt) {
         case 'd':
             addr = gethexword(addr);
