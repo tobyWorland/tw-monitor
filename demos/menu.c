@@ -9,10 +9,10 @@ int main() {
     demo_make_term_raw();
 
     struct menu_option options[] = {
-        {'a',       "Option A"          },
-        {CTRL('A'), "Optional CONTROL A"},
-        {'b',       "Option B"          },
-        {'c',       "Option C"          }
+        {'a',       "Option A"        },
+        {CTRL('A'), "Option CONTROL A"},
+        {'b',       "Option B"        },
+        {'c',       "Option C"        }
     };
     char picked =
         menu("Demo menu? ", sizeof(options) / sizeof(options[0]), options);
