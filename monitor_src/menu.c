@@ -55,3 +55,18 @@ bool menu_preset_continue(const char *prompt) {
     };
     return menu(prompt, ARR_LEN(continue_options), continue_options) == 'c';
 }
+
+enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt) {
+    static const struct menu_option warning_options[] = {
+        {'p', "Proceed"},
+        {'f', "Fix"},
+        {'q', "Quit"    },
+    };
+    char opt = menu(prompt, ARR_LEN(warning_options), warning_options);
+    switch (opt) {
+    case 'p': return MENU_WF_PROCEED;
+    case 'f': return MENU_WF_FIX;
+    case 'q': return MENU_WF_QUIT;
+    }
+    ASSERT_NOT_REACHED();
+}

@@ -4,6 +4,7 @@ project(monitor)
 enable_language(C ASM)
 
 set(C_SOURCE
+        arm.c
 	assert.c
 	char.c
 	io.c

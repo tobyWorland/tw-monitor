@@ -1,4 +1,5 @@
 #include "assert.h"
+#include "arm.h"
 #include "char.h"
 #include "hardware.h"
 #include "io.h"
@@ -27,11 +28,21 @@ void monitor_memdump(void *addr) {
 
 // TODO: Print mnemonics and operands
 void monitor_disassemble(void *addr) {
+    // Check thumb interwork bit isn't set
+    if (arm_address_has_thumb_intwrk_bit(addr)) {
+        enum menu_warning_fix_result opt =
+            menu_preset_warning_fix("WARN Thumb bit set: ");
+        if (opt == MENU_WF_FIX) {
+            addr = arm_address_set_thumb_intwrk_bit(addr, false);
+        } else if (opt == MENU_WF_QUIT) {
+            return;
+        } else {
+            assert(opt == MENU_WF_PROCEED);
+        }
+    }
+
     uint16_t *addr_as_hword_ptr = (void *)addr;
     bool cont;
-
-    // TODO: Add a check warning if the thumb bit is set
-    // TODO: Also add the check to the call function
 
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
@@ -55,6 +66,20 @@ void monitor_disassemble(void *addr) {
 }
 
 void monitor_call_function(void (*fn)()) {
+    // Check for thumb interwork bit in function address
+    if (!arm_address_has_thumb_intwrk_bit(fn)) {
+        enum menu_warning_fix_result opt =
+            menu_preset_warning_fix("WARN No thumb bit: ");
+        if (opt == MENU_WF_FIX) {
+            fn = arm_address_set_thumb_intwrk_bit(fn, true);
+        } else if (opt == MENU_WF_QUIT) {
+            return;
+        } else {
+            assert(opt == MENU_WF_PROCEED);
+        }
+    }
+
+    // Do call
     fn();
 }
 

@@ -8,9 +8,16 @@ struct menu_option {
     const char *name;
 };
 
+enum menu_warning_fix_result {
+    MENU_WF_PROCEED,
+    MENU_WF_FIX,
+    MENU_WF_QUIT,
+};
+
 char menu(const char *prompt, unsigned option_count,
           const struct menu_option *options);
 
 bool menu_preset_continue(const char *prompt);
+enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt);
 
 #endif

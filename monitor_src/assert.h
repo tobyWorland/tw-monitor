@@ -5,4 +5,8 @@
 
 void assert(bool flag);
 
+#define ASSERT_NOT_REACHED()                    \
+    assert(false);                              \
+    __builtin_unreachable();
+
 #endif
