@@ -132,7 +132,28 @@ static unsigned enter_get_digits_from_type(enum enter_type ent_type) {
     return width_in_bytes * 2;
 }
 
-// TODO: Take type - bytes, half words, words, instructions
+static enum enter_type enter_ent_type_submenu() {
+    static const struct menu_option ent_options[] = {
+        {'b', "Bytes"       },
+        {'h', "Half Words"  },
+        {'w', "Words"       },
+        {'i', "Instructions"},
+    };
+    char opt = submenu("Type? ", ARR_LEN(ent_options), ent_options);
+    switch (opt) {
+    case 'b':
+        return ET_BYTE;
+    case 'h':
+        return ET_HWORD;
+    case 'w':
+        return ET_WORD;
+    case 'i':
+        return ET_INSTRUCTION;
+    default:
+        ASSERT_NOT_REACHED();
+    }
+}
+
 void monitor_enter(void *addr, enum enter_type ent_type) {
     uint32_t current;
     unsigned digit_idx = 0;
@@ -210,10 +231,10 @@ void monitor_enter(void *addr, enum enter_type ent_type) {
 }
 
 void monitor_main(bool surpress_init) {
-    const struct menu_option options[] = {
+    static const struct menu_option options[] = {
         {'d',       "Memory Dump"   },
         {'c',       "Call Address"  },
-        {'e',       "Enter Bytes"   },
+        {'e',       "Enter"         },
         {'u',       "Un/Disassemble"},
         {CTRL('l'), "Clear Screen"  },
     };
@@ -229,7 +250,7 @@ void monitor_main(bool surpress_init) {
     }
 
     while (1) {
-        char opt = menu("> ", ARR_LEN(options), options, NULL);
+        char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
         case 'd':
             addr = gethexword(addr);
@@ -239,9 +260,11 @@ void monitor_main(bool surpress_init) {
             addr = gethexword(addr);
             monitor_call_function((void *)addr);
             break;
-        case 'e':
+        case 'e': {
+            enum enter_type ent_type = enter_ent_type_submenu();
             addr = gethexword(addr);
-            monitor_enter((void *)addr, ET_BYTE);
+            monitor_enter((void *)addr, ent_type);
+        }
             break;
         case 'u':
             addr = gethexword(addr);
