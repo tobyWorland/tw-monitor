@@ -1,3 +1,4 @@
 CompileFlags:
-  CompilationDatabase: builds/target
+  CompilationDatabase: builds/target_sram
+  #CompilationDatabase: builds/target_flash
   #CompilationDatabase: builds/host
