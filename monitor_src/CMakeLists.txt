@@ -10,6 +10,10 @@ set(C_SOURCE
 	io.c
 	menu.c
 	monitor.c
+	monitor_cmds/monitor_call.c
+	monitor_cmds/monitor_disassemble.c
+	monitor_cmds/monitor_enter.c
+	monitor_cmds/monitor_memdump.c
 	scb.c
         thumb_asm.c
 	vt.c
