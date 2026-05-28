@@ -29,7 +29,8 @@ SECTIONS {
 	.bss : {
 		start_bss = .;
 		*(.bss);
-		end_bss = ALIGN(4);
+		. = ALIGN(4);
+		end_bss = .;
 	}
 
 	/* Stack */
