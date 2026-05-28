@@ -2,6 +2,7 @@
 
 #include "../monitor_src/char.h"
 #include "../monitor_src/menu.h"
+#include "../monitor_src/util.h"
 
 #include <stdio.h>
 
@@ -12,10 +13,22 @@ int main() {
         {'a',       "Option A"        },
         {CTRL('A'), "Option CONTROL A"},
         {'b',       "Option B"        },
-        {'c',       "Option C"        }
+        {'c',       "Option C"        },
+        {'s',       "Submenu"         },
     };
     char picked =
         menu("Demo menu? ", sizeof(options) / sizeof(options[0]), options);
+
+    if (picked == 's') {
+        struct menu_option suboptions[] = {
+            {'1', "Number 1"},
+            {'2', "Number 2"},
+            {'3', "Number 3"},
+        };
+        char subpicked = submenu("Number? ", ARR_LEN(suboptions), suboptions);
+        printf("User sub picked '%c'\r\n", subpicked);
+    }
+
     printf("User picked '%c'\r\n", picked);
 
     return 0;
