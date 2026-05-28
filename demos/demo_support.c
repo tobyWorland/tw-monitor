@@ -1,6 +1,6 @@
 #include "demo_support.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <termios.h>
 
 struct termios old, settings;

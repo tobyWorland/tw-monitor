@@ -32,7 +32,7 @@ void hidden() { // TOOD: Remove
 }
 
 void monitor_enter(void *addr) {
-    uint8_t *addr_as_byte_ptr = (void*)addr;
+    uint8_t *addr_as_byte_ptr = (void *)addr;
     uint8_t current_byte = *addr_as_byte_ptr;
     unsigned digit_idx = 0;
     unsigned col = 0;
@@ -100,10 +100,10 @@ void monitor_enter(void *addr) {
 
 void monitor_main(bool surpress_init) {
     const struct menu_option options[] = {
-        { 'd',       "Memory Dump"  },
-        { 'c',       "Call Address" },
-        { 'e',       "Enter Bytes"  },
-        { CTRL('l'), "Clear Screen" },
+        {'d',       "Memory Dump" },
+        {'c',       "Call Address"},
+        {'e',       "Enter Bytes" },
+        {CTRL('l'), "Clear Screen"},
     };
     static uint32_t addr = 0;
 
@@ -117,19 +117,19 @@ void monitor_main(bool surpress_init) {
     }
 
     while (1) {
-        char opt = menu("> ", sizeof(options)/sizeof(options[0]), options);
+        char opt = menu("> ", sizeof(options) / sizeof(options[0]), options);
         switch (opt) {
         case 'd':
             addr = gethexword(addr);
-            monitor_memdump((void*)addr);
+            monitor_memdump((void *)addr);
             break;
         case 'c':
             addr = gethexword(addr);
-            monitor_call_function((void*)addr);
+            monitor_call_function((void *)addr);
             break;
         case 'e':
             addr = gethexword(addr);
-            monitor_enter((void*)addr);
+            monitor_enter((void *)addr);
             break;
         case CTRL('l'):
             vt_clearscreen();

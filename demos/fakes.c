@@ -11,7 +11,8 @@ void putnewline() {
 
 char fake_getchar() {
     char c = getchar();
-    if (c == 127) { // Host will send 127 for backspace where as target will get 8 (\b)
+    if (c == 127) { // Host will send 127 for backspace where as target will get
+                    // 8 (\b)
         c = '\b';
     }
     return c;

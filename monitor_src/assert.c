@@ -8,7 +8,8 @@ void assert(bool flag) {
         if (g_hardware_inited) {
             putstring("ASSERT\r\n");
         }
-        while (1) __asm("bkpt 99");
+        while (1)
+            __asm("bkpt 99");
     }
 }
 #endif

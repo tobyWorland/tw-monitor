@@ -4,7 +4,8 @@
 #include "char.h"
 #include "io.h"
 
-char menu(const char *prompt, unsigned option_count, const struct menu_option *options) {
+char menu(const char *prompt, unsigned option_count,
+          const struct menu_option *options) {
     assert(option_count > 0);
     putstring(prompt);
 
