@@ -46,3 +46,13 @@ char menu(const char *prompt, unsigned option_count,
         }
     }
 }
+
+bool menu_preset_continue(const char *prompt) {
+    static const struct menu_option continue_options[] = {
+        {'c', "Continue"},
+        {'q', "Quit"    },
+    };
+    return menu(prompt,
+                sizeof(continue_options) / sizeof(continue_options[0]),
+                continue_options) == 'c';
+}

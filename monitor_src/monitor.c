@@ -27,11 +27,10 @@ void monitor_memdump(void *addr) {
 // TODO: Print mnemonics and operands
 void monitor_disassemble(void *addr) {
     uint16_t *addr_as_hword_ptr = (void *)addr;
-    const struct menu_option continue_options[] = {
-        {'c', "Continue"},
-        {'q', "Quit"    },
-    };
-    char opt;
+    bool cont;
+
+    // TODO: Add a check warning if the thumb bit is set
+    // TODO: Also add the check to the call function
 
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
@@ -50,10 +49,8 @@ void monitor_disassemble(void *addr) {
             putnewline();
         }
 
-        opt = menu("More? ",
-                   sizeof(continue_options) / sizeof(continue_options[0]),
-                   continue_options);
-    } while (opt != 'q');
+        cont = menu_preset_continue("More? ");
+    } while (cont);
 }
 
 void monitor_call_function(void (*fn)()) {
