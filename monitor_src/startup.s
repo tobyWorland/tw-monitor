@@ -8,7 +8,8 @@
         .global startup_entry
         .type   startup_entry, %function
 startup_entry:
-        // Setup stack // TODO: No need to do if started from flash due to vector table
+.ifdef STARTUP_FROM_SRAM
+        // Setup stack
         ldr     r0,     =stack_initial_top
         mov     sp,     r0
 
@@ -16,8 +17,21 @@ startup_entry:
         ldr     r0,     =vector_table
         ldr     r1,     =SCB_VTOR
         str     r0,     [r1]
-
-        // TODO: Copy .data if started from flash
+.else
+        // Copy .data if started from flash
+        ldr     r0,     =data_lma_start
+        ldr     r1,     =data_vma_start
+        ldr     r2,     =data_vma_end
+        subs    r2,     r1
+        asrs    r2,     2 // div 4
+1:
+        cbz     r2,     2f
+        ldr     r3,     [r0],   4
+        str     r3,     [r1],   4
+        subs    r2,     1
+        b       1b
+2:
+.endif
 
         // Clear .bss
         ldr     r0,     =start_bss

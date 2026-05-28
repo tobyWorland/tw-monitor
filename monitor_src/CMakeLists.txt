@@ -20,15 +20,27 @@ set(ASM_SOURCE
 )
 
 if(CMAKE_CROSSCOMPILING)
+
+option(SRAM_ONLY "Don't store anything in flash (development only)" OFF)
+message("SRAM_ONLY=${SRAM_ONLY}")
+
+if (SRAM_ONLY)
+set(MONITOR_NAME "monitor_sram")
 set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/link_sram.ld")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} --defsym STARTUP_FROM_SRAM=1")
+else()
+set(MONITOR_NAME "monitor_flash")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/link_flash.ld")
+endif()
+
 set(CMAKE_EXE_LINKER_FLAGS "-T ${LINKER_SCRIPT}")
 
-add_executable(monitor
+add_executable(${MONITOR_NAME}
 	${C_SOURCE}
 	${ASM_SOURCE}
 )
 
-set_target_properties(monitor PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+set_target_properties(${MONITOR_NAME} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 else()
 add_library(host_monitor STATIC
 	${C_SOURCE}

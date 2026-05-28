@@ -6,8 +6,8 @@
         .section ".vect", "awx"
         .global vector_table
 vector_table:
-        .word   0                 // Stack
-        .word   0                 // Reset
+        .word   stack_initial_top // Stack (flash only)
+        .word   startup_entry     // Reset (flash only)
         .word   0                 // NMI
         .word   hardfault_handler // Hardfault
         .word   0                 // MemManage
