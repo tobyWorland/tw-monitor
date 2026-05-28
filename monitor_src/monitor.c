@@ -141,6 +141,8 @@ void monitor_enter(void *addr, enum enter_type ent_type) {
     const unsigned digit_width = enter_get_digits_from_type(ent_type);
     const bool extra_space_in_number = digit_width > 4;
 
+    assert(ent_type != ET_INSTRUCTION); // TODO: Not supported yet
+
     enter_load_address(addr, &current, ent_type);
 
     puthexword((uint32_t)addr);
