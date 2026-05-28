@@ -88,35 +88,84 @@ void hidden() { // TOOD: Remove
     putstring("Hidden function called!\r\n");
 }
 
+enum enter_type {
+    ET_BYTE = 1,
+    ET_HWORD = 2,
+    ET_WORD = 4,
+    ET_INSTRUCTION
+};
+
+static void enter_load_address(const void *addr, void *dest, enum enter_type ent_type) {
+    switch (ent_type) {
+    case ET_BYTE:
+        *(uint8_t*)dest = *(uint8_t*)addr;
+        break;
+    case ET_HWORD:
+        *(uint16_t*)dest = *(uint16_t*)addr;
+        break;
+    case ET_WORD:
+        *(uint32_t*)dest = *(uint32_t*)addr;
+        break;
+    default:
+        ASSERT_NOT_REACHED();
+    }
+};
+
+static void enter_store_address(void *addr, const void *src, enum enter_type ent_type) {
+    switch (ent_type) {
+    case ET_BYTE:
+        *(uint8_t*)addr = *(uint8_t*)src;
+        break;
+    case ET_HWORD:
+        *(uint16_t*)addr = *(uint16_t*)src;
+        break;
+    case ET_WORD:
+        *(uint32_t*)addr = *(uint32_t*)src;
+        break;
+    default:
+        ASSERT_NOT_REACHED();
+    }
+};
+
+static unsigned enter_get_digits_from_type(enum enter_type ent_type) {
+    unsigned width_in_bytes = (unsigned)ent_type;
+    return width_in_bytes * 2;
+}
+
 // TODO: Take type - bytes, half words, words, instructions
-void monitor_enter(void *addr) {
-    uint8_t *addr_as_byte_ptr = (void *)addr;
-    uint8_t current_byte = *addr_as_byte_ptr;
+void monitor_enter(void *addr, enum enter_type ent_type) {
+    uint32_t current;
     unsigned digit_idx = 0;
     unsigned col = 0;
 
-    puthexword((uint32_t)addr_as_byte_ptr);
+    const unsigned digit_width = enter_get_digits_from_type(ent_type);
+    const bool extra_space_in_number = digit_width > 4;
+
+    enter_load_address(addr, &current, ent_type);
+
+    puthexword((uint32_t)addr);
     putchar(' ');
 
     while (1) {
         char c;
         uint8_t digit;
 
-        putbyte(current_byte);
+        puthexnumber(digit_width, current);
 
-        if (digit_idx >= 2) {
-            *addr_as_byte_ptr = current_byte;
-            current_byte = *++addr_as_byte_ptr;
+        if (digit_idx >= digit_width) {
+            enter_store_address(addr, &current, ent_type);
+            addr += (unsigned)ent_type;
+            enter_load_address(addr, &current, ent_type);
             digit_idx = 0;
 
             if (++col == 16) {
                 putnewline();
-                puthexword((uint32_t)addr_as_byte_ptr);
+                puthexword((uint32_t)addr);
                 col = 0;
             }
 
             putchar(' ');
-            putbyte(current_byte);
+            puthexnumber(digit_width, current);
         }
 
         c = getchar();
@@ -128,31 +177,33 @@ void monitor_enter(void *addr) {
                 // Go back a byte
                 if (col > 0) {
                     col--;
-                    addr_as_byte_ptr--;
-                    vt_blank_last_n_chars(3);
+                    addr -= (unsigned)ent_type;
 
-                    current_byte = *addr_as_byte_ptr;
+                    // + 1 for the space between entries
+                    vt_blank_last_n_chars(digit_width + 1 + !!extra_space_in_number);
+
+                    enter_load_address(addr, &current, ent_type);
                     digit_idx = 0;
                 } else {
                     // TODO: handle going back a row
                 }
             } else {
                 // Reload byte from memory
-                current_byte = *addr_as_byte_ptr;
+                enter_load_address(addr, &current, ent_type);
                 digit_idx = 0;
             }
-        } else if (c == ' ') { // Leave byte as is and enter the next one
-            digit_idx = 2;
+        } else if (c == ' ') { // Leave entry as is and enter the next one
+            digit_idx = digit_width; // Trigger the next entry logic on the next iteration of the loop
         } else if ((digit = char_to_digit(c)) != 0xFF) {
-            current_byte <<= 4;
-            current_byte |= digit;
+            current <<= 4;
+            current |= digit;
             digit_idx++;
         }
 
-        vt_blank_last_n_chars(2);
+        vt_blank_last_n_chars(digit_width + !!extra_space_in_number);
     }
 
-    *addr_as_byte_ptr = current_byte;
+    enter_store_address(addr, &current, ent_type);
     putnewline();
 }
 
@@ -188,7 +239,7 @@ void monitor_main(bool surpress_init) {
             break;
         case 'e':
             addr = gethexword(addr);
-            monitor_enter((void *)addr);
+            monitor_enter((void *)addr, ET_BYTE);
             break;
         case 'u':
             addr = gethexword(addr);
