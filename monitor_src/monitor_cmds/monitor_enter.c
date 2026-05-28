@@ -6,6 +6,7 @@
 #include "../menu.h"
 #include "../util.h"
 #include "../vt.h"
+#include "../thumb_asm.h"
 
 #include <stdint.h>
 
@@ -20,6 +21,7 @@ struct enter_state {
     const enum enter_type ent_type;
     const unsigned digit_width;
     const bool extra_space_in_number;
+    const bool ent_type_is_instruction;
 };
 
 static void load_current(struct enter_state *state) {
@@ -98,6 +100,18 @@ static inline bool handle_input(struct enter_state *state) {
     return true;
 }
 
+static bool next_column(struct enter_state *state) {
+    if (state->ent_type_is_instruction) {
+        return (state->col++ > 0) || !thumb_is_wide_instruction(state->current);
+    } else {
+        // If hit max column, we want to move to the next row
+        // 16 bytes
+        // 8  half words
+        // 4  words
+        return ++state->col == 32/state->digit_width;
+    }
+}
+
 static void _monitor_enter(struct enter_state *state) {
     load_current(state);
 
@@ -112,16 +126,16 @@ static void _monitor_enter(struct enter_state *state) {
             // Store current to memory
             store_current(state);
 
+            // Needs to happen before next entry for the ET_INSTRUCTION wide check
+            bool column_overflow = next_column(state);
+
             // Move to next entry
             state->addr += (unsigned)state->ent_type;
             load_current(state);
             state->digit_idx = 0;
 
-            // If hit max column, we want to move to the next row
-            // 16 bytes
-            // 8  half words
-            // 4  words
-            if (++state->col == 32/state->digit_width) {
+            if (column_overflow) {
+                // Column overflowed, now on next row so print address
                 putnewline();
                 puthexword((uint32_t)state->addr);
                 state->col = 0;
@@ -169,15 +183,20 @@ enum enter_type enter_ent_type_submenu(void) {
 }
 
 void monitor_enter(void *addr, enum enter_type ent_type) {
+    const bool is_instruction_ent = ent_type == ET_INSTRUCTION;
+
+    if (is_instruction_ent) {
+        ent_type = ET_HWORD;
+    }
+
     const unsigned digit_width = enter_get_digits_from_type(ent_type);
     struct enter_state state = (struct enter_state){
         .addr = addr,
         .ent_type = ent_type,
         .digit_width = digit_width,
         .extra_space_in_number = digit_width > 4,
+        .ent_type_is_instruction = is_instruction_ent,
     };
-
-    assert(ent_type != ET_INSTRUCTION); // TODO: Not supported yet
 
     _monitor_enter(&state);
 }
