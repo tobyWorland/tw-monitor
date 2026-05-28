@@ -26,7 +26,7 @@ SECTIONS {
 	}
 
 	. = ALIGN(4);
-	.bss : {
+	.bss (NOLOAD) : {
 		start_bss = .;
 		*(.bss);
 		. = ALIGN(4);
