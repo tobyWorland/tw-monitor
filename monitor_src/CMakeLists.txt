@@ -10,6 +10,7 @@ set(C_SOURCE
 	menu.c
 	monitor.c
 	scb.c
+        thumb_asm.c
 	vt.c
 )
 

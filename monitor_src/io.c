@@ -25,6 +25,20 @@ void putnewline(void) {
 
 #endif
 
+// TODO: This and puthexword should share code
+void puthexhalfword(uint16_t hword) {
+    char pad[5];
+    char *ptr = pad + sizeof(pad);
+    *--ptr = '\0';
+
+    for (int i = 0; i < 4; i++) {
+        *--ptr = digit_to_char(hword & 0xF);
+        hword >>= 4;
+    }
+
+    putstring(ptr);
+}
+
 void puthexword(uint32_t address) {
     char pad[10];
     char *ptr = pad + sizeof(pad);

@@ -3,6 +3,7 @@
 #include "hardware.h"
 #include "io.h"
 #include "menu.h"
+#include "thumb_asm.h"
 #include "vt.h"
 
 #include <stdbool.h>
@@ -21,6 +22,38 @@ void monitor_memdump(void *addr) {
         }
         putnewline();
     }
+}
+
+// TODO: Print mnemonics and operands
+void monitor_disassemble(void *addr) {
+    uint16_t *addr_as_hword_ptr = (void *)addr;
+    const struct menu_option continue_options[] = {
+        {'c', "Continue"},
+        {'q', "Quit"    },
+    };
+    char opt;
+
+    do {
+        for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
+            puthexword((uint32_t)addr_as_hword_ptr);
+            putstring(": ");
+
+            uint16_t first_hword = *addr_as_hword_ptr++;
+            puthexhalfword(first_hword);
+
+            // If wide instruction include the 2nd half word
+            if (thumb_is_wide_instruction(first_hword)) {
+                putchar(' ');
+                puthexhalfword(*addr_as_hword_ptr++);
+            }
+
+            putnewline();
+        }
+
+        opt = menu("More? ",
+                   sizeof(continue_options) / sizeof(continue_options[0]),
+                   continue_options);
+    } while (opt != 'q');
 }
 
 void monitor_call_function(void (*fn)()) {
@@ -100,10 +133,11 @@ void monitor_enter(void *addr) {
 
 void monitor_main(bool surpress_init) {
     const struct menu_option options[] = {
-        {'d',       "Memory Dump" },
-        {'c',       "Call Address"},
-        {'e',       "Enter Bytes" },
-        {CTRL('l'), "Clear Screen"},
+        {'d',       "Memory Dump"   },
+        {'c',       "Call Address"  },
+        {'e',       "Enter Bytes"   },
+        {'u',       "Un/Disassemble"},
+        {CTRL('l'), "Clear Screen"  },
     };
     static uint32_t addr = 0;
 
@@ -130,6 +164,10 @@ void monitor_main(bool surpress_init) {
         case 'e':
             addr = gethexword(addr);
             monitor_enter((void *)addr);
+            break;
+        case 'u':
+            addr = gethexword(addr);
+            monitor_disassemble((void *)addr);
             break;
         case CTRL('l'):
             vt_clearscreen();
