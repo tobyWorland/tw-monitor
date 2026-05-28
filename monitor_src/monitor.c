@@ -1,4 +1,5 @@
 #include "assert.h"
+#include "arm.h"
 #include "char.h"
 #include "io.h"
 #include "menu.h"
@@ -35,6 +36,14 @@ void monitor_main(bool surpress_init) {
         putstring("hidden address: ");
         puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
         putnewline();
+        putstring("Halting debug? ");
+        putstring(arm_halting_debug_active() ? "YES" : "NO");
+        putnewline();
+        if (arm_halting_debug_active()) {
+            putstring("Monitor will not work as hardware debugger will take "
+                      "priority!");
+            putnewline();
+        }
     }
 
     while (1) {

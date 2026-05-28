@@ -23,3 +23,11 @@ void *arm_address_set_thumb_intwrk_bit(void *old_address, bool set) {
 
     return (void*)addr;
 }
+
+volatile uint32_t *DHCSR = (void *)0xE000EDF0;
+
+#define DHCSR_C_DEBUGEN BIT(0)
+
+bool arm_halting_debug_active(void) {
+    return *DHCSR & DHCSR_C_DEBUGEN;
+}
