@@ -35,4 +35,5 @@ target_link_libraries(demo_${name} PRIVATE demo_deps)
 endfunction()
 
 add_demo(gethexword)
+add_demo(puthexnumber)
 add_demo(menu)

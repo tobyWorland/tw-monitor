@@ -11,6 +11,7 @@ char getchar(void);
 #endif
 void putstring(const char *string);
 void putnewline(void);
+void puthexnumber(unsigned digit_min, uint32_t number);
 void puthexhalfword(uint16_t hword);
 void puthexword(uint32_t address);
 void putbyte(uint8_t byte);

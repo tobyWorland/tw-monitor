@@ -1,7 +1,9 @@
 #include "io.h"
 
+#include "assert.h"
 #include "char.h"
 #include "hardware.h"
+#include "util.h"
 #include "vt.h"
 
 // TODO: Support using something (like another display) other than USART2
@@ -21,42 +23,39 @@ void putstring(const char *string) {
 void putnewline(void) {
     usart2_putnewline();
 }
-#else
-
 #endif
 
-// TODO: This and puthexword should share code
-void puthexhalfword(uint16_t hword) {
-    char pad[5];
+void puthexnumber(unsigned digit_min, uint32_t number) {
+    char pad[10];
     char *ptr = pad + sizeof(pad);
     *--ptr = '\0';
 
-    for (int i = 0; i < 4; i++) {
-        *--ptr = digit_to_char(hword & 0xF);
-        hword >>= 4;
+    assert((digit_min <= 8) && (digit_min > 0)); // Support 32bit maximum
+
+    for (int i = 0; i < MIN(digit_min, 4); i++) {
+        *--ptr = digit_to_char(number & 0xF);
+        number >>= 4;
+    }
+
+    if (digit_min > 4) {
+        digit_min -= 4;
+        *--ptr = ' ';
+
+        for (int i = 0; i < MIN(digit_min, 4); i++) {
+            *--ptr = digit_to_char(number & 0xF);
+            number >>= 4;
+        }
     }
 
     putstring(ptr);
 }
 
-void puthexword(uint32_t address) {
-    char pad[10];
-    char *ptr = pad + sizeof(pad);
-    *--ptr = '\0';
+void puthexhalfword(uint16_t hword) {
+    puthexnumber(4, hword);
+}
 
-    for (int i = 0; i < 4; i++) {
-        *--ptr = digit_to_char(address & 0xF);
-        address >>= 4;
-    }
-
-    *--ptr = ' ';
-
-    for (int i = 0; i < 4; i++) {
-        *--ptr = digit_to_char(address & 0xF);
-        address >>= 4;
-    }
-
-    putstring(ptr);
+void puthexword(uint32_t word) {
+    puthexnumber(8, word);
 }
 
 void putbyte(uint8_t byte) {
