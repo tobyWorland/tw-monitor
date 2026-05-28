@@ -23,8 +23,8 @@ startup_entry:
         ldr     r0,     =start_bss
         ldr     r1,     =end_bss // R1 holds the number of words to zero out
                                  // (linker script ensures end-start will be in whole worlds)
-        sub     r1,     r0
-        asr     r1,     2 // div 4
+        subs    r1,     r0
+        asrs    r1,     2 // div 4
         movs    r2,     0
 1:
         cbz     r1,     2f
