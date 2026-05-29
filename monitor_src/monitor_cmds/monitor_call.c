@@ -20,7 +20,9 @@ void monitor_call_function(void (*fn)(), bool step) {
     }
 
     // Do call
-    arm_enable_debug_stepping(true);
+    if (step) {
+        arm_enable_debug_stepping(true);
+    }
     fn();
 }
 #endif
