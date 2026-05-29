@@ -81,20 +81,7 @@ hardfault_handler:
         bl      print_fault_state
 
         // Print registers
-        pop     {lr}
-        ldr     r12,    =registers
-        ldmia   sp,     {r0-r3}
-        stm     r12!,   {r0-r3}
-        stm     r12!,   {r4-r11}
-        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_R12]
-        str     r0,     [r12],  4
-        mov     r0,     sp
-        str     r0,     [r12],  4
-        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_LR]
-        str     r0,     [r12],  4
-        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_PC]
-        str     r0,     [r12],  4
-        push    {lr}
+        bl      save_registers
         bl      print_registers
 
         pop     {lr}
@@ -116,6 +103,25 @@ hardfault_handler:
         ldr     r1,     =xPSR_THUMB_BIT
         str     r1,     [r0]
 
+        bx      lr
+
+        // INPUTS: SP = exception frame with the LR added on top
+save_registers:
+        ldr     r12,    =registers
+        adds    r3,     sp,     4 // Skip over the LR put on the stack by the caller
+        ldmia   r3,     {r0-r3}
+        stm     r12!,   {r0-r3}
+        stm     r12!,   {r4-r11}
+
+        adds    r3,     sp,     4 // Skip over the LR put on the stack by the caller
+        ldr     r0,     [r3, EXCEPTION_FRAME_OFF_R12]
+        str     r0,     [r12],  4
+        mov     r0,     r3
+        str     r0,     [r12],  4
+        ldr     r0,     [r3, EXCEPTION_FRAME_OFF_LR]
+        str     r0,     [r12],  4
+        ldr     r0,     [r3, EXCEPTION_FRAME_OFF_PC]
+        str     r0,     [r12],  4
         bx      lr
 
 print_registers:
