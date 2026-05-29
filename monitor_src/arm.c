@@ -2,6 +2,7 @@
 
 #include "util.h"
 #include "io.h"
+#include "startup.h"
 
 #include <stdint.h>
 
@@ -31,6 +32,7 @@ volatile uint32_t *DEMCR = (void *)0xE000EDFC;
 #define DHCSR_C_DEBUGEN BIT(0)
 
 #define DEMCR_MON_STEP  BIT(18)
+#define DEMCR_MON_PEND  BIT(17)
 #define DEMCR_MON_EN    BIT(16)
 
 bool arm_halting_debug_active(void) {
@@ -41,7 +43,20 @@ void arm_enable_debug_monitor(void) {
     *DEMCR |= DEMCR_MON_EN;
 }
 
-void debug_monitor() {
+void *debug_monitor(void *pc) {
     putstring("**DEBUG**\r\n");
-    return;
+    print_registers();
+
+    putstring("Got PC: ");
+    puthexword((uint32_t)pc);
+    putnewline();
+
+    // TODO: Check if pc is pointing to a wide or narrow instruction
+    pc += 2;
+
+    putstring("New PC: ");
+    puthexword((uint32_t)pc);
+    putnewline();
+
+    return pc;
 }

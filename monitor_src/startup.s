@@ -80,14 +80,17 @@ hardfault_handler:
         // Print fault information
         bl      print_fault_state
 
-        // Print registers
-        bl      save_registers
-        bl      print_registers
-
+        // Check exception frame is on the MSP
         pop     {lr}
         ands    r0,     lr,     0x0F
         cmp     r0,     0x0D
         beq     . // Hang if PSP is used // TODO: Handle PSP
+
+        // Print registers
+        push    {lr}
+        bl      save_registers
+        bl      print_registers
+        pop     {lr}
 
         // Modify the exception frame so we return from the hardfault into monitor_main(1)
         adds    r0,     sp,     EXCEPTION_FRAME_OFF_PC
@@ -104,6 +107,29 @@ hardfault_handler:
         str     r1,     [r0]
 
         bx      lr
+
+        .global _debug_monitor
+        .type   _debug_monitor, %function
+_debug_monitor:
+        // Check exception frame is on the MSP
+        ands    r0,     lr,     0x0F
+        cmp     r0,     0x0D
+        beq     . // Hang if PSP is used // TODO: Handle PSP
+
+        // Print registers
+        push    {lr}
+        bl      save_registers
+
+        // Get program counter to pass to debug_monitor
+        adds    r12,    sp,     4 // Skip over LR to exception frame
+        ldr     r0,     [r12, EXCEPTION_FRAME_OFF_PC]
+        bl      debug_monitor
+        
+        // Use the program counter from debug_monitor
+        adds    r12,    sp,     4 // Skip over LR to exception frame
+        str     r0,     [r12, EXCEPTION_FRAME_OFF_PC]
+
+        pop     {pc}
 
         // INPUTS: SP = exception frame with the LR added on top
 save_registers:
@@ -124,6 +150,8 @@ save_registers:
         str     r0,     [r12],  4
         bx      lr
 
+        .global print_registers
+        .type   print_registers, %function
 print_registers:
         push    {r4, r5, lr}
         ldr     r4,     =registers
