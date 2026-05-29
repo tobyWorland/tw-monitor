@@ -42,7 +42,7 @@ void monitor_disassemble(void *addr) {
             putnewline();
         }
 
-        cont = menu_preset_continue("More? ");
+        cont = menu_preset_continue("More? ", true);
     } while (cont);
 }
 #endif

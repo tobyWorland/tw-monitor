@@ -4,6 +4,7 @@
 #include "char.h"
 #include "io.h"
 #include "util.h"
+#include "vt.h"
 
 #include <stddef.h>
 
@@ -110,12 +111,19 @@ char submenu(const char *prompt, unsigned option_count,
     }
 }
 
-bool menu_preset_continue(const char *prompt) {
+bool menu_preset_continue(const char *prompt, bool erase_on_continue) {
     static const struct menu_option continue_options[] = {
         {'c', "Continue"},
         {'q', "Quit"    },
     };
-    return menu(prompt, ARR_LEN(continue_options), continue_options, NULL) == 'c';
+    bool cont = menu(prompt, ARR_LEN(continue_options), continue_options,
+                     erase_on_continue ? "c" : NULL) == 'c';
+
+    if (cont) {
+        vt_clearline();
+    }
+
+    return cont;
 }
 
 enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt) {

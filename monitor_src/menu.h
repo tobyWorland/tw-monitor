@@ -19,7 +19,7 @@ char menu(const char *prompt, unsigned option_count,
 char submenu(const char *prompt, unsigned option_count,
              const struct menu_option *options);
 
-bool menu_preset_continue(const char *prompt);
+bool menu_preset_continue(const char *prompt, bool erase_on_continue);
 enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt);
 
 #endif
