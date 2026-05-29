@@ -2,6 +2,7 @@
 
 #include "assert.h"
 #include "io.h"
+#include "util.h"
 
 bool thumb_is_wide_instruction(uint16_t ins) {
     // ARMv7-M Architecture Reference Manual
@@ -33,32 +34,96 @@ void thumb_print_register(unsigned reg) {
     }
 }
 
+struct thumb_operand {
+    enum thumb_operand_type {
+        OT_NONE,
+        OT_REG,
+        OT_IMMEDIATE
+    } type;
+    union {
+        unsigned reg;
+        unsigned imm;
+    };
+};
+
+enum mnemonic {
+    TM_UNKNOWN,
+
+    TM_BKPT,
+    TM_BX,
+    TM_NOP,
+};
+
+const char *mnemonic_strs[] = {
+    "UNKNOWN",
+
+    "BKPT",
+    "BX",
+    "NOP",
+};
+
+struct thumb_instruction {
+    enum mnemonic mnemonic;
+    bool wide;
+    struct thumb_operand operands[3];
+};
+
+static void set_operand_reg(struct thumb_operand *operand, unsigned reg) {
+    *operand = (struct thumb_operand){
+        .type = OT_REG,
+        .imm = reg,
+    };
+}
+
+static void set_operand_immediate(struct thumb_operand *operand, unsigned imm) {
+    *operand = (struct thumb_operand){
+        .type = OT_IMMEDIATE,
+        .imm = imm,
+    };
+}
+
 // NOTE: Temporary
 void thumb_print_disassembled_instruction(const uint16_t *insptr) {
-    putchar(' ');
+    struct thumb_instruction instruction = {};
+
     if (thumb_is_wide_instruction(*insptr)) {
         uint16_t ins1 = insptr[0];
         uint16_t ins2 = insptr[1];
 
         if (ins1 == 0xF3AF && ins2 == 0x8000) {
-            putstring("NOP.W");
-            return;
+            instruction.mnemonic = TM_NOP;
+            instruction.wide = true;
         }
     } else {
         uint16_t ins = *insptr;
 
         if ((ins >> 8) == 0xBE) {
-            putstring("BKPT ");
-            putbyte(ins & 0xFF); // BKPT's immediate
-            return;
+            instruction.mnemonic = TM_BKPT;
+            set_operand_immediate(&instruction.operands[0], ins & 0xFF);
         } else if (ins == 0xBF00) {
-            putstring("NOP");
-            return;
+            instruction.mnemonic = TM_NOP;
         } else if ((ins & ~(0xf << 3)) == 0x4700) {
-            putstring("BX ");
-            thumb_print_register((ins >> 3) & 0xf); // Rm
-            return;
+            instruction.mnemonic = TM_BX;
+            set_operand_reg(&instruction.operands[0], (ins >> 3) & 0xF);
         }
     }
-    putstring("UNKNOWN");
+
+    putchar(' ');
+    putstring(mnemonic_strs[instruction.mnemonic]);
+    for (unsigned i = 0; i < ARR_LEN(instruction.operands); i++) {
+        putchar(' ');
+        if (instruction.operands[i].type != OT_NONE) {
+            switch (instruction.operands[i].type) {
+            case OT_REG:
+                thumb_print_register(instruction.operands[i].reg);
+                break;
+            case OT_IMMEDIATE:
+                // TODO: Print without padding
+                puthexnumber(8, instruction.operands[i].reg);
+                break;
+            default:
+                ASSERT_NOT_REACHED();
+            }
+        }
+    }
 }
