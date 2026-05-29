@@ -25,11 +25,11 @@ SECTIONS {
 		*(.rodata*);
 	}
 
-	. = sram_start;
-
 	. = ALIGN(4);
 	data_lma_start = .;
-	.data : AT(ADDR(.text) + SIZEOF(.text)) {
+
+	. = sram_start;
+	.data : AT(data_lma_start) {
 		data_vma_start = .;
 		*(.data);
 		. = ALIGN(4);
