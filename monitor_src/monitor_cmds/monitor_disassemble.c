@@ -7,7 +7,6 @@
 #include "../thumb_asm.h"
 
 #ifndef HOST
-// TODO: Print mnemonics and operands
 void monitor_disassemble(void *addr) {
     // Check thumb interwork bit isn't set
     if (arm_address_has_thumb_intwrk_bit(addr)) {
@@ -30,6 +29,10 @@ void monitor_disassemble(void *addr) {
             puthexword((uint32_t)addr_as_hword_ptr);
             putstring(": ");
 
+#if 1
+            const uint16_t *insptr = addr_as_hword_ptr;
+#endif
+
             uint16_t first_hword = *addr_as_hword_ptr++;
             puthexhalfword(first_hword);
 
@@ -37,7 +40,14 @@ void monitor_disassemble(void *addr) {
             if (thumb_is_wide_instruction(first_hword)) {
                 putchar(' ');
                 puthexhalfword(*addr_as_hword_ptr++);
+            } else {
+                putstring("     ");
             }
+
+            // TODO: Should have CMake option to include disassemble code
+#if 1
+            thumb_print_disassembled_instruction(insptr);
+#endif
 
             putnewline();
         }
