@@ -19,6 +19,16 @@ void hidden() { // TOOD: Remove
     putstring("Hidden function called!\r\n");
 }
 
+__attribute__((naked))
+void breakpoint() { // TOOD: Remove
+    __asm("nop\n"
+          "nop\n"
+          "bkpt 1\n"
+          "nop\n"
+          "nop\n"
+          "bx lr");
+}
+
 void monitor_main(bool surpress_init) {
     static const struct menu_option options[] = {
         {'d',       "Memory Dump"   },
@@ -36,6 +46,9 @@ void monitor_main(bool surpress_init) {
         putstring("hidden address: ");
         puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
         putnewline();
+        putstring("breakpoint address: ");
+        puthexword((uint32_t)breakpoint | 1); // | 1 for the interwork bit
+        putnewline();
         putstring("Halting debug? ");
         putstring(arm_halting_debug_active() ? "YES" : "NO");
         putnewline();
@@ -44,6 +57,7 @@ void monitor_main(bool surpress_init) {
                       "priority!");
             putnewline();
         }
+        arm_enable_debug_monitor();
     }
 
     while (1) {

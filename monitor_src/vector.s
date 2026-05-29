@@ -15,7 +15,7 @@ vector_table:
         .word   0                 // UsageFault
         .space  4*4               // Reserved
         .word   0                 // SVCall
-        .word   0                 // DebugMonitor
+        .word   debug_monitor     // DebugMonitor
         .space  4                 // Reserved
         .word   0                 // PendSV
         .word   0                 // Systick
