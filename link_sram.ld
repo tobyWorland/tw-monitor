@@ -29,9 +29,11 @@ SECTIONS {
 	.bss (NOLOAD) : {
 		bss_vma_start = .;
 		*(.bss);
-		. = ALIGN(4);
+		. = ALIGN(4); /* Ensure the size of .bss is in words for init code */
 		bss_vma_end = .;
 	}
+	/* This must be outside the section */
+	bss_size_words = (bss_vma_end - bss_vma_start) / 4;
 
 	/* Stack */
 	stack_initial_top = sram_end;

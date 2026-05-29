@@ -21,9 +21,7 @@ startup_entry:
         // Copy .data if started from flash
         ldr     r0,     =data_lma_start
         ldr     r1,     =data_vma_start
-        ldr     r2,     =data_vma_end
-        subs    r2,     r1
-        asrs    r2,     2 // div 4
+        ldr     r2,     =data_size_words
 1:
         cbz     r2,     2f
         ldr     r3,     [r0],   4
@@ -35,10 +33,7 @@ startup_entry:
 
         // Clear .bss
         ldr     r0,     =bss_vma_start
-        ldr     r1,     =bss_vma_end // R1 holds the number of words to zero out
-                                     // (linker script ensures end-start will be in whole worlds)
-        subs    r1,     r0
-        asrs    r1,     2 // div 4
+        ldr     r1,     =bss_size_words
         movs    r2,     0
 1:
         cbz     r1,     2f
