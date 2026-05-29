@@ -79,6 +79,8 @@ void *debug_monitor(void *pc) {
     // Same as R15 from print_registers()
     putstring("PC: ");
     puthexword((uint32_t)pc);
+    putchar(' ');
+    thumb_print_disassembled_instruction(pc);
     putnewline();
 
     char opt = menu("DEBUG> ", ARR_LEN(debug_options), debug_options, NULL);
