@@ -39,7 +39,7 @@ void puthexnumber(unsigned digit_min, uint32_t number) {
 
     if (digit_min > 4) {
         digit_min -= 4;
-        *--ptr = ' ';
+        *--ptr = '_';
 
         for (int i = 0; i < MIN(digit_min, 4); i++) {
             *--ptr = digit_to_char(number & 0xF);
