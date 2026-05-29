@@ -15,6 +15,8 @@
 #include <stdint.h>
 
 #ifndef HOST
+extern uint32_t user_start; // Defined in linker script
+
 void hidden() { // TOOD: Remove
     putstring("Hidden function called!\r\n");
 }
@@ -50,6 +52,9 @@ void monitor_main(bool surpress_init) {
         putnewline();
         putstring("breakpoint address: ");
         puthexword((uint32_t)breakpoint | 1); // | 1 for the interwork bit
+        putnewline();
+        putstring("User: ");
+        puthexword((uint32_t)&user_start);
         putnewline();
         putstring("Halting debug? ");
         putstring(arm_halting_debug_active() ? "YES" : "NO");

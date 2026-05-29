@@ -48,6 +48,9 @@ SECTIONS {
 	/* This must be outside the section */
 	bss_size_words = (bss_vma_end - bss_vma_start) / 4;
 
+        . = ALIGN(4);
+        user_start = .;
+
 	/* Stack */
 	stack_initial_top = sram_end;
 	stack_ceiling = stack_initial_top - stack_size;
