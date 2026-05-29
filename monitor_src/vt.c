@@ -7,7 +7,7 @@ void vt_clearscreen(void) {
 }
 
 void vt_clearline(void) {
-    putstring("\e[2K");
+    putstring("\e[2K\r");
 }
 
 void vt_blank_last_n_chars(unsigned n) {
