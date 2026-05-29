@@ -5,7 +5,7 @@
 #include "../menu.h"
 
 #ifndef HOST
-void monitor_call_function(void (*fn)()) {
+void monitor_call_function(void (*fn)(), bool step) {
     // Check for thumb interwork bit in function address
     if (!arm_address_has_thumb_intwrk_bit(fn)) {
         enum menu_warning_fix_result opt =
@@ -20,6 +20,7 @@ void monitor_call_function(void (*fn)()) {
     }
 
     // Do call
+    arm_enable_debug_stepping(true);
     fn();
 }
 #endif

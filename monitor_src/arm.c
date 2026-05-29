@@ -1,9 +1,12 @@
 #include "arm.h"
 
+#include "thumb_asm.h"
 #include "util.h"
 #include "io.h"
+#include "menu.h"
 #include "startup.h"
 
+#include <stddef.h>
 #include <stdint.h>
 
 // TODO: Test
@@ -35,6 +38,9 @@ volatile uint32_t *DEMCR = (void *)0xE000EDFC;
 #define DEMCR_MON_PEND  BIT(17)
 #define DEMCR_MON_EN    BIT(16)
 
+// When using gdb to trigger the monitor:
+// set *DEMCR |= (1 << 17)
+
 bool arm_halting_debug_active(void) {
     return *DHCSR & DHCSR_C_DEBUGEN;
 }
@@ -43,20 +49,59 @@ void arm_enable_debug_monitor(void) {
     *DEMCR |= DEMCR_MON_EN;
 }
 
+void arm_enable_debug_stepping(bool on) {
+    if (on) {
+        *DEMCR |= DEMCR_MON_STEP;
+    } else {
+        *DEMCR &= ~DEMCR_MON_STEP;
+    }
+}
+
+const struct menu_option debug_options[] = {
+    {'r', "Return"          },
+    {'s', "Skip Instruction"},
+    {'c', "Continue"        },
+};
+
+static void increment_pc(void **pc) {
+    uint16_t *ptr_ins_at_pc = *pc;
+    if (thumb_is_wide_instruction(*ptr_ins_at_pc)) {
+        *pc += 4;
+    } else {
+        *pc += 2;
+    }
+}
+
 void *debug_monitor(void *pc) {
     putstring("**DEBUG**\r\n");
     print_registers();
 
-    putstring("Got PC: ");
+    // Same as R15 from print_registers()
+    putstring("PC: ");
     puthexword((uint32_t)pc);
     putnewline();
 
-    // TODO: Check if pc is pointing to a wide or narrow instruction
-    pc += 2;
+    char opt = menu("DEBUG> ", ARR_LEN(debug_options), debug_options, NULL);
+    switch (opt) {
+    case 'r':
+        break;
+    case 's':
+        increment_pc(&pc);
+        break;
+    case 'c':
+        increment_pc(&pc);
+        arm_enable_debug_stepping(false);
+        break;
+    default:
+        putstring("HANG");
+        while(1);
+    }
 
+#if 0
     putstring("New PC: ");
     puthexword((uint32_t)pc);
     putnewline();
+#endif
 
     return pc;
 }

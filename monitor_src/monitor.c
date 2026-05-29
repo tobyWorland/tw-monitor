@@ -25,17 +25,19 @@ void breakpoint() { // TOOD: Remove
           "nop\n"
           "bkpt 1\n"
           "nop\n"
+          "nop.w\n"
           "nop\n"
           "bx lr");
 }
 
 void monitor_main(bool surpress_init) {
     static const struct menu_option options[] = {
-        {'d',       "Memory Dump"   },
-        {'c',       "Call Address"  },
-        {'e',       "Enter"         },
-        {'u',       "Un/Disassemble"},
-        {CTRL('l'), "Clear Screen"  },
+        {'d',       "Memory Dump"           },
+        {'c',       "Call Address"          },
+        {'e',       "Enter"                 },
+        {'u',       "Un/Disassemble"        },
+        {'s',       "Call Address with Step"},
+        {CTRL('l'), "Clear Screen"          },
     };
     static uint32_t addr = 0;
 
@@ -69,7 +71,11 @@ void monitor_main(bool surpress_init) {
             break;
         case 'c':
             addr = gethexword(addr);
-            monitor_call_function((void *)addr);
+            monitor_call_function((void *)addr, false);
+            break;
+        case 's':
+            addr = gethexword(addr);
+            monitor_call_function((void *)addr, true);
             break;
         case 'e': {
             enum enter_type ent_type = enter_ent_type_submenu();
