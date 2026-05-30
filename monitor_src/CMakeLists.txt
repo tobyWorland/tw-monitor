@@ -15,6 +15,7 @@ set(C_SOURCE
     monitor_cmds/monitor_enter.c
     monitor_cmds/monitor_memdump.c
     scb.c
+    string.c
     thumb_asm.c
     vt.c
 )
