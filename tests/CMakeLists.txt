@@ -11,6 +11,10 @@ target_link_libraries(char_test PRIVATE demo_deps GTest::gtest_main)
 add_executable(string_test string_test.cpp)
 target_link_libraries(string_test PRIVATE demo_deps GTest::gtest_main)
 
+add_executable(thumb_test thumb_test.cpp)
+target_link_libraries(thumb_test PRIVATE demo_deps GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(char_test)
 gtest_discover_tests(string_test)
+gtest_discover_tests(thumb_test)
