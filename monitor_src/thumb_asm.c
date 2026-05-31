@@ -139,7 +139,21 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         return encoder_to_asm_result(encode_bkpt_t1(into, parts));
     }
         // TODO: BX
-        // TODO: NOP
+    case TM_NOP: {
+        if (instruction_spec->operand_count != 0) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        unsigned enc_result;
+
+        if (instruction_spec->width == TWS_WIDE) {
+            enc_result = encode_nop_t2((void*)into);
+        } else {
+            enc_result = encode_nop_t1(into);
+        }
+
+        return encoder_to_asm_result(enc_result);
+    }
     default:
         break; // Go on to fail
     }

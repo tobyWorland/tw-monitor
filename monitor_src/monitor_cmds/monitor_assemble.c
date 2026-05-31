@@ -63,7 +63,15 @@ void monitor_assemble(void *addr) {
     while (!quit) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
-        case 'x': {
+            // TODO: BX
+        case 'n': { // NOP
+            struct thumb_instruction instruction = {};
+            instruction.mnemonic = TM_NOP;
+            instruction.width = width_specifier;
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
+        case 'x': { // BKPT
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
             struct thumb_instruction instruction = {};
