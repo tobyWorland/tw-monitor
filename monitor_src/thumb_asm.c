@@ -6,7 +6,7 @@
 #include "util.h"
 #include "string.h"
 
-bool thumb_is_wide_instruction(uint16_t ins) {
+bool thumb_is_wide_instruction(thumb_t ins) {
     // ARMv7-M Architecture Reference Manual
     // A5.3 32bit Thumb instruction Encoding
     return ((ins >> 13) == 7) && ((ins >> 11) != 0);
@@ -59,7 +59,7 @@ static void set_operand_immediate(struct thumb_operand *operand, unsigned imm) {
 }
 
 // NOTE: Temporary
-void thumb_print_disassembled_instruction(const uint16_t *insptr) {
+void thumb_print_disassembled_instruction(const thumb_t *insptr) {
     struct thumb_instruction instruction = {};
 
     if (thumb_is_wide_instruction(*insptr)) {
@@ -109,3 +109,40 @@ void thumb_print_disassembled_instruction(const uint16_t *insptr) {
         }
     }
 }
+
+static enum thumb_assemble_result
+encoder_to_asm_result(unsigned encoder_result) {
+    switch (encoder_result) {
+    case 32: return AR_WIDE_SUCCESS;
+    case 16: return AR_NARROW_SUCCESS;
+    default: return AR_FAIL_INVALID_OPERAND;
+    }
+}
+
+#define ENSURE_NARROW() if (instruction_spec->wide) return AR_FAIL_INVALID_WIDTH
+enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction *instruction_spec) {
+    switch (instruction_spec->mnemonic) {
+    case TM_BKPT: {
+        struct bkpt_t1_parts parts;
+
+        ENSURE_NARROW();
+
+        // TODO: Check other operands are empty - should have a operands given count in the spec?
+        if (instruction_spec->operands[0].type == OT_IMMEDIATE) {
+            parts.imm8 = instruction_spec->operands[0].imm;
+        } else {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        // TODO: Should be a pointer to parts
+        return encoder_to_asm_result(encode_bkpt_t1(into, parts));
+    }
+        // TODO: BX
+        // TODO: NOP
+    default:
+        break; // Go on to fail
+    }
+
+    return AR_FAIL_BAD_MNEMONIC;
+}
+#undef ENSURE_NARROW
