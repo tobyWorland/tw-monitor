@@ -18,6 +18,9 @@ set(C_SOURCE
     string.c
     thumb_asm.c
     vt.c
+
+    autogen_encodings/t32_encoding.h
+    autogen_encodings/t32_encoding.c
 )
 
 set(ASM_SOURCE
