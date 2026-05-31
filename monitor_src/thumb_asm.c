@@ -36,38 +36,12 @@ void thumb_print_register(unsigned reg) {
     }
 }
 
-struct thumb_operand {
-    enum thumb_operand_type {
-        OT_NONE,
-        OT_REG,
-        OT_IMMEDIATE
-    } type;
-    union {
-        unsigned reg;
-        unsigned imm;
-    };
-};
-
-enum mnemonic {
-    TM_UNKNOWN,
-
-    TM_BKPT,
-    TM_BX,
-    TM_NOP,
-};
-
-const char *mnemonic_strs[] = {
+static const char *mnemonic_strs[] = {
     "UNKNOWN",
 
     "BKPT",
     "BX",
     "NOP",
-};
-
-struct thumb_instruction {
-    enum mnemonic mnemonic;
-    bool wide;
-    struct thumb_operand operands[3];
 };
 
 static void set_operand_reg(struct thumb_operand *operand, unsigned reg) {
