@@ -2,6 +2,7 @@
 #define STRING_H_INCLUDED
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef HOST
 void pad_init();
@@ -14,5 +15,9 @@ const char *itoa_pad_w(int number, unsigned base, unsigned minwidth, bool fillwi
 
 const char *utoa_pad(unsigned number, unsigned base);
 const char *itoa_pad(int number, unsigned base);
+
+#ifndef HOST
+void *memset(void *s, char c, size_t n);
+#endif
 
 #endif

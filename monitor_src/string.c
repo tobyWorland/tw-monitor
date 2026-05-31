@@ -80,3 +80,14 @@ const char *utoa_pad(unsigned number, unsigned base) {
 const char *itoa_pad(int number, unsigned base) {
     return itoa_pad_w(number, base, 0, false);
 }
+
+// Needed by GCC
+#ifndef HOST
+void *memset(void *s, char c, size_t n) {
+    char *ptr = s;
+    while (n--) {
+        *ptr++ = c;
+    }
+    return s;
+}
+#endif
