@@ -4,6 +4,7 @@
 #include "assert.h"
 #include "io.h"
 #include "util.h"
+#include "string.h"
 
 bool thumb_is_wide_instruction(uint16_t ins) {
     // ARMv7-M Architecture Reference Manual
@@ -15,7 +16,7 @@ void thumb_print_register(unsigned reg) {
     assert(reg <= 15);
     if (reg < 13) {
         putchar('R');
-        putbyte(reg); // TODO: Should print in base 10
+        putstring(utoa_pad(reg, 10));
     } else {
         const char *name;
         switch (reg) {
