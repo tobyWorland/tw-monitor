@@ -3,6 +3,7 @@
 #include "char.h"
 #include "io.h"
 #include "menu.h"
+#include "monitor_cmds/monitor_assemble.h"
 #include "monitor_cmds/monitor_call.h"
 #include "monitor_cmds/monitor_disassemble.h"
 #include "monitor_cmds/monitor_enter.h"
@@ -38,6 +39,7 @@ void monitor_main(bool surpress_init) {
         {'c',       "Call Address"          },
         {'e',       "Enter"                 },
         {'u',       "Un/Disassemble"        },
+        {'a',       "Assemble"              },
         {'s',       "Call Address with Step"},
         {CTRL('l'), "Clear Screen"          },
     };
@@ -91,6 +93,10 @@ void monitor_main(bool surpress_init) {
         case 'u':
             addr = gethexword(addr);
             monitor_disassemble((void *)addr);
+            break;
+        case 'a':
+            addr = gethexword(addr);
+            monitor_assemble((void*)addr);
             break;
         case CTRL('l'):
             vt_clearscreen();
