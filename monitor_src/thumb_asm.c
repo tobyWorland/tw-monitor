@@ -44,15 +44,20 @@ static const char *mnemonic_strs[] = {
     "NOP",
 };
 
-static void set_operand_reg(struct thumb_operand *operand, unsigned reg) {
-    *operand = (struct thumb_operand){
+static struct thumb_operand *new_operand(struct thumb_instruction *instruction) {
+    assert(instruction->operand_count < THUMB_MAX_OPERANDS);
+    return &instruction->operands[instruction->operand_count++];
+}
+
+void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg) {
+    *new_operand(instruction) = (struct thumb_operand){
         .type = OT_REG,
         .imm = reg,
     };
 }
 
-static void set_operand_immediate(struct thumb_operand *operand, unsigned imm) {
-    *operand = (struct thumb_operand){
+void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm) {
+    *new_operand(instruction) = (struct thumb_operand){
         .type = OT_IMMEDIATE,
         .imm = imm,
     };
@@ -76,14 +81,14 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
             const struct bkpt_t1_parts parts = decode_bkpt_t1(ins);
 
             instruction.mnemonic = TM_BKPT;
-            set_operand_immediate(&instruction.operands[0], parts.imm8);
+            thumb_add_operand_immediate(&instruction, parts.imm8);
         } else if (match_nop_t1(ins)) {
             instruction.mnemonic = TM_NOP;
         } else if (match_bx_t1(ins)) {
             const struct bx_t1_parts parts = decode_bx_t1(ins);
 
             instruction.mnemonic = TM_BX;
-            set_operand_reg(&instruction.operands[0], parts.Rm);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
 
@@ -92,19 +97,17 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
     if (instruction.width == TWS_WIDE) {
         putstring(".W");
     }
-    for (unsigned i = 0; i < ARR_LEN(instruction.operands); i++) {
+    for (unsigned i = 0; i < instruction.operand_count; i++) {
         putchar(' ');
-        if (instruction.operands[i].type != OT_NONE) {
-            switch (instruction.operands[i].type) {
-            case OT_REG:
-                thumb_print_register(instruction.operands[i].reg);
-                break;
-            case OT_IMMEDIATE: // TODO: signed?
-                putstring(utoa_pad(instruction.operands[i].reg, 16));
-                break;
-            default:
-                ASSERT_NOT_REACHED();
-            }
+        switch (instruction.operands[i].type) {
+        case OT_REG:
+            thumb_print_register(instruction.operands[i].reg);
+            break;
+        case OT_IMMEDIATE: // TODO: signed?
+            putstring(utoa_pad(instruction.operands[i].reg, 16));
+            break;
+        default:
+            ASSERT_NOT_REACHED();
         }
     }
 }
@@ -126,8 +129,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         ENSURE_NARROW();
 
-        // TODO: Check other operands are empty - should have a operands given count in the spec?
-        if (instruction_spec->operands[0].type == OT_IMMEDIATE) {
+        if (instruction_spec->operand_count == 1 && instruction_spec->operands[0].type == OT_IMMEDIATE) {
             parts.imm8 = instruction_spec->operands[0].imm;
         } else {
             return AR_FAIL_INVALID_OPERAND;

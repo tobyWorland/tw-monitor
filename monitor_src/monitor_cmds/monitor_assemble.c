@@ -69,9 +69,7 @@ void monitor_assemble(void *addr) {
             struct thumb_instruction instruction = {};
             instruction.mnemonic = TM_BKPT;
             instruction.width = width_specifier;
-            // TODO: Should be able to use the helper
-            instruction.operands[0].type = OT_IMMEDIATE;
-            instruction.operands[0].imm = immediate;
+            thumb_add_operand_immediate(&instruction, immediate);
             assemble_and_show_result(&addr, &instruction);
             break;
         }

@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// Maximum number of operands an instruction can have
+#define THUMB_MAX_OPERANDS 3
+
 // Instructions are made of 16bit
 // Even though thumb is a mixture of 32bit wide and 16bit narrow
 // instructions, wide is 2 x 16bit half words as oppose to a single
@@ -39,10 +42,14 @@ enum thumb_width_specifier {
 struct thumb_instruction {
     enum thumb_mnemonic mnemonic;
     enum thumb_width_specifier width;
-    struct thumb_operand operands[3];
+    unsigned operand_count; // count of non empty operands
+    struct thumb_operand operands[THUMB_MAX_OPERANDS];
 };
 
 bool thumb_is_wide_instruction(thumb_t ins);
+
+void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg);
+void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm);
 void thumb_print_disassembled_instruction(const uint16_t *insptr);
 
 enum thumb_assemble_result {
