@@ -58,7 +58,6 @@ static void set_operand_immediate(struct thumb_operand *operand, unsigned imm) {
     };
 }
 
-// NOTE: Temporary
 void thumb_print_disassembled_instruction(const thumb_t *insptr) {
     struct thumb_instruction instruction = {};
 
@@ -100,9 +99,8 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
             case OT_REG:
                 thumb_print_register(instruction.operands[i].reg);
                 break;
-            case OT_IMMEDIATE:
-                // TODO: Print without padding
-                puthexnumber(8, instruction.operands[i].reg);
+            case OT_IMMEDIATE: // TODO: signed?
+                putstring(utoa_pad(instruction.operands[i].reg, 16));
                 break;
             default:
                 ASSERT_NOT_REACHED();
