@@ -30,9 +30,15 @@ struct thumb_operand {
     };
 };
 
+enum thumb_width_specifier {
+    TWS_AUTO,
+    TWS_NARROW,
+    TWS_WIDE,
+};
+
 struct thumb_instruction {
     enum thumb_mnemonic mnemonic;
-    bool wide;
+    enum thumb_width_specifier width;
     struct thumb_operand operands[3];
 };
 

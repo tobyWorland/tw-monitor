@@ -64,13 +64,14 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
 
     if (thumb_is_wide_instruction(*insptr)) {
         uint32_t wide_ins = *(uint32_t*)insptr;
-        instruction.wide = true;
+        instruction.width = TWS_WIDE;
 
         if (match_nop_t2(wide_ins)) {
             instruction.mnemonic = TM_NOP;
         }
     } else {
         uint16_t ins = *insptr;
+        instruction.width = TWS_NARROW;
 
         if (match_bkpt_t1(ins)) {
             const struct bkpt_t1_parts parts = decode_bkpt_t1(ins);
@@ -89,7 +90,7 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
 
     putchar(' ');
     putstring(mnemonic_strs[instruction.mnemonic]);
-    if (instruction.wide) {
+    if (instruction.width == TWS_WIDE) {
         putstring(".W");
     }
     for (unsigned i = 0; i < ARR_LEN(instruction.operands); i++) {
@@ -119,7 +120,7 @@ encoder_to_asm_result(unsigned encoder_result) {
     }
 }
 
-#define ENSURE_NARROW() if (instruction_spec->wide) return AR_FAIL_INVALID_WIDTH
+#define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction *instruction_spec) {
     switch (instruction_spec->mnemonic) {
     case TM_BKPT: {
