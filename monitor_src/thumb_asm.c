@@ -114,6 +114,9 @@ void thumb_print_disassembled_instruction(const uint16_t *insptr) {
 
     putchar(' ');
     putstring(mnemonic_strs[instruction.mnemonic]);
+    if (instruction.wide) {
+        putstring(".W");
+    }
     for (unsigned i = 0; i < ARR_LEN(instruction.operands); i++) {
         putchar(' ');
         if (instruction.operands[i].type != OT_NONE) {
