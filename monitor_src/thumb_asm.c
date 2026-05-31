@@ -1,5 +1,6 @@
 #include "thumb_asm.h"
 
+#include "autogen_encodings/t32_encoding.h"
 #include "assert.h"
 #include "io.h"
 #include "util.h"
@@ -87,24 +88,27 @@ void thumb_print_disassembled_instruction(const uint16_t *insptr) {
     struct thumb_instruction instruction = {};
 
     if (thumb_is_wide_instruction(*insptr)) {
-        uint16_t ins1 = insptr[0];
-        uint16_t ins2 = insptr[1];
+        uint32_t wide_ins = *(uint32_t*)insptr;
+        instruction.wide = true;
 
-        if (ins1 == 0xF3AF && ins2 == 0x8000) {
+        if (match_nop_t2(wide_ins)) {
             instruction.mnemonic = TM_NOP;
-            instruction.wide = true;
         }
     } else {
         uint16_t ins = *insptr;
 
-        if ((ins >> 8) == 0xBE) {
+        if (match_bkpt_t1(ins)) {
+            const struct bkpt_t1_parts parts = decode_bkpt_t1(ins);
+
             instruction.mnemonic = TM_BKPT;
-            set_operand_immediate(&instruction.operands[0], ins & 0xFF);
-        } else if (ins == 0xBF00) {
+            set_operand_immediate(&instruction.operands[0], parts.imm8);
+        } else if (match_nop_t1(ins)) {
             instruction.mnemonic = TM_NOP;
-        } else if ((ins & ~(0xf << 3)) == 0x4700) {
+        } else if (match_bx_t1(ins)) {
+            const struct bx_t1_parts parts = decode_bx_t1(ins);
+
             instruction.mnemonic = TM_BX;
-            set_operand_reg(&instruction.operands[0], (ins >> 3) & 0xF);
+            set_operand_reg(&instruction.operands[0], parts.Rm);
         }
     }
 
