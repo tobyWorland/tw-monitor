@@ -5,13 +5,17 @@
 
         .set    SCB_VTOR,    0xE000ED08 // Vector Table Offset Register
 
+reset_stack:
+        ldr     r0,     =stack_initial_top
+        mov     sp,     r0
+        bx      lr
+
         .global startup_entry
         .type   startup_entry, %function
 startup_entry:
 .ifdef STARTUP_FROM_SRAM
         // Setup stack
-        ldr     r0,     =stack_initial_top
-        mov     sp,     r0
+        bl      reset_stack
 
         // Set VTOR to vector table in ram
         ldr     r0,     =vector_table
@@ -51,6 +55,13 @@ startup_entry:
         .type   hang, %function
 hang:
         bkpt    90
+        b       hang
+
+        .type   fault_exit, %function
+fault_exit:
+        bl      reset_stack
+        movs    r0,     1 // Supress init - Don't reset addr or clear screen
+        bl      monitor_main
         b       hang
 
         .set    EXCEPTION_FRAME_OFF_R0,   0
@@ -94,10 +105,7 @@ hardfault_handler:
 
         // Modify the exception frame so we return from the hardfault into monitor_main(1)
         adds    r0,     sp,     EXCEPTION_FRAME_OFF_PC
-        ldr     r1,     =monitor_main
-        str     r1,     [r0]
-        adds    r0,     sp,     EXCEPTION_FRAME_OFF_R0
-        movs    r1,     1 // Supress init - Don't reset addr, clear screen
+        ldr     r1,     =fault_exit
         str     r1,     [r0]
 
         // Reset program status register
