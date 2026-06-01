@@ -129,3 +129,17 @@ TEST(string_number, hex_signed) {
     EXPECT_STREQ(itoa_pad(-16, 16), "-10");
     EXPECT_STREQ(itoa_pad(-0xCAFE, 16), "-CAFE");
 }
+
+TEST(string_number, hex_sep) {
+    EXPECT_STREQ(itoa_pad(0x1234BEEF, 16),   "1234_BEEF");
+    EXPECT_STREQ(itoa_pad(-0x1234BEEF, 16), "-1234_BEEF");
+    EXPECT_STREQ(itoa_pad(0xDBEEF, 16),         "D_BEEF");
+    EXPECT_STREQ(itoa_pad(-0xDBEEF, 16),       "-D_BEEF");
+}
+
+TEST(string_number, hex_sep_width) {
+    EXPECT_STREQ(itoa_pad_w(0, 16, 4, true),    "0000");
+    EXPECT_STREQ(itoa_pad_w(0, 16, 6, true),  "0_0000");
+    EXPECT_STREQ(itoa_pad_w(0, 16, 4, false),   "   0");
+    EXPECT_STREQ(itoa_pad_w(0, 16, 6, false), "     0");
+}

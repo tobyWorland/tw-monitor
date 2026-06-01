@@ -41,15 +41,30 @@ const char *utoa_pad_w(unsigned number, unsigned base, unsigned minwidth,
     if (number == 0) {
         pad_hold('0');
     } else {
+        unsigned i = 0;
         while (number > 0) {
+            if (!(++i % 5)) {
+                pad_hold('_');
+            }
+
             const uint8_t digit = number % base;
             pad_hold(digit_to_char(digit));
             number /= base;
         }
     }
 
-    while (pad_len() < minwidth) {
-        pad_hold(fillchar);
+    if (fillwithzero) {
+        while (pad_len() < minwidth) {
+            if (!(pad_len() % 4)) {
+                pad_hold('_');
+            } else {
+                pad_hold(fillchar);
+            }
+        }
+    } else {
+        while (pad_len() < minwidth) {
+            pad_hold(fillchar);
+        }
     }
 
     return pad_ptr;
