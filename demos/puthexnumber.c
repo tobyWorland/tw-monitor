@@ -1,7 +1,7 @@
 
 #include "demo_support.h"
 
-#include "../monitor_src/io.h"
+#include "../monitor/io.h"
 
 #include <stdint.h>
 

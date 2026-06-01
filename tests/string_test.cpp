@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "../monitor_src/string.h"
+#include "../monitor/string.h"
 }
 
 TEST(string_pad, pad) {

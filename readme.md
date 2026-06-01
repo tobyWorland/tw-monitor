@@ -27,7 +27,7 @@ assmebling and disassembling.
 ## Misc Dependencies
 * [meta-bfield](https://github.com/tobyWorland/meta-bfield) (1)
 
-(1) Pragmatically generates the C source for encoding and decoding thumb instructions. Written for this project. Output is stored in `monitor_src/autogen_encodings`
+(1) Pragmatically generates the C source for encoding and decoding thumb instructions. Written for this project. Output is stored in `monitor/autogen_encodings`
 
 ## Quick Build
 
@@ -36,7 +36,7 @@ git submodule update --init
 ./scripts/build.sh
 ```
 
-1. You will want to flash `builds/target_flash/monitor_src/monitor_flash`
+1. You will want to flash `builds/target_flash/monitor/monitor_flash`
 to your board.
 2. Check the serial console (115200bps, no parity, one stop bit, no flow control) for the menu.
 3. Disconnect your debugger and reset, you may need to cut power.

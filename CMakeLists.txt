@@ -5,7 +5,7 @@ enable_language(C ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(monitor_src)
+add_subdirectory(monitor)
 if(NOT CMAKE_CROSSCOMPILING)
 add_subdirectory(demos)
 

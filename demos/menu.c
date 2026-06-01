@@ -1,8 +1,8 @@
 #include "demo_support.h"
 
-#include "../monitor_src/char.h"
-#include "../monitor_src/menu.h"
-#include "../monitor_src/util.h"
+#include "../monitor/char.h"
+#include "../monitor/menu.h"
+#include "../monitor/util.h"
 
 #include <stdio.h>
 

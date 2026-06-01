@@ -7,7 +7,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libhost_monitor_redefined.
 	DEPENDS host_monitor
 	COMMAND ${CMAKE_OBJCOPY} ARGS 
 	--redefine-syms=${CMAKE_CURRENT_SOURCE_DIR}/symbol_rename_map
-	../monitor_src/libhost_monitor.a libhost_monitor_redefined.a
+	../monitor/libhost_monitor.a libhost_monitor_redefined.a
 )
 add_custom_target(libhost_monitor_redefined.a
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libhost_monitor_redefined.a

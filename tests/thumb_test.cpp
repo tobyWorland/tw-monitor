@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "../monitor_src/thumb_asm.h"
+#include "../monitor/thumb_asm.h"
 }
 
 const uint16_t nop_w[2] = {0xF3AF, 0x8000};

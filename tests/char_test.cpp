@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "../monitor_src/char.h"
+#include "../monitor/char.h"
 }
 
 TEST(char_type, isprint) {
