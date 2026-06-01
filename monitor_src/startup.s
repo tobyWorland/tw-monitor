@@ -191,9 +191,10 @@ print_registers:
 2:
         pop     {r4, r5, pc}
 
-        .data
+        .section ".rodata", "a"
 str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
 
+        .data
         .balign 4
 registers:
         .space  4*16 // R0-R15
