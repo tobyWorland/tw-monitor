@@ -137,7 +137,19 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(encode_bkpt_t1(into, &parts));
     }
-        // TODO: BX
+    case TM_BX: {
+        struct bx_t1_parts parts;
+
+        ENSURE_NARROW();
+
+        if (instruction_spec->operand_count == 1 && instruction_spec->operands[0].type == OT_REG) {
+            parts.Rm = instruction_spec->operands[0].reg;
+        } else {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        return encoder_to_asm_result(encode_bx_t1(into, &parts));
+    }
     case TM_NOP: {
         if (instruction_spec->operand_count != 0) {
             return AR_FAIL_INVALID_OPERAND;

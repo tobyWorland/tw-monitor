@@ -62,7 +62,14 @@ void monitor_assemble(void *addr) {
     while (!quit) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
-            // TODO: BX
+        case 'b': { // BX
+            struct thumb_instruction instruction = {};
+            instruction.mnemonic = TM_BX;
+            instruction.width = width_specifier;
+            thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
         case 'n': { // NOP
             struct thumb_instruction instruction = {};
             instruction.mnemonic = TM_NOP;
