@@ -57,9 +57,8 @@ const char *utoa_pad_w(unsigned number, unsigned base, unsigned minwidth,
         while (pad_len() < minwidth) {
             if (!(pad_len() % 4)) {
                 pad_hold('_');
-            } else {
-                pad_hold(fillchar);
             }
+            pad_hold(fillchar);
         }
     } else {
         while (pad_len() < minwidth) {
