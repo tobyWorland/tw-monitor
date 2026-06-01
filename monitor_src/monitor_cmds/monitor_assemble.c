@@ -50,7 +50,6 @@ void monitor_assemble(void *addr) {
     static const struct menu_option assemble_options[] = {
         {'b', "BX"   },
         {'n', "NOP"  },
-        {'N', "NOP.W"},
         {'x', "BKPT" },
         {'.', "Specify Width"},
         {CTRL('p'), "Print Assembly"},
