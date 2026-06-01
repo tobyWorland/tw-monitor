@@ -135,8 +135,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        // TODO: Should be a pointer to parts
-        return encoder_to_asm_result(encode_bkpt_t1(into, parts));
+        return encoder_to_asm_result(encode_bkpt_t1(into, &parts));
     }
         // TODO: BX
     case TM_NOP: {

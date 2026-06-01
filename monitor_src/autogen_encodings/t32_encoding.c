@@ -15,21 +15,21 @@ bool match_nop_t2(uint32_t field) {
         (((field >> 0) & ((1ULL << 16) - 1)) == 62383);
 }
 
-unsigned encode_bkpt_t1(uint16_t *out, struct bkpt_t1_parts parts) {
+unsigned encode_bkpt_t1(uint16_t *out, struct bkpt_t1_parts *parts) {
     uint16_t encoded = 0xbe00;
-    if (parts.imm8 & ~((1ULL << 8) - 1)) {
+    if (parts->imm8 & ~((1ULL << 8) - 1)) {
         return 0;
     }
-    encoded |= (parts.imm8 << 0);
+    encoded |= (parts->imm8 << 0);
     *out = encoded;
     return 16;
 }
-unsigned encode_bx_t1(uint16_t *out, struct bx_t1_parts parts) {
+unsigned encode_bx_t1(uint16_t *out, struct bx_t1_parts *parts) {
     uint16_t encoded = 0x4700;
-    if (parts.Rm & ~((1ULL << 4) - 1)) {
+    if (parts->Rm & ~((1ULL << 4) - 1)) {
         return 0;
     }
-    encoded |= (parts.Rm << 3);
+    encoded |= (parts->Rm << 3);
     *out = encoded;
     return 16;
 }
