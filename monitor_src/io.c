@@ -67,9 +67,6 @@ uint32_t gethexword(uint32_t default_value) {
     uint32_t result = default_value;
 
     while (1) {
-        vt_clearline(); // TODO: Don't clear the whole line just the part
-                        // printed
-        putchar('\r');
         puthexword(result);
 
         char c = getchar();
@@ -85,6 +82,8 @@ uint32_t gethexword(uint32_t default_value) {
             result <<= 4;
             result |= digit;
         }
+
+        vt_blank_last_n_chars(9);
     }
     putnewline();
 
