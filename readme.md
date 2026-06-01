@@ -19,6 +19,8 @@ assmebling and disassembling.
 * NUCLEO-F411RE
 
 ## Build Dependencies
+* Binutils (--target arm-none-eabi)
+* GCC (--target arm-none-eabi)
 * CMake
 * GoogleTest (optional - testing only)
 
