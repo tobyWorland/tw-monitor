@@ -4,6 +4,7 @@
 #include "char.h"
 #include "hardware.h"
 #include "util.h"
+#include "string.h"
 #include "vt.h"
 
 // TODO: Support using something (like another display) other than USART2
@@ -26,28 +27,7 @@ void putnewline(void) {
 #endif
 
 void puthexnumber(unsigned digit_min, uint32_t number) {
-    char pad[10];
-    char *ptr = pad + sizeof(pad);
-    *--ptr = '\0';
-
-    assert((digit_min <= 8) && (digit_min > 0)); // Support 32bit maximum
-
-    for (int i = 0; i < MIN(digit_min, 4); i++) {
-        *--ptr = digit_to_char(number & 0xF);
-        number >>= 4;
-    }
-
-    if (digit_min > 4) {
-        digit_min -= 4;
-        *--ptr = '_';
-
-        for (int i = 0; i < MIN(digit_min, 4); i++) {
-            *--ptr = digit_to_char(number & 0xF);
-            number >>= 4;
-        }
-    }
-
-    putstring(ptr);
+    putstring(utoa_pad_w(number, 16, digit_min, true));
 }
 
 void puthexhalfword(uint16_t hword) {
