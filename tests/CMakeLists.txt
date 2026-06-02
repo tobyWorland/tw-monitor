@@ -15,6 +15,15 @@ add_executable(thumb_test thumb_test.cpp)
 target_link_libraries(thumb_test PRIVATE demo_deps GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(char_test)
-gtest_discover_tests(string_test)
-gtest_discover_tests(thumb_test)
+gtest_discover_tests(
+	char_test
+    XML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/testresults"
+)
+gtest_discover_tests(
+	string_test
+    XML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/testresults"
+)
+gtest_discover_tests(
+	thumb_test
+    XML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/testresults"
+)
