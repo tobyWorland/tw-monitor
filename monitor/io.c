@@ -7,6 +7,8 @@
 #include "string.h"
 #include "vt.h"
 
+#include <stdarg.h>
+
 // TODO: Support using something (like another display) other than USART2
 #ifndef HOST
 void putchar(char c) {
@@ -68,4 +70,38 @@ uint32_t gethexword(uint32_t default_value) {
     putnewline();
 
     return result;
+}
+
+void io_printf(const char *fmt, ...) {
+    va_list ap;
+    bool in_format = false;
+
+    va_start(ap, fmt);
+
+    for (; *fmt; fmt++) {
+        if (!in_format) {
+            if (*fmt == '%') {
+                in_format = true;
+            } else {
+                putchar(*fmt);
+            }
+        } else {
+            switch (*fmt) {
+            case '%': putchar('%'); break;
+            case 's':
+                putstring(va_arg(ap, char*));
+                break;
+            case 'c':
+                putchar(va_arg(ap, int));
+                break;
+            case 'x':
+            case 'X':
+                puthexword(va_arg(ap, uint32_t));
+                break;
+            }
+            in_format = false;
+        }
+    }
+
+    va_end(ap);
 }

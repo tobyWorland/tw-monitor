@@ -84,6 +84,12 @@ void monitor_main(bool surpress_init) {
     }
 #endif
 
+#if 0
+    io_printf("Hello!\r\n");
+    io_printf("Hello %s!\r\nX = %x, Y = %x\r\nC = '%c'\r\n",
+              "world", 4, 7, 'V');
+#endif
+
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {

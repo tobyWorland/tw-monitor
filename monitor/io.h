@@ -16,5 +16,6 @@ void puthexhalfword(uint16_t hword);
 void puthexword(uint32_t address);
 void putbyte(uint8_t byte);
 uint32_t gethexword(uint32_t default_value);
+void io_printf(const char *fmt, ...);
 
 #endif
