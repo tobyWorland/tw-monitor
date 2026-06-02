@@ -24,10 +24,11 @@ set(C_SOURCE
     autogen_encodings/t32_encoding.c
 )
 
-set(ASM_SOURCE
+set(TARGET_SOURCE
     hardware.s
     startup.s
     vector.s
+    stm32f411xce_timer.c
 )
 
 if(CMAKE_CROSSCOMPILING)
@@ -48,7 +49,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-T ${LINKER_SCRIPT}")
 
 add_executable(${MONITOR_NAME}
     ${C_SOURCE}
-    ${ASM_SOURCE}
+    ${TARGET_SOURCE}
 )
 
 set_target_properties(${MONITOR_NAME} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})

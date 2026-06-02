@@ -6,10 +6,13 @@
         .set    RCC_BASE,               0x40023800
         .set    RCC_AHB1_ENR,           RCC_BASE + 0x30
         .set    RCC_APB1_ENR,           RCC_BASE + 0x40
+        .set    RCC_APB2_ENR,           RCC_BASE + 0x44
 
         .set    RCC_AHB1_OFF_GPIOA,     0
 
         .set    RCC_APB1_OFF_USART2,    17
+
+        .set    RCC_APB2_OFF_TIM10,     17
 
         .set    GPIOA_BASE,             0x40020000
         .set    GPIOA_MODER,            GPIOA_BASE + 0x00
@@ -89,6 +92,11 @@ hardware_init:
         ldr     r1,     [r0]
         ldr     r2,     =(USART_CR1_TE | USART_CR1_RE)
         orr     r1,     r2
+        str     r1,     [r0]
+
+        // Enable peripheral clock for USART2
+        ldr     r0,     =RCC_APB2_ENR
+        movs    r1,     (1 << RCC_APB2_OFF_TIM10)
         str     r1,     [r0]
 
         ldr     r0,     =g_hardware_inited

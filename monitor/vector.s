@@ -19,5 +19,9 @@ vector_table:
         .space  4                 // Reserved
         .word   0                 // PendSV
         .word   0                 // Systick
-        // TODO: IRQs
-        
+        // IRQs
+        .space 4 * 85
+
+        // TIM1 update interrupt and TIM10 global interrupt
+        .global irq_tim1_up_tim10
+        .set    irq_tim1_up_tim10,  (vector_table + 0xA4)

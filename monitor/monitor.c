@@ -11,6 +11,8 @@
 #include "util.h"
 #include "vt.h"
 
+#include "stm32f411xce_timer.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -68,6 +70,19 @@ void monitor_main(bool surpress_init) {
         }
         arm_enable_debug_monitor();
     }
+
+    stm32f411xce_timer_sleep_init();
+
+#if 0
+    while (1) {
+        putstring("Waiting for 1...\r\n");
+        sleep(1);
+        putstring("Waiting for 3...\r\n");
+        sleep(3);
+        putstring("Waiting for 10...\r\n");
+        sleep(10);
+    }
+#endif
 
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
