@@ -14,9 +14,14 @@ pipeline {
 				sh 'git submodule update --init --recursive'
 			}
 		}
-		stage('Build All') {
+		stage('Create builds directory') {
 			steps {
-				sh './scripts/build.sh'
+				sh 'mkdir builds'
+			}
+		}
+		stage('Build tests and demos') {
+			steps {
+				sh 'cmake -DCMAKE_BUILD_TYPE=Debug -B builds/host && cmake --build builds/host'
 			}
 		}
 		stage('Test') {
@@ -29,6 +34,16 @@ pipeline {
 					  tools: [ GoogleTest(pattern: 'builds/host/testresults/*.xml') ]
 					)
 				}
+			}
+		}
+		stage('Build for Flash') {
+			steps {
+				sh 'cmake -DSRAM_ONLY=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_flash && cmake --build builds/target_flash'
+			}
+		}
+		stage('Build for SRAM') {
+			steps {
+				sh 'cmake -DSRAM_ONLY=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_sram && cmake --build builds/target_sram'
 			}
 		}
 	}
