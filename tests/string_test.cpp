@@ -144,3 +144,27 @@ TEST(string_number, hex_sep_width) {
     EXPECT_STREQ(itoa_pad_w(0, 16, 4, false),      "   0");
     EXPECT_STREQ(itoa_pad_w(0, 16, 5, false),     "    0");
 }
+
+TEST(number_string, strtou) {
+    unsigned u;
+    char *endptr;
+
+    EXPECT_EQ(strtou("123", NULL, 10), 123);
+
+    EXPECT_EQ(strtou("456", &endptr, 10), 456);
+    EXPECT_EQ(*endptr, '\0');
+
+    EXPECT_EQ(strtou("abc", &endptr, 10), 0);
+    EXPECT_EQ(*endptr, 'a');
+
+    EXPECT_EQ(strtou("12cd", &endptr, 10), 12);
+    EXPECT_EQ(*endptr, 'c');
+
+    EXPECT_EQ(strtou("deadz", &endptr, 16), 0xDEAD);
+    EXPECT_EQ(*endptr, 'z');
+}
+
+TEST(number_string, strtoi) {
+    EXPECT_EQ(strtoi("123", NULL, 10), 123);
+    EXPECT_EQ(strtoi("-123", NULL, 10), -123);
+}

@@ -16,6 +16,9 @@ const char *itoa_pad_w(int number, unsigned base, unsigned minwidth, bool fillwi
 const char *utoa_pad(unsigned number, unsigned base);
 const char *itoa_pad(int number, unsigned base);
 
+unsigned strtou(const char *s, char **endptr, unsigned base);
+int strtoi(const char *s, char **endptr, unsigned base);
+
 #ifndef HOST
 void *memset(void *s, char c, size_t n);
 #endif

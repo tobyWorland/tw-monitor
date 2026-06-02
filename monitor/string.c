@@ -95,6 +95,46 @@ const char *itoa_pad(int number, unsigned base) {
     return itoa_pad_w(number, base, 0, false);
 }
 
+unsigned strtou(const char *s, char **endptr, unsigned base) {
+    unsigned result = 0;
+
+    assert((base >= MIN_BASE) && (base <= MAX_BASE));
+
+    if (endptr == NULL) {
+        endptr = (char**)&s;
+    }
+
+    for (; *s; s++) {
+        uint8_t digit = char_to_digit(*s);
+        if (digit == 0xFF || digit >= base) {
+            break;
+        }
+
+        result *= base;
+        result += digit;
+    }
+
+    *endptr = (char *)s;
+    return result;
+}
+
+int strtoi(const char *s, char **endptr, unsigned base) {
+    bool neg = false;
+    int result;
+
+    if (*s == '-') {
+        neg = true;
+        s++;
+    }
+
+    result = strtou(s, endptr, base);
+    if (neg) {
+        result *= -1;
+    }
+
+    return result;
+}
+
 // Needed by GCC
 #ifndef HOST
 void *memset(void *s, char c, size_t n) {
