@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 void putstring(const char *string) {
