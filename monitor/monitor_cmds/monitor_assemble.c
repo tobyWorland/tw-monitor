@@ -8,14 +8,14 @@
 
 #include <stddef.h>
 
-static void assemble_and_show_result(void **paddr, const struct thumb_instruction *instruction) {
+static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
     case AR_NARROW_SUCCESS:
-        *paddr += sizeof(thumb_t);
+        *paddr += 1; // + 16bit
         break;
     case AR_WIDE_SUCCESS:
-        *paddr += sizeof(thumb_t)*2;
+        *paddr += 2; // + 32bit
         break;
     default:
         putstring("Failed to assemble ");
@@ -46,7 +46,7 @@ static enum thumb_width_specifier show_width_menu(enum thumb_width_specifier cur
     }
 }
 
-void monitor_assemble(void *addr) {
+void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'b', "BX"   },
         {'n', "NOP"  },
@@ -56,7 +56,7 @@ void monitor_assemble(void *addr) {
         {CTRL('q'), "Quit"},
     };
     bool quit = false;
-    void *starting_addr = addr;
+    thumb_t *starting_addr = addr;
     enum thumb_width_specifier width_specifier = TWS_AUTO;
 
     while (!quit) {
@@ -89,6 +89,16 @@ void monitor_assemble(void *addr) {
         }
         case '.': {
             width_specifier = show_width_menu(width_specifier);
+            break;
+        }
+        case CTRL('p'): {
+            for (thumb_t *p = starting_addr; p < addr; // TW: Make addr thumb_t?
+                 p += thumb_is_wide_instruction(*p) ? 2 : 1) {
+                puthexword((uint32_t)p);
+                putchar(' ');
+                thumb_print_disassembled_instruction(p);
+                putnewline();
+            }
             break;
         }
         case CTRL('q'):
