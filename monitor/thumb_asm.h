@@ -19,6 +19,8 @@ enum thumb_mnemonic {
     TM_BKPT,
     TM_BX,
     TM_NOP,
+    TM_MOVW,
+    TM_SVC,
 };
 
 struct thumb_operand {

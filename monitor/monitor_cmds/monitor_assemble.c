@@ -49,7 +49,9 @@ static enum thumb_width_specifier show_width_menu(enum thumb_width_specifier cur
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'b', "BX"   },
+        {'m', "MOVW" },
         {'n', "NOP"  },
+        {'s', "SVC"  },
         {'x', "BKPT" },
         {'.', "Specify Width"},
         {CTRL('p'), "Print Assembly"},
@@ -70,10 +72,29 @@ void monitor_assemble(thumb_t *addr) {
             assemble_and_show_result(&addr, &instruction);
             break;
         }
+        case 'm': { // MOVW
+            struct thumb_instruction instruction = {};
+            instruction.mnemonic = TM_MOVW;
+            instruction.width = width_specifier;
+            thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+            thumb_add_operand_immediate(&instruction, gethexword(0));
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
         case 'n': { // NOP
             struct thumb_instruction instruction = {};
             instruction.mnemonic = TM_NOP;
             instruction.width = width_specifier;
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
+        case 's': { // SVC
+            // TODO: Should have a way of getting a byte or arbitrary width number
+            uint32_t immediate = gethexword(0);
+            struct thumb_instruction instruction = {};
+            instruction.mnemonic = TM_SVC;
+            instruction.width = width_specifier;
+            thumb_add_operand_immediate(&instruction, immediate);
             assemble_and_show_result(&addr, &instruction);
             break;
         }

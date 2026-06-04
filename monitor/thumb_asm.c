@@ -42,6 +42,8 @@ static const char *mnemonic_strs[] = {
     "BKPT",
     "BX",
     "NOP",
+    "MOVW",
+    "SVC",
 };
 
 static struct thumb_operand *new_operand(struct thumb_instruction *instruction) {
@@ -72,6 +74,12 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
 
         if (match_nop_t2(wide_ins)) {
             instruction.mnemonic = TM_NOP;
+        } else if (match_movw_t3(wide_ins)) {
+            const struct movw_t3_parts parts = decode_movw_t3(wide_ins);
+
+            instruction.mnemonic = TM_MOVW;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_immediate(&instruction, parts.imm16);
         }
     } else {
         uint16_t ins = *insptr;
@@ -89,6 +97,11 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_BX;
             thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_svc_t1(ins)) {
+            const struct svc_t1_parts parts = decode_svc_t1(ins);
+
+            instruction.mnemonic = TM_SVC;
+            thumb_add_operand_immediate(&instruction, parts.imm8);
         }
     }
 
@@ -164,6 +177,34 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         return encoder_to_asm_result(enc_result);
+    }
+        // TODO: Support MOV
+    case TM_MOVW: {
+        struct movw_t3_parts parts;
+
+        if (instruction_spec->operand_count != 2 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_IMMEDIATE) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        parts.Rd = instruction_spec->operands[0].reg;
+        parts.imm16 = instruction_spec->operands[1].imm;
+
+        return encoder_to_asm_result(encode_movw_t3((void*)into, &parts));
+    }
+    case TM_SVC: {
+        struct svc_t1_parts parts;
+
+        ENSURE_NARROW();
+
+        if (instruction_spec->operand_count == 1 && instruction_spec->operands[0].type == OT_IMMEDIATE) {
+            parts.imm8 = instruction_spec->operands[0].imm;
+        } else {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        return encoder_to_asm_result(encode_svc_t1(into, &parts));
     }
     default:
         break; // Go on to fail
