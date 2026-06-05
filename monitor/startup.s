@@ -57,6 +57,15 @@ hang:
         bkpt    90
         b       hang
 
+        .global _syscall
+        .type _syscall, %function
+_syscall:
+        nop
+        nop
+        nop
+        nop
+        bx      lr
+
         .type   fault_exit, %function
 fault_exit:
         bl      reset_stack

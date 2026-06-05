@@ -90,6 +90,12 @@ void monitor_main(bool surpress_init) {
               "world", 4, 7, 'V');
 #endif
 
+    __asm("bkpt 1");
+    __asm("nop");
+    __asm("nop");
+    __asm("nop");
+    __asm("svc 42"); // TEMP
+
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
