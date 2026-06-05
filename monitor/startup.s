@@ -212,10 +212,8 @@ print_registers:
         cmp     r5,     16
         beq     2f
 
-        mov     r0,     'R'
-        bl      putchar
         mov     r0,     r5
-        bl      putbyte
+        bl      thumb_print_register
         mov     r0,     ' '
         bl      putchar
         ldr     r0,     [r4],   4
