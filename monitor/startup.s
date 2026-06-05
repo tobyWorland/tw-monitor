@@ -57,15 +57,6 @@ hang:
         bkpt    90
         b       hang
 
-        .global _syscall
-        .type _syscall, %function
-_syscall:
-        nop
-        nop
-        nop
-        nop
-        bx      lr
-
         .type   fault_exit, %function
 fault_exit:
         bl      reset_stack
@@ -84,6 +75,15 @@ fault_exit:
 
         .set    xPSR_THUMB_BIT,           (1 << 24)
         .set    xPSR_IPSR_BIT_MASK,       0x1F
+
+        .global _syscall
+        .type _syscall, %function
+_syscall:
+        // Get address of SVC instruction using the PC
+        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_PC]
+        ldrh    r0,     [r0, -2] // Go back 2 (size of SVC instruction) as the program counter has already moved on
+        ands    r0,     0xFF // Pull the immediate from the SVC (least significant 8bits)
+        b       syscall_handler
 
         .type   fault_exit_unwind_exceptions, %function
 fault_exit_unwind_exceptions:
