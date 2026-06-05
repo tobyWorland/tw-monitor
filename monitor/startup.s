@@ -69,6 +69,7 @@ _syscall:
         .type   fault_exit, %function
 fault_exit:
         bl      reset_stack
+        bl      print_fault_state // TODO: temp
         movs    r0,     1 // Supress init - Don't reset addr or clear screen
         bl      monitor_main
         b       hang
@@ -83,7 +84,21 @@ fault_exit:
         .set    EXCEPTION_FRAME_OFF_xPSR, 28
 
         .set    xPSR_THUMB_BIT,           (1 << 24)
+        .set    xPSR_IPSR_BIT_MASK,       0x1F
 
+        .type   fault_exit_unwind_exceptions, %function
+fault_exit_unwind_exceptions:
+// TODO: If exception is an IRQ the associated periperhal should be disabled or reset?
+        push    {lr}
+        ldr     r0,     =str_exc_unwind
+        bl      putstring
+        mrs     r0,     xPSR
+        ands    r0,     xPSR_IPSR_BIT_MASK
+        bl      puthexword
+        bl      putnewline
+        pop     {lr}
+        b       hardfault_handler.exit_fault
+       
         .global hardfault_handler
         .type   hardfault_handler, %function
 hardfault_handler:
@@ -99,6 +114,13 @@ hardfault_handler:
 
         // Print fault information
         bl      print_fault_state
+        // TODO: Clear fault state as registers are sticky
+
+        ldr     r0,     =str_exc_return
+        bl      putstring
+        ldr     r0,     [sp]
+        bl      puthexword
+        bl      putnewline
 
         // Check exception frame is on the MSP
         pop     {lr}
@@ -111,16 +133,27 @@ hardfault_handler:
         bl      save_registers
         bl      print_registers
         pop     {lr}
+        // Fallthrough
 
-        // Modify the exception frame so we return from the hardfault into monitor_main(1)
+hardfault_handler.exit_fault:
+        // Modify the exception frame so we return from the hardfault:
+        // ...into fault exit if returning to thread mode
+        // OR into fault_exit_unwind_exception if returning to handler mode
         adds    r0,     sp,     EXCEPTION_FRAME_OFF_PC
-        ldr     r1,     =fault_exit
-        str     r1,     [r0]
+        ands    r1,     lr,     0xF
+        cmp     r1,     1
+        ite     eq
+        ldreq   r2,     =fault_exit_unwind_exceptions
+        ldrne   r2,     =fault_exit
+        str     r2,     [r0]
 
         // Reset program status register
         //   Mostly for if the thumb bit gets cleared
         adds    r0,     sp,     EXCEPTION_FRAME_OFF_xPSR
+        ldr     r2,     [r0]
+        ands    r2,     xPSR_IPSR_BIT_MASK
         ldr     r1,     =xPSR_THUMB_BIT
+        orr     r1,     r2
         str     r1,     [r0]
 
         bx      lr
@@ -202,6 +235,8 @@ print_registers:
 
         .section ".rodata", "a"
 str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
+str_exc_return: .asciz "EXC_RETURN "
+str_exc_unwind: .asciz "EXPCETION UNWIND "
 
         .data
         .balign 4
