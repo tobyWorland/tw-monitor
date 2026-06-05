@@ -9,8 +9,9 @@
 #include "monitor_cmds/monitor_enter.h"
 #include "monitor_cmds/monitor_memdump.h"
 #include "util.h"
+#include "string.h"
 #include "vt.h"
-#include "hardware.h"
+#include "transfer.h"
 
 #include "stm32f411xce_timer.h"
 
@@ -44,6 +45,7 @@ void monitor_main(bool surpress_init) {
         {'u',       "Un/Disassemble"        },
         {'a',       "Assemble"              },
         {'s',       "Call Address with Step"},
+        {'r',       "Receive File"          },
         {CTRL('l'), "Clear Screen"          },
     };
     static uint32_t addr = 0;
@@ -91,16 +93,6 @@ void monitor_main(bool surpress_init) {
               "world", 4, 7, 'V');
 #endif
 
-#if 0
-    while (1) {
-        char c = usart1_getchar();
-        io_printf("Got %c\r\n", c);
-        usart1_putchar('.');
-        usart1_putchar('\r');
-        usart1_putchar('\n');
-    }
-#endif
-
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
@@ -132,6 +124,10 @@ void monitor_main(bool surpress_init) {
             break;
         case CTRL('l'):
             vt_clearscreen();
+            break;
+        case 'r':
+            addr = gethexword(addr);
+            transfer_receive((void*)addr);
             break;
         default:
             putstring("Error: Missing action\r\n");

@@ -20,6 +20,7 @@ set(C_SOURCE
     syscall.c
     thumb_asm.c
     vt.c
+    transfer.c
 
     autogen_encodings/t32_encoding.h
     autogen_encodings/t32_encoding.c

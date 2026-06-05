@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(monitor)
 if(NOT CMAKE_CROSSCOMPILING)
 add_subdirectory(demos)
+add_subdirectory(tools)
 
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 enable_testing()
