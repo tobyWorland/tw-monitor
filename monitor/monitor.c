@@ -10,6 +10,7 @@
 #include "monitor_cmds/monitor_memdump.h"
 #include "util.h"
 #include "vt.h"
+#include "hardware.h"
 
 #include "stm32f411xce_timer.h"
 
@@ -88,6 +89,16 @@ void monitor_main(bool surpress_init) {
     io_printf("Hello!\r\n");
     io_printf("Hello %s!\r\nX = %x, Y = %x\r\nC = '%c'\r\n",
               "world", 4, 7, 'V');
+#endif
+
+#if 0
+    while (1) {
+        char c = usart1_getchar();
+        io_printf("Got %c\r\n", c);
+        usart1_putchar('.');
+        usart1_putchar('\r');
+        usart1_putchar('\n');
+    }
 #endif
 
     while (1) {

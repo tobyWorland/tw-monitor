@@ -12,4 +12,7 @@ void usart2_putstring(const char *string);
 void usart2_putnewline(void);
 char usart2_getchar(void);
 
+void usart1_putchar(char c);
+char usart1_getchar(void);
+
 #endif
