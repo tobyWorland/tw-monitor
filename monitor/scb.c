@@ -103,3 +103,11 @@ void print_fault_state(void) {
         putnewline();
     }
 }
+
+void clear_fault_state(void) {
+    // Fault registers are sticky and the only way to clear fault bits
+    // is to write 1s to those bits
+    // So writing the registers to themselves should clear all set faults
+    *scb_hfsr = *scb_hfsr;
+    *scb_cfsr = *scb_cfsr;
+}

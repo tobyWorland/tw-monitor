@@ -114,7 +114,7 @@ hardfault_handler:
 
         // Print fault information
         bl      print_fault_state
-        // TODO: Clear fault state as registers are sticky
+        bl      clear_fault_state
 
         ldr     r0,     =str_exc_return
         bl      putstring
