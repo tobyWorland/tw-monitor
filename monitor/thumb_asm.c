@@ -1,3 +1,4 @@
+#define THUMB_ASM_SOURCE
 #include "thumb_asm.h"
 
 #include "autogen_encodings/t32_encoding.h"
@@ -16,18 +17,18 @@ void thumb_print_register(unsigned reg) {
     assert(reg <= 15);
     if (reg < 13) {
         putchar('R');
-        putstring(utoa_pad(reg, 10));
+        putstring(utoa_pad_w(reg, 10, 2, true));
     } else {
         const char *name;
         switch (reg) {
         case 13:
-            name = "SP";
+            name = " SP";
             break;
         case 14:
-            name = "LR";
+            name = " LR";
             break;
         case 15:
-            name = "PC";
+            name = " PC";
             break;
         default:
             ASSERT_NOT_REACHED();
@@ -35,16 +36,6 @@ void thumb_print_register(unsigned reg) {
         putstring(name);
     }
 }
-
-static const char *mnemonic_strs[] = {
-    "UNKNOWN",
-
-    "BKPT",
-    "BX",
-    "NOP",
-    "MOVW",
-    "SVC",
-};
 
 static struct thumb_operand *new_operand(struct thumb_instruction *instruction) {
     assert(instruction->operand_count < THUMB_MAX_OPERANDS);

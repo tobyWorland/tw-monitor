@@ -23,6 +23,18 @@ enum thumb_mnemonic {
     TM_SVC,
 };
 
+#ifdef THUMB_ASM_SOURCE
+static const char *mnemonic_strs[] = {
+    "UNKNOWN",
+
+    "BKPT",
+    "BX",
+    "NOP",
+    "MOVW",
+    "SVC",
+};
+#endif
+
 struct thumb_operand {
     enum thumb_operand_type {
         OT_NONE,
@@ -49,6 +61,7 @@ struct thumb_instruction {
 };
 
 bool thumb_is_wide_instruction(thumb_t ins);
+void thumb_print_register(unsigned reg);
 
 void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg);
 void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm);
