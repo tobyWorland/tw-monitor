@@ -93,7 +93,9 @@ fault_exit_unwind_exceptions:
         bl      putstring
         mrs     r0,     xPSR
         ands    r0,     xPSR_IPSR_BIT_MASK
-        bl      puthexword
+        mov     r1,     10
+        bl      utoa_pad
+        bl      putstring
         bl      putnewline
         pop     {lr}
         b       hardfault_handler.exit_fault
