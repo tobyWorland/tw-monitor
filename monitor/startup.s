@@ -69,7 +69,6 @@ _syscall:
         .type   fault_exit, %function
 fault_exit:
         bl      reset_stack
-        bl      print_fault_state // TODO: temp
         movs    r0,     1 // Supress init - Don't reset addr or clear screen
         bl      monitor_main
         b       hang
