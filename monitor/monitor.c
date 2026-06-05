@@ -5,6 +5,7 @@
 #include "menu.h"
 #include "monitor_cmds/monitor_assemble.h"
 #include "monitor_cmds/monitor_call.h"
+#include "monitor_cmds/monitor_dev.h"
 #include "monitor_cmds/monitor_disassemble.h"
 #include "monitor_cmds/monitor_enter.h"
 #include "monitor_cmds/monitor_memdump.h"
@@ -47,6 +48,7 @@ void monitor_main(bool surpress_init) {
         {'s',       "Call Address with Step"},
         {'r',       "Receive File"          },
         {CTRL('l'), "Clear Screen"          },
+        {';',       "Development Menu"      },
     };
     static uint32_t addr = 0;
 
@@ -128,6 +130,9 @@ void monitor_main(bool surpress_init) {
         case 'r':
             addr = gethexword(addr);
             transfer_receive((void*)addr);
+            break;
+        case ';':
+            monitor_dev();
             break;
         default:
             putstring("Error: Missing action\r\n");

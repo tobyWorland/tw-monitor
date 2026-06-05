@@ -12,6 +12,7 @@ set(C_SOURCE
     monitor.c
     monitor_cmds/monitor_assemble.c
     monitor_cmds/monitor_call.c
+    monitor_cmds/monitor_dev.c
     monitor_cmds/monitor_disassemble.c
     monitor_cmds/monitor_enter.c
     monitor_cmds/monitor_memdump.c
