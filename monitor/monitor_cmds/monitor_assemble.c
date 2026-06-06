@@ -12,10 +12,8 @@ static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruc
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
     case AR_NARROW_SUCCESS:
-        *paddr += 1; // + 16bit
-        break;
     case AR_WIDE_SUCCESS:
-        *paddr += 2; // + 32bit
+        *paddr = thumb_ins_ptr_increment(*paddr);
         break;
     default:
         putstring("Failed to assemble ");
@@ -114,7 +112,7 @@ void monitor_assemble(thumb_t *addr) {
         }
         case CTRL('p'): {
             for (thumb_t *p = starting_addr; p < addr; // TW: Make addr thumb_t?
-                 p += thumb_is_wide_instruction(*p) ? 2 : 1) {
+                 p = thumb_ins_ptr_increment(p)) {
                 puthexword((uint32_t)p);
                 putchar(' ');
                 thumb_print_disassembled_instruction(p);
