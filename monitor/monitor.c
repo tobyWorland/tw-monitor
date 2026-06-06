@@ -40,15 +40,15 @@ void breakpoint() { // TOOD: Remove
 
 void monitor_main(bool surpress_init) {
     static const struct menu_option options[] = {
-        {'d',       "Memory Dump"           },
+        {'a',       "Assemble"              },
         {'c',       "Call Address"          },
+        {'d',       "Memory Dump"           },
         {'e',       "Enter"                 },
         {'u',       "Un/Disassemble"        },
-        {'a',       "Assemble"              },
-        {'s',       "Call Address with Step"},
         {'r',       "Receive File"          },
-        {CTRL('l'), "Clear Screen"          },
+        {'s',       "Call Address with Step"},
         {';',       "Development Menu"      },
+        {CTRL('l'), "Clear Screen"          },
     };
     static uint32_t addr = 0;
 
@@ -98,41 +98,41 @@ void monitor_main(bool surpress_init) {
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
-        case 'd':
+        case 'a':
             addr = gethexword(addr);
-            monitor_memdump((void *)addr);
+            monitor_assemble((void*)addr);
             break;
         case 'c':
             addr = gethexword(addr);
             monitor_call_function((void *)addr, false);
             break;
-        case 's':
+        case 'd':
             addr = gethexword(addr);
-            monitor_call_function((void *)addr, true);
+            monitor_memdump((void *)addr);
             break;
         case 'e': {
             enum enter_type ent_type = enter_ent_type_submenu();
             addr = gethexword(addr);
             monitor_enter((void *)addr, ent_type);
-        }
             break;
+        }
         case 'u':
             addr = gethexword(addr);
             monitor_disassemble((void *)addr);
-            break;
-        case 'a':
-            addr = gethexword(addr);
-            monitor_assemble((void*)addr);
-            break;
-        case CTRL('l'):
-            vt_clearscreen();
             break;
         case 'r':
             addr = gethexword(addr);
             transfer_receive((void*)addr);
             break;
+        case 's':
+            addr = gethexword(addr);
+            monitor_call_function((void *)addr, true);
+            break;
         case ';':
             monitor_dev();
+            break;
+        case CTRL('l'):
+            vt_clearscreen();
             break;
         default:
             putstring("Error: Missing action\r\n");
