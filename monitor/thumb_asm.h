@@ -54,7 +54,7 @@ enum thumb_width_specifier {
     TWS_WIDE,
 };
 
-struct thumb_instruction {
+struct thumb_instruction_spec {
     enum thumb_mnemonic mnemonic;
     enum thumb_width_specifier width;
     unsigned operand_count; // count of non empty operands
@@ -65,10 +65,10 @@ bool thumb_is_wide_instruction(thumb_t ins);
 thumb_t *thumb_ins_ptr_increment(thumb_t *insptr);
 void thumb_print_register(unsigned reg);
 
-void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg);
-void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm);
-struct thumb_instruction thumb_disassemble(const thumb_t *insptr);
-void thumb_print_instruction(const struct thumb_instruction *instruction);
+void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg);
+void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm);
+struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr);
+void thumb_print_instruction(const struct thumb_instruction_spec *instruction);
 
 enum thumb_assemble_result {
     AR_FAIL_BAD_MNEMONIC,
@@ -78,6 +78,6 @@ enum thumb_assemble_result {
     AR_NARROW_SUCCESS = 0x10,
     AR_WIDE_SUCCESS,
 };
-enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction *instruction_spec);
+enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec);
 
 #endif

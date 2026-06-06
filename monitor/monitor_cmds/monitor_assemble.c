@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction *instruction) {
+static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
     case AR_NARROW_SUCCESS:
@@ -63,7 +63,7 @@ void monitor_assemble(thumb_t *addr) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
         case 'b': { // BX
-            struct thumb_instruction instruction = {};
+            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_BX;
             instruction.width = width_specifier;
             thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
@@ -71,7 +71,7 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case 'm': { // MOVW
-            struct thumb_instruction instruction = {};
+            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_MOVW;
             instruction.width = width_specifier;
             thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
@@ -80,7 +80,7 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case 'n': { // NOP
-            struct thumb_instruction instruction = {};
+            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_NOP;
             instruction.width = width_specifier;
             assemble_and_show_result(&addr, &instruction);
@@ -89,7 +89,7 @@ void monitor_assemble(thumb_t *addr) {
         case 's': { // SVC
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
-            struct thumb_instruction instruction = {};
+            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_SVC;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
@@ -99,7 +99,7 @@ void monitor_assemble(thumb_t *addr) {
         case 'x': { // BKPT
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
-            struct thumb_instruction instruction = {};
+            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_BKPT;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
@@ -115,7 +115,7 @@ void monitor_assemble(thumb_t *addr) {
                  p = thumb_ins_ptr_increment(p)) {
                 puthexword((uint32_t)p);
                 putchar(' ');
-                struct thumb_instruction ins_spec = thumb_disassemble(p);
+                struct thumb_instruction_spec ins_spec = thumb_disassemble(p);
                 thumb_print_instruction(&ins_spec);
                 putnewline();
             }

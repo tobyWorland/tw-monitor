@@ -75,7 +75,7 @@ void *debug_monitor(void *pc) {
     putstring("PC: ");
     puthexword((uint32_t)pc);
     putchar(' ');
-    struct thumb_instruction ins_spec = thumb_disassemble(pc);
+    struct thumb_instruction_spec ins_spec = thumb_disassemble(pc);
     thumb_print_instruction(&ins_spec);
     putnewline();
 

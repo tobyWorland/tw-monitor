@@ -41,7 +41,7 @@ void monitor_disassemble(void *addr) {
 
             // TODO: Should have CMake option to include disassemble code
 #if 1
-            struct thumb_instruction ins_spec = thumb_disassemble(addr_as_thumb_ptr);
+            struct thumb_instruction_spec ins_spec = thumb_disassemble(addr_as_thumb_ptr);
             putchar(' ');
             thumb_print_instruction(&ins_spec);
 #endif

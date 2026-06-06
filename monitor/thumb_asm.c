@@ -47,27 +47,27 @@ void thumb_print_register(unsigned reg) {
     }
 }
 
-static struct thumb_operand *new_operand(struct thumb_instruction *instruction) {
+static struct thumb_operand *new_operand(struct thumb_instruction_spec *instruction) {
     assert(instruction->operand_count < THUMB_MAX_OPERANDS);
     return &instruction->operands[instruction->operand_count++];
 }
 
-void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg) {
+void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg) {
     *new_operand(instruction) = (struct thumb_operand){
         .type = OT_REG,
         .imm = reg,
     };
 }
 
-void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm) {
+void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm) {
     *new_operand(instruction) = (struct thumb_operand){
         .type = OT_IMMEDIATE,
         .imm = imm,
     };
 }
 
-struct thumb_instruction thumb_disassemble(const thumb_t *insptr) {
-    struct thumb_instruction instruction = {};
+struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
+    struct thumb_instruction_spec instruction = {};
 
     if (thumb_is_wide_instruction(*insptr)) {
         uint32_t wide_ins = insptr->wide;
@@ -109,7 +109,7 @@ struct thumb_instruction thumb_disassemble(const thumb_t *insptr) {
     return instruction;
 }
 
-void thumb_print_instruction(const struct thumb_instruction *instruction) {
+void thumb_print_instruction(const struct thumb_instruction_spec *instruction) {
     putstring(mnemonic_strs[instruction->mnemonic]);
     if (instruction->width == TWS_WIDE) {
         putstring(".W");
@@ -139,7 +139,7 @@ encoder_to_asm_result(unsigned encoder_result) {
 }
 
 #define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE) return AR_FAIL_INVALID_WIDTH
-enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction *instruction_spec) {
+enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
     switch (instruction_spec->mnemonic) {
     case TM_BKPT: {
         struct bkpt_t1_parts parts;
