@@ -66,7 +66,7 @@ void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned
     };
 }
 
-void thumb_print_disassembled_instruction(const thumb_t *insptr) {
+struct thumb_instruction thumb_disassemble(const thumb_t *insptr) {
     struct thumb_instruction instruction = {};
 
     if (thumb_is_wide_instruction(*insptr)) {
@@ -106,19 +106,22 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
         }
     }
 
-    putchar(' ');
-    putstring(mnemonic_strs[instruction.mnemonic]);
-    if (instruction.width == TWS_WIDE) {
+    return instruction;
+}
+
+void thumb_print_instruction(const struct thumb_instruction *instruction) {
+    putstring(mnemonic_strs[instruction->mnemonic]);
+    if (instruction->width == TWS_WIDE) {
         putstring(".W");
     }
-    for (unsigned i = 0; i < instruction.operand_count; i++) {
+    for (unsigned i = 0; i < instruction->operand_count; i++) {
         putchar(' ');
-        switch (instruction.operands[i].type) {
+        switch (instruction->operands[i].type) {
         case OT_REG:
-            thumb_print_register(instruction.operands[i].reg);
+            thumb_print_register(instruction->operands[i].reg);
             break;
         case OT_IMMEDIATE: // TODO: signed?
-            putstring(utoa_pad(instruction.operands[i].reg, 16));
+            putstring(utoa_pad(instruction->operands[i].reg, 16));
             break;
         default:
             ASSERT_NOT_REACHED();

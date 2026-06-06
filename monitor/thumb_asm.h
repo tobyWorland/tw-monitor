@@ -67,7 +67,8 @@ void thumb_print_register(unsigned reg);
 
 void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg);
 void thumb_add_operand_immediate(struct thumb_instruction *instruction, unsigned imm);
-void thumb_print_disassembled_instruction(const thumb_t *insptr);
+struct thumb_instruction thumb_disassemble(const thumb_t *insptr);
+void thumb_print_instruction(const struct thumb_instruction *instruction);
 
 enum thumb_assemble_result {
     AR_FAIL_BAD_MNEMONIC,

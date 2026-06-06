@@ -115,7 +115,8 @@ void monitor_assemble(thumb_t *addr) {
                  p = thumb_ins_ptr_increment(p)) {
                 puthexword((uint32_t)p);
                 putchar(' ');
-                thumb_print_disassembled_instruction(p);
+                struct thumb_instruction ins_spec = thumb_disassemble(p);
+                thumb_print_instruction(&ins_spec);
                 putnewline();
             }
             break;
