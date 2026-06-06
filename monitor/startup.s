@@ -117,6 +117,7 @@ hardfault_handler:
         bl      print_fault_state
         bl      clear_fault_state
 
+        // Print EXC_RETURN
         ldr     r0,     =str_exc_return
         bl      putstring
         ldr     r0,     [sp]
@@ -129,8 +130,15 @@ hardfault_handler:
         cmp     r0,     0x0D
         beq     . // Hang if PSP is used // TODO: Handle PSP
 
-        // Print registers
         push    {lr}
+        // Print xPSR
+        ldr     r0,     =str_xPSR
+        bl      putstring
+        ldr     r0,     [sp, EXCEPTION_FRAME_OFF_xPSR + 4] // +4 to skip over EXC_RETURN on stack
+        bl      puthexword
+        bl      putnewline
+
+        // Print registers
         bl      save_registers
         bl      print_registers
         pop     {lr}
@@ -234,8 +242,9 @@ print_registers:
 
         .section ".rodata", "a"
 str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
-str_exc_return: .asciz "EXC_RETURN "
+str_exc_return: .asciz "EXC_RET "
 str_exc_unwind: .asciz "EXPCETION UNWIND "
+str_xPSR:       .asciz "xPSR    "
 
         .data
         .balign 4
