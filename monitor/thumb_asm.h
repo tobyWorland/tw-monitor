@@ -7,11 +7,12 @@
 // Maximum number of operands an instruction can have
 #define THUMB_MAX_OPERANDS 3
 
-// Instructions are made of 16bit
-// Even though thumb is a mixture of 32bit wide and 16bit narrow
-// instructions, wide is 2 x 16bit half words as oppose to a single
-// 32bit word. (There is a difference in little endian)
-typedef uint16_t thumb_t;
+// Thumb instructions are a mixture of 32bit wide and 16bit narrow
+typedef union {
+    uint32_t wide;
+    uint16_t narrow;
+    uint16_t as_halfwords[2];
+} thumb_t;
 
 enum thumb_mnemonic {
     TM_UNKNOWN,
@@ -61,6 +62,7 @@ struct thumb_instruction {
 };
 
 bool thumb_is_wide_instruction(thumb_t ins);
+thumb_t *thumb_ins_ptr_increment(thumb_t *insptr);
 void thumb_print_register(unsigned reg);
 
 void thumb_add_operand_reg(struct thumb_instruction *instruction, unsigned reg);

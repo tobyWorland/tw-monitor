@@ -64,12 +64,7 @@ const struct menu_option debug_options[] = {
 };
 
 static void increment_pc(void **pc) {
-    uint16_t *ptr_ins_at_pc = *pc;
-    if (thumb_is_wide_instruction(*ptr_ins_at_pc)) {
-        *pc += 4;
-    } else {
-        *pc += 2;
-    }
+    *pc = thumb_ins_ptr_increment(*pc);
 }
 
 void *debug_monitor(void *pc) {

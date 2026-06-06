@@ -21,34 +21,30 @@ void monitor_disassemble(void *addr) {
         }
     }
 
-    uint16_t *addr_as_hword_ptr = (void *)addr;
+    thumb_t *addr_as_thumb_ptr = addr;
     bool cont;
 
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
-            puthexword((uint32_t)addr_as_hword_ptr);
+            puthexword((uint32_t)addr_as_thumb_ptr);
             putstring(": ");
 
-#if 1
-            const uint16_t *insptr = addr_as_hword_ptr;
-#endif
-
-            uint16_t first_hword = *addr_as_hword_ptr++;
-            puthexhalfword(first_hword);
+            puthexhalfword(addr_as_thumb_ptr->as_halfwords[0]);
 
             // If wide instruction include the 2nd half word
-            if (thumb_is_wide_instruction(first_hword)) {
+            if (thumb_is_wide_instruction(*addr_as_thumb_ptr)) {
                 putchar(' ');
-                puthexhalfword(*addr_as_hword_ptr++);
+                puthexhalfword(addr_as_thumb_ptr->as_halfwords[1]);
             } else {
                 putstring("     ");
             }
 
             // TODO: Should have CMake option to include disassemble code
 #if 1
-            thumb_print_disassembled_instruction(insptr);
+            thumb_print_disassembled_instruction(addr_as_thumb_ptr);
 #endif
 
+            addr_as_thumb_ptr = thumb_ins_ptr_increment(addr_as_thumb_ptr);
             putnewline();
         }
 

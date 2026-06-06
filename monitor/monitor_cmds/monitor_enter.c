@@ -102,7 +102,7 @@ static inline bool handle_input(struct enter_state *state) {
 
 static bool next_column(struct enter_state *state) {
     if (state->ent_type_is_instruction) {
-        return (state->col++ > 0) || !thumb_is_wide_instruction(state->current);
+        return (state->col++ > 0) || !thumb_is_wide_instruction((thumb_t)state->current);
     } else {
         // If hit max column, we want to move to the next row
         // 16 bytes

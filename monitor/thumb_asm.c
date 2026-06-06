@@ -10,7 +10,17 @@
 bool thumb_is_wide_instruction(thumb_t ins) {
     // ARMv7-M Architecture Reference Manual
     // A5.3 32bit Thumb instruction Encoding
-    return ((ins >> 13) == 7) && ((ins >> 11) != 0);
+    return ((ins.narrow >> 13) == 7) && ((ins.narrow >> 11) != 0);
+}
+
+thumb_t *thumb_ins_ptr_increment(thumb_t *insptr) {
+    void *rawp = insptr;
+    if (thumb_is_wide_instruction(*insptr)) {
+        rawp += sizeof(insptr->wide);
+    } else {
+        rawp += sizeof(insptr->narrow);
+    }
+    return rawp;
 }
 
 void thumb_print_register(unsigned reg) {
@@ -60,7 +70,7 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
     struct thumb_instruction instruction = {};
 
     if (thumb_is_wide_instruction(*insptr)) {
-        uint32_t wide_ins = *(uint32_t*)insptr;
+        uint32_t wide_ins = insptr->wide;
         instruction.width = TWS_WIDE;
 
         if (match_nop_t2(wide_ins)) {
@@ -73,7 +83,7 @@ void thumb_print_disassembled_instruction(const thumb_t *insptr) {
             thumb_add_operand_immediate(&instruction, parts.imm16);
         }
     } else {
-        uint16_t ins = *insptr;
+        uint16_t ins = insptr->narrow;
         instruction.width = TWS_NARROW;
 
         if (match_bkpt_t1(ins)) {
@@ -139,7 +149,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        return encoder_to_asm_result(encode_bkpt_t1(into, &parts));
+        return encoder_to_asm_result(encode_bkpt_t1(&into->narrow, &parts));
     }
     case TM_BX: {
         struct bx_t1_parts parts;
@@ -152,7 +162,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        return encoder_to_asm_result(encode_bx_t1(into, &parts));
+        return encoder_to_asm_result(encode_bx_t1(&into->narrow, &parts));
     }
     case TM_NOP: {
         if (instruction_spec->operand_count != 0) {
@@ -164,7 +174,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         if (instruction_spec->width == TWS_WIDE) {
             enc_result = encode_nop_t2((void*)into);
         } else {
-            enc_result = encode_nop_t1(into);
+            enc_result = encode_nop_t1(&into->narrow);
         }
 
         return encoder_to_asm_result(enc_result);
@@ -172,6 +182,8 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         // TODO: Support MOV
     case TM_MOVW: {
         struct movw_t3_parts parts;
+
+        // TODO: ENSURE_WIDE()
 
         if (instruction_spec->operand_count != 2 ||
             instruction_spec->operands[0].type != OT_REG ||
@@ -182,7 +194,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         parts.Rd = instruction_spec->operands[0].reg;
         parts.imm16 = instruction_spec->operands[1].imm;
 
-        return encoder_to_asm_result(encode_movw_t3((void*)into, &parts));
+        return encoder_to_asm_result(encode_movw_t3(&into->wide, &parts));
     }
     case TM_SVC: {
         struct svc_t1_parts parts;
@@ -195,7 +207,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        return encoder_to_asm_result(encode_svc_t1(into, &parts));
+        return encoder_to_asm_result(encode_svc_t1(&into->narrow, &parts));
     }
     default:
         break; // Go on to fail
