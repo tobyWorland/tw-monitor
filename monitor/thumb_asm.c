@@ -138,7 +138,8 @@ encoder_to_asm_result(unsigned encoder_result) {
     }
 }
 
-#define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE) return AR_FAIL_INVALID_WIDTH
+#define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE)   return AR_FAIL_INVALID_WIDTH
+#define ENSURE_WIDE()   if (instruction_spec->width == TWS_NARROW) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
     switch (instruction_spec->mnemonic) {
     case TM_BKPT: {
@@ -186,7 +187,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     case TM_MOVW: {
         struct movw_t3_parts parts;
 
-        // TODO: ENSURE_WIDE()
+        ENSURE_WIDE();
 
         if (instruction_spec->operand_count != 2 ||
             instruction_spec->operands[0].type != OT_REG ||
@@ -219,3 +220,4 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     return AR_FAIL_BAD_MNEMONIC;
 }
 #undef ENSURE_NARROW
+#undef ENSURE_WIDE
