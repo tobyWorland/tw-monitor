@@ -10,19 +10,19 @@
 void monitor_disassemble(void *addr) {
     // Check thumb interwork bit isn't set
     if (arm_address_has_thumb_intwrk_bit(addr)) {
-        enum menu_warning_fix_result opt =
-            menu_preset_warning_fix("WARN Thumb bit set: ");
-        if (opt == MENU_WF_FIX) {
+        switch (menu_preset_warning_fix("WARN Thumb bit set: ")) {
+        case MENU_WF_FIX:
             addr = arm_address_set_thumb_intwrk_bit(addr, false);
-        } else if (opt == MENU_WF_QUIT) {
+        case MENU_WF_PROCEED:
+            break;
+        case MENU_WF_QUIT:
             return;
-        } else {
-            assert(opt == MENU_WF_PROCEED);
+        default:
+            assert(false);
         }
     }
 
     thumb_t *addr_as_thumb_ptr = addr;
-    bool cont;
 
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
@@ -31,7 +31,7 @@ void monitor_disassemble(void *addr) {
 
             puthexhalfword(addr_as_thumb_ptr->as_halfwords[0]);
 
-            // If wide instruction include the 2nd half word
+            // If wide instruction, include the 2nd half word otherwise fill with spaces
             if (thumb_is_wide_instruction(*addr_as_thumb_ptr)) {
                 putchar(' ');
                 puthexhalfword(addr_as_thumb_ptr->as_halfwords[1]);
@@ -48,7 +48,6 @@ void monitor_disassemble(void *addr) {
             putnewline();
         }
 
-        cont = menu_preset_continue("More? ", true);
-    } while (cont);
+    } while (menu_preset_continue("More? ", true));
 }
 #endif
