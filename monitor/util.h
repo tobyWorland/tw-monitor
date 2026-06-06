@@ -5,5 +5,6 @@
 #define ARR_LEN(ARR)             (sizeof(ARR) / sizeof(ARR[0]))
 #define MIN(A, B)                ((A) < (B) ? (A) : (B))
 #define OFFSET_OF(STRUCT, FIELD) ((unsigned)&((STRUCT*)NULL)->FIELD)
+#define __BKPT(IMM)              __asm("bkpt " #IMM)
 
 #endif
