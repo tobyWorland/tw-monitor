@@ -22,6 +22,7 @@ struct enter_state {
     const unsigned digit_width;
     const bool extra_space_in_number;
     const bool ent_type_is_instruction;
+    const uint32_t mask;
 };
 
 static void load_current(struct enter_state *state) {
@@ -94,6 +95,7 @@ static inline bool handle_input(struct enter_state *state) {
         // Add new digit to current
         state->current <<= 4;
         state->current |= digit;
+        state->current &= state->mask;
         state->digit_idx++;
     }
 
@@ -196,6 +198,7 @@ void monitor_enter(void *addr, enum enter_type ent_type) {
         .digit_width = digit_width,
         .extra_space_in_number = digit_width > 4,
         .ent_type_is_instruction = is_instruction_ent,
+        .mask = (~0U >> (32 - digit_width * 4)),
     };
 
     _monitor_enter(&state);
