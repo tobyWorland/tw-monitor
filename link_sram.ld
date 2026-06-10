@@ -8,37 +8,37 @@ stack_size = 4k;
 ENTRY(startup_entry);
 
 SECTIONS {
-	. = sram_start;
+    . = sram_start;
 
-	.vect : {
-		*(.vect);
-	}
+    .vect : {
+        *(.vect);
+    }
 
-	. = ALIGN(4);
-	.text : {
-		*(.text);
-		*(.rodata*);
-	}
+    . = ALIGN(4);
+    .text : {
+        *(.text);
+        *(.rodata*);
+    }
 
-	. = ALIGN(4);
-	.data : {
-		*(.data);
-	}
+    . = ALIGN(4);
+    .data : {
+        *(.data);
+    }
 
-	. = ALIGN(4);
-	.bss (NOLOAD) : {
-		bss_vma_start = .;
-		*(.bss);
-		. = ALIGN(4); /* Ensure the size of .bss is in words for init code */
-		bss_vma_end = .;
-	}
-	/* This must be outside the section */
-	bss_size_words = (bss_vma_end - bss_vma_start) / 4;
+    . = ALIGN(4);
+    .bss (NOLOAD) : {
+        bss_vma_start = .;
+        *(.bss);
+        . = ALIGN(4); /* Ensure the size of .bss is in words for init code */
+        bss_vma_end = .;
+    }
+    /* This must be outside the section */
+    bss_size_words = (bss_vma_end - bss_vma_start) / 4;
 
-        . = ALIGN(4);
-        user_start = .;
+    . = ALIGN(4);
+    user_start = .;
 
-	/* Stack */
-	stack_initial_top = sram_end;
-	stack_ceiling = stack_initial_top - stack_size;
+    /* Stack */
+    stack_initial_top = sram_end;
+    stack_ceiling = stack_initial_top - stack_size;
 }
