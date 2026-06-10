@@ -10,6 +10,7 @@
 #include "monitor_cmds/monitor_disassemble.h"
 #include "monitor_cmds/monitor_enter.h"
 #include "monitor_cmds/monitor_memdump.h"
+#include "monitor_cmds/monitor_memory.h"
 #include "util.h"
 #include "string.h"
 #include "vt.h"
@@ -45,6 +46,7 @@ void monitor_main(bool surpress_init) {
         {'c',       "Call Address"          },
         {'d',       "Memory Dump"           },
         {'e',       "Enter"                 },
+        {'m',       "Memory State"          },
         {'u',       "Un/Disassemble"        },
         {'r',       "Receive File"          },
         {'s',       "Call Address with Step"},
@@ -119,6 +121,9 @@ void monitor_main(bool surpress_init) {
             monitor_enter((void *)addr, ent_type);
             break;
         }
+        case 'm':
+            monitor_memory();
+            break;
         case 'u':
             addr = gethexword(addr);
             monitor_disassemble((void *)addr);

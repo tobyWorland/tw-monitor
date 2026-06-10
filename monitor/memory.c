@@ -2,6 +2,7 @@
 
 #include "arm.h"
 #include "assert.h"
+#include "io.h"
 #include "string.h"
 
 #include <stddef.h>
@@ -168,4 +169,26 @@ struct memory_entry *memory_lookup_section(void *ptr) {
     }
 
     return current; // NULL
+}
+
+void memory_print_entries(void) {
+    struct memory_entry *current = g_memory_meta.last_memory_entry;
+
+    for (; current; current = memory_get_next_entry(current)) {
+        if (memory_entry_is_section(current)) {
+            io_printf("SECTION @ %x SIZE %u\r\n", current->addr, current->section.size);
+        } else if (memory_entry_is_label(current)) {
+            if (memory_entry_is_code_label(current)) {
+                // TODO: Need to implement %.*s
+                io_printf("CLABEL  @ %x NAME ", current->addr);
+                putnstring(current->label.name, current->label.name_len);
+                putnewline();
+            } else {
+                // TODO: Need to implement %.*s
+                io_printf("DLABEL  @ %x NAME ", current->addr);
+                putnstring(current->label.name, current->label.name_len);
+                putnewline();
+            }
+        }
+    }
 }

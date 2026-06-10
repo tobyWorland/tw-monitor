@@ -18,5 +18,6 @@ struct memory_entry *memory_lookup_label(const char* name, unsigned name_len);
 struct memory_entry *memory_rlookup_label(void *ptr);
 struct memory_entry *memory_lookup_section(void *ptr);
 
+void memory_print_entries(void);
 
 #endif

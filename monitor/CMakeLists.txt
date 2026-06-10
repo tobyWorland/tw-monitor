@@ -16,6 +16,7 @@ set(C_SOURCE
     monitor_cmds/monitor_dev.c
     monitor_cmds/monitor_disassemble.c
     monitor_cmds/monitor_enter.c
+    monitor_cmds/monitor_memory.c
     monitor_cmds/monitor_memdump.c
     scb.c
     string.c
