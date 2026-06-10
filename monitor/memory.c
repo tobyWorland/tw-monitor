@@ -39,7 +39,7 @@ struct memory_entry {
     };
 };
 
-static unsigned entry_size(struct memory_entry *memory_entry) {
+static unsigned memory_sizeof_entry(struct memory_entry *memory_entry) {
     unsigned size = sizeof(struct memory_entry);
     switch (memory_entry->type) {
     case ET_SECTION:
@@ -54,13 +54,13 @@ static unsigned entry_size(struct memory_entry *memory_entry) {
     return size;
 }
 
-// The next memory entry is before the current as they grow down
-static struct memory_entry *next_entry(struct memory_entry *memory_entry) {
-    if (memory_entry == g_memory_meta.last_memory_entry) {
-        // Was the last entry so no more entries exist after this
+// Check from the last memory entry to the first
+static struct memory_entry *memory_get_next_entry(struct memory_entry *memory_entry) {
+    if (memory_entry == g_memory_meta.first_memory_entry) {
+        // Was the first entry so no more entries exist after this
         return NULL;
     } else {
-        return (void *)memory_entry - entry_size(memory_entry);
+        return (void *)memory_entry + memory_sizeof_entry(memory_entry);
     }
 }
 
@@ -113,9 +113,9 @@ bool memory_entry_is_section(struct memory_entry *memory_entry) {
 }
 
 struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
-    struct memory_entry *current = g_memory_meta.first_memory_entry;
+    struct memory_entry *current = g_memory_meta.last_memory_entry;
 
-    for (; current; current = next_entry(current)) {
+    for (; current; current = memory_get_next_entry(current)) {
         if (memory_entry_is_label(current) &&
             current->label.name_len == name_len &&
             !memcmp(current->label.name, name, name_len)) {
@@ -127,9 +127,9 @@ struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
 }
 
 struct memory_entry *memory_rlookup_label(void *ptr) {
-    struct memory_entry *current = g_memory_meta.first_memory_entry;
+    struct memory_entry *current = g_memory_meta.last_memory_entry;
 
-    for (; current; current = next_entry(current)) {
+    for (; current; current = memory_get_next_entry(current)) {
         if (!memory_entry_is_label(current)) {
             continue;
         }
@@ -152,9 +152,9 @@ struct memory_entry *memory_rlookup_label(void *ptr) {
 }
 
 struct memory_entry *memory_lookup_section(void *ptr) {
-    struct memory_entry *current = g_memory_meta.first_memory_entry;
+    struct memory_entry *current = g_memory_meta.last_memory_entry;
 
-    for (; current; current = next_entry(current)) {
+    for (; current; current = memory_get_next_entry(current)) {
         if (!memory_entry_is_section(current)) {
             continue;
         }
