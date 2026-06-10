@@ -3,6 +3,7 @@
 #include "char.h"
 #include "io.h"
 #include "menu.h"
+#include "memory.h"
 #include "monitor_cmds/monitor_assemble.h"
 #include "monitor_cmds/monitor_call.h"
 #include "monitor_cmds/monitor_dev.h"
@@ -54,6 +55,8 @@ void monitor_main(bool surpress_init) {
 
     if (!surpress_init) {
         vt_clearscreen();
+
+        memory_init();
 
         putstring("** Monitor ready **\r\n");
         putstring("hidden address: ");

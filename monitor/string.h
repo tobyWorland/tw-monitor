@@ -23,6 +23,10 @@ int strtoi(const char *s, char **endptr, unsigned base);
 void *memset(void *s, char c, size_t n);
 void *memcpy(void *__restrict__ dest, const void *__restrict__ src, size_t n);
 int memcmp(const void *s1, const void *s2, size_t n);
+#else
+// FIXME: Need to handle this better
+// Host should be able to build these implementations and then rename them instead
+#include <string.h>
 #endif
 
 #endif

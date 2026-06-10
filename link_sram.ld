@@ -41,4 +41,8 @@ SECTIONS {
     /* Stack */
     stack_initial_top = sram_end;
     stack_ceiling = stack_initial_top - stack_size;
+
+    /* Put this just below the end of stack space */
+    /* TODO: Try to preserve between resets? */
+    g_memory_meta = stack_ceiling - 8;
 }

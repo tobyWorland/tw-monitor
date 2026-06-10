@@ -8,6 +8,7 @@ set(C_SOURCE
     assert.c
     char.c
     io.c
+    memory.c
     menu.c
     monitor.c
     monitor_cmds/monitor_assemble.c
