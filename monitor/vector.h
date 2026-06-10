@@ -4,6 +4,6 @@
 typedef void (*isr_t)(void);
 
 // Defined in vector.s
-volatile extern isr_t irq_tim1_up_tim10;
+extern volatile isr_t irq_tim1_up_tim10;
 
 #endif

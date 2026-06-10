@@ -38,8 +38,11 @@ struct tim10x {
 
 #define TIM1X_EGR_UG    BIT(0)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static volatile struct tim10x *const tim10 = (void*)TIM10_BASE;
-static volatile struct tim10x *const tim11 = (void*)TIM11_BASE;
+static volatile struct tim10x *const tim11 = (void *)TIM11_BASE;
+#pragma GCC diagnostic pop
 
 // TODO: Should be a variable and should be used in hardware.s
 #define MHz(x) (x * 1000000UL)

@@ -28,4 +28,6 @@ bool transfer_receive(void *destination) {
 
     receive_into(destination, len);
     putstring("Transfer complete\r\n");
+
+    return true;
 }
