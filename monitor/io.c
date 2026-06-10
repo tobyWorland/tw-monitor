@@ -105,6 +105,12 @@ void io_printf(const char *fmt, ...) {
             case 'X':
                 puthexword(va_arg(ap, uint32_t));
                 break;
+            case 'd':
+                putstring(itoa_pad(va_arg(ap, int), 10));
+                break;
+            case 'u':
+                putstring(utoa_pad(va_arg(ap, int), 10));
+                break;
             }
             in_format = false;
         }
