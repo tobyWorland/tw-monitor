@@ -21,6 +21,8 @@ int strtoi(const char *s, char **endptr, unsigned base);
 
 #ifndef HOST
 void *memset(void *s, char c, size_t n);
+void *memcpy(void *__restrict__ dest, const void *__restrict__ src, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
 #endif
 
 #endif

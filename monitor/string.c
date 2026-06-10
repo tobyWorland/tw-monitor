@@ -4,6 +4,8 @@
 #include "char.h"
 #include "util.h"
 
+#include <stdint.h>
+
 #define MIN_BASE 2
 #define MAX_BASE 16
 #define PAD_SIZE 32 + 1 // space for a 32bit unsigned number + null term
@@ -135,13 +137,34 @@ int strtoi(const char *s, char **endptr, unsigned base) {
     return result;
 }
 
-// Needed by GCC
 #ifndef HOST
+// Needed by GCC
 void *memset(void *s, char c, size_t n) {
     char *ptr = s;
     while (n--) {
         *ptr++ = c;
     }
     return s;
+}
+
+void *memcpy(void *__restrict__ dest, const void *__restrict__ src, size_t n) {
+    uint8_t *d = dest;
+    const uint8_t *s = src;
+    while (n--) {
+        *d++ = *s++;
+    }
+    return dest;
+}
+
+int memcmp(const void *s1, const void *s2, size_t n) {
+    const uint8_t *p1 = s1;
+    const uint8_t *p2 = s2;
+    while (n--) {
+        unsigned diff = *p2++ - *p1++;
+        if (diff != 0) {
+            return diff;
+        }
+    }
+    return 0;
 }
 #endif
