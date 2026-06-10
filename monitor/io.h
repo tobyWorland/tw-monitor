@@ -10,6 +10,7 @@ char getchar(void);
 #include <stdio.h>
 #endif
 void putstring(const char *string);
+void putnstring(const char *string, unsigned n);
 void putnewline(void);
 void puthexnumber(unsigned digit_min, uint32_t number);
 void puthexhalfword(uint16_t hword);

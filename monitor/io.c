@@ -23,6 +23,13 @@ void putstring(const char *string) {
     usart2_putstring(string);
 }
 
+// TODO: Should really swap this and putstring around, and have putstring call putnstring with max n
+void putnstring(const char *string, unsigned n) {
+    for (; *string && n; string++, n--) {
+        usart2_putchar(*string);
+    }
+}
+
 void putnewline(void) {
     usart2_putnewline();
 }
