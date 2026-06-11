@@ -10,7 +10,7 @@ void memory_init(void);
 bool memory_create_label(const char *name, unsigned name_len, void *ptr,
                          bool is_code);
 
-bool memory_entry_is_code_label(struct memory_entry *user_entry);
+bool memory_entry_is_code_label(struct memory_entry *memory_entry);
 bool memory_entry_is_label(struct memory_entry *memory_entry);
 bool memory_entry_is_section(struct memory_entry *memory_entry);
 
