@@ -167,4 +167,10 @@ int memcmp(const void *s1, const void *s2, size_t n) {
     }
     return 0;
 }
+
+unsigned strlen(const char *s) {
+    unsigned len;
+    for (len = 0; *s; s++, len++);
+    return len;
+}
 #endif
