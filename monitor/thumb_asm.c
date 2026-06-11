@@ -75,8 +75,8 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
         if (match_nop_t2(wide_ins)) {
             instruction.mnemonic = TM_NOP;
-        } else if (match_movw_t3(wide_ins)) {
-            const struct movw_t3_parts parts = decode_movw_t3(wide_ins);
+        } else if (match_movw_i_t3(wide_ins)) {
+            const struct movw_i_t3_parts parts = decode_movw_i_t3(wide_ins);
 
             instruction.mnemonic = TM_MOVW;
             thumb_add_operand_reg(&instruction, parts.Rd);
@@ -185,7 +185,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     }
         // TODO: Support MOV
     case TM_MOVW: {
-        struct movw_t3_parts parts;
+        struct movw_i_t3_parts parts;
 
         ENSURE_WIDE();
 
@@ -198,7 +198,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         parts.Rd = instruction_spec->operands[0].reg;
         parts.imm16 = instruction_spec->operands[1].imm;
 
-        return encoder_to_asm_result(encode_movw_t3(&into->wide, &parts));
+        return encoder_to_asm_result(encode_movw_i_t3(&into->wide, &parts));
     }
     case TM_SVC: {
         struct svc_t1_parts parts;

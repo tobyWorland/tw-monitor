@@ -1,7 +1,27 @@
+// AUTOGEN - DO NOT EDIT
+
 #pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
+
+struct b_cond_t1_noit_parts {
+    uint8_t cond;
+    int32_t simm8;
+};
+
+struct b_t2_parts {
+    int32_t simm11;
+};
+
+struct b_cond_t3_noit_parts {
+    uint8_t cond;
+    int32_t simm21;
+};
+
+struct b_t4_parts {
+    int32_t simm25;
+};
 
 struct bkpt_t1_parts {
     uint8_t imm8;
@@ -11,39 +31,91 @@ struct bx_t1_parts {
     uint8_t Rm;
 };
 
-struct mov_t1_parts {
+struct movs_i_t1_parts {
     uint8_t Rd;
     uint8_t imm8;
 };
 
-struct movw_t3_parts {
+struct movw_i_t3_parts {
     uint8_t Rd;
     uint32_t imm16;
+};
+
+struct mov_r_t1_parts {
+    uint8_t Rm;
+    uint32_t Rd;
+};
+
+struct movs_r_t2_noit_parts {
+    uint8_t Rm;
+    uint8_t Rd;
+};
+
+struct mov_r_t3_opt_s_parts {
+    uint8_t Rd;
+    uint8_t Rm;
+    uint8_t setflags;
 };
 
 struct svc_t1_parts {
     uint8_t imm8;
 };
 
+struct udf_t1_parts {
+    uint8_t imm8;
+};
+
+struct udf_t2_parts {
+    uint16_t imm12;
+    uint8_t imm4;
+};
+
+bool match_b_cond_t1_noit(uint16_t field);
+bool match_b_t2(uint16_t field);
+bool match_b_cond_t3_noit(uint32_t field);
+bool match_b_t4(uint32_t field);
 bool match_bkpt_t1(uint16_t field);
 bool match_bx_t1(uint16_t field);
 bool match_nop_t1(uint16_t field);
 bool match_nop_t2(uint32_t field);
-bool match_mov_t1(uint16_t field);
-bool match_movw_t3(uint32_t field);
+bool match_movs_i_t1(uint16_t field);
+bool match_movw_i_t3(uint32_t field);
+bool match_mov_r_t1(uint16_t field);
+bool match_movs_r_t2_noit(uint16_t field);
+bool match_mov_r_t3_opt_s(uint32_t field);
 bool match_svc_t1(uint16_t field);
+bool match_udf_t1(uint16_t field);
+bool match_udf_t2(uint32_t field);
 
+unsigned encode_b_cond_t1_noit(uint16_t *out, struct b_cond_t1_noit_parts *parts);
+unsigned encode_b_t2(uint16_t *out, struct b_t2_parts *parts);
+unsigned encode_b_cond_t3_noit(uint32_t *out, struct b_cond_t3_noit_parts *parts);
+unsigned encode_b_t4(uint32_t *out, struct b_t4_parts *parts);
 unsigned encode_bkpt_t1(uint16_t *out, struct bkpt_t1_parts *parts);
 unsigned encode_bx_t1(uint16_t *out, struct bx_t1_parts *parts);
 unsigned encode_nop_t1(uint16_t *out);
 unsigned encode_nop_t2(uint32_t *out);
-unsigned encode_mov_t1(uint16_t *out, struct mov_t1_parts *parts);
-unsigned encode_movw_t3(uint32_t *out, struct movw_t3_parts *parts);
+unsigned encode_movs_i_t1(uint16_t *out, struct movs_i_t1_parts *parts);
+unsigned encode_movw_i_t3(uint32_t *out, struct movw_i_t3_parts *parts);
+unsigned encode_mov_r_t1(uint16_t *out, struct mov_r_t1_parts *parts);
+unsigned encode_movs_r_t2_noit(uint16_t *out, struct movs_r_t2_noit_parts *parts);
+unsigned encode_mov_r_t3_opt_s(uint32_t *out, struct mov_r_t3_opt_s_parts *parts);
 unsigned encode_svc_t1(uint16_t *out, struct svc_t1_parts *parts);
+unsigned encode_udf_t1(uint16_t *out, struct udf_t1_parts *parts);
+unsigned encode_udf_t2(uint32_t *out, struct udf_t2_parts *parts);
 
+struct b_cond_t1_noit_parts decode_b_cond_t1_noit(uint16_t field);
+struct b_t2_parts decode_b_t2(uint16_t field);
+struct b_cond_t3_noit_parts decode_b_cond_t3_noit(uint32_t field);
+struct b_t4_parts decode_b_t4(uint32_t field);
 struct bkpt_t1_parts decode_bkpt_t1(uint16_t field);
 struct bx_t1_parts decode_bx_t1(uint16_t field);
-struct mov_t1_parts decode_mov_t1(uint16_t field);
-struct movw_t3_parts decode_movw_t3(uint32_t field);
+struct movs_i_t1_parts decode_movs_i_t1(uint16_t field);
+struct movw_i_t3_parts decode_movw_i_t3(uint32_t field);
+struct mov_r_t1_parts decode_mov_r_t1(uint16_t field);
+struct movs_r_t2_noit_parts decode_movs_r_t2_noit(uint16_t field);
+struct mov_r_t3_opt_s_parts decode_mov_r_t3_opt_s(uint32_t field);
 struct svc_t1_parts decode_svc_t1(uint16_t field);
+struct udf_t1_parts decode_udf_t1(uint16_t field);
+struct udf_t2_parts decode_udf_t2(uint32_t field);
 
