@@ -5,15 +5,20 @@
 #include "io.h"
 #include "util.h"
 #include "terminal.h"
+#include "string.h"
 
+#include <limits.h>
 #include <stddef.h>
 
 static const char *last_prompt;
 static const char *last_option;
 
 static void print_menu_help(unsigned option_count,
-                            const struct menu_option *options) {
-    putstring("?\r\n");
+                            const struct menu_option *options,
+                            bool print_help_question_mark) {
+    if (print_help_question_mark) {
+        putstring("?\r\n");
+    }
     for (unsigned i = 0; i < option_count; i++) {
         const struct menu_option *opt = &options[i];
         putstring(" * ");
@@ -53,7 +58,7 @@ char menu(const char *prompt, unsigned option_count,
 
         // Help
         if (c == '?') {
-            print_menu_help(option_count, options);
+            print_menu_help(option_count, options, true);
             putstring(prompt);
             continue;
         }
@@ -93,7 +98,7 @@ char submenu(const char *prompt, unsigned option_count,
 
         // Help
         if (c == '?') {
-            print_menu_help(option_count, options);
+            print_menu_help(option_count, options, true);
             putstring(last_prompt);
             putstring(last_option);
             putchar(' ');
@@ -107,6 +112,117 @@ char submenu(const char *prompt, unsigned option_count,
             putstring(opt->name);
             putnewline();
             return c;
+        }
+    }
+}
+
+int menu_number(const char *prompt, int init_number, unsigned option_count,
+                const struct menu_option *options, bool (*on_option)(int *, char c)) {
+
+    // If no options are given,
+    // then there must be a NULL for options & on_option,
+    // and option_count must be 0
+    if (!options || !option_count || !on_option) {
+        assert(!options && !option_count && !on_option);
+    }
+
+    int number = init_number;
+    int base = 10;
+    bool sign = false;
+
+    static const struct menu_option number_options[] = {
+        {CTRL('b'), "Toggle Base 16 <==> 10"},
+        {CTRL('i'), "Initial Number"        },
+        {CTRL('z'), "Zero Current"          },
+        {'-',       "Toggle Sign"           },
+        {'\r',      "Submit"                },
+        {'\b',      "Remove Last Digit"     },
+    };
+
+    while (1) {
+        terminal_clearline();
+        putstring(prompt);
+        if (number == 0 && sign) {
+            putchar('-');
+        }
+        putstring(itoa_pad(number, base));
+
+        char c = getchar();
+
+        // Handle digits
+        uint8_t digit = char_to_digit(c);
+        if (digit < base) {
+            if (sign) {
+                if ((INT_MIN + digit) / base < number) {
+                    number *= base;
+                    number -= digit;
+                }
+            } else {
+                if ((INT_MAX - digit) / base > number) {
+                    number *= base;
+                    number += digit;
+                }
+            }
+            continue;
+        }
+
+        // Help
+        if (c == '?') {
+            print_menu_help(option_count, options, true);
+            print_menu_help(ARR_LEN(number_options), number_options, false);
+            putstring(prompt);
+            continue;
+        }
+
+        // Check number options (built in)
+        const struct menu_option *num_opt = find_menu_option(c, ARR_LEN(number_options), number_options);
+        if (num_opt != NULL) {
+            switch (c) {
+            case CTRL('b'): // Toggle Base
+                base = base == 10 ? 16 : 10;
+                break;
+            case CTRL('i'): // Initial Number
+                sign = init_number < 0;
+                number = init_number;
+                continue;
+            case CTRL('z'): // Zero Current
+                sign = false;
+                number = 0;
+                continue;
+            case '-': // Toggle Sign
+                if (number == 0) {
+                    // Allow flipping sign on zero for easily entering negative numbers
+                    sign = !sign;
+                } else {
+                number *= -1;
+                sign = number < 0; // Don't just NOT the sign as INT_MIN can never be positive
+                }
+                continue;
+            case '\r': // Submit
+                putnewline();
+                return number;
+            case '\b': // Remove Last Digit
+                number /= base;
+                continue;
+            default:
+                ASSERT_NOT_REACHED();
+                break;
+            }
+
+            putchar(' ');
+            putstring(num_opt->name);
+            putnewline();
+            continue;
+        }
+
+        // Check options
+        const struct menu_option *opt = find_menu_option(c, option_count, options);
+        if (opt != NULL) {
+            if (on_option(&number, c)) {
+                putchar(' ');
+                putstring(opt->name);
+                putnewline();
+            }
         }
     }
 }
