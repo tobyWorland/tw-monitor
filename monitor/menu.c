@@ -257,28 +257,31 @@ enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt) {
     ASSERT_NOT_REACHED();
 }
 
+static bool menu_preset_register_callback(int *reg, char c) {
+    switch (c) {
+    case 's':
+        *reg = 13;
+        break;
+    case 'l':
+        *reg = 14;
+        break;
+    case 'p':
+        *reg = 15;
+        break;
+    }
+    return true;
+}
+
 unsigned menu_preset_register(const char *prompt) {
-    // TODO: Needs a nicer user experience
-    //       /w Numbers input with the extra keys to pick sp, lr and pc
     static const struct menu_option register_options[] = {
-        {'r', "Register "}, // Extra space is intended
-        {'s', "SP"       },
-        {'l', "LR"       },
-        {'p', "PC"       },
+        {'s', "SP"},
+        {'l', "LR"},
+        {'p', "PC"},
     };
 
-    char opt = menu(prompt, ARR_LEN(register_options), register_options, "r");
-    switch (opt) {
-    case 'r': {
-        // TODO: Should be in decimal
-        // TODO: Should be able to cancel and return back to this menu
-        return gethexword(0);
-    }
-    case 's': return 13;
-    case 'l': return 14;
-    case 'p': return 15;
-    }
-    ASSERT_NOT_REACHED();
+    int reg = menu_number(prompt, 0, ARR_LEN(register_options),
+                          register_options, menu_preset_register_callback);
+    return reg;
 }
 
 int32_t menu_preset_label(const char *prompt, void *relative_from) {
