@@ -164,3 +164,28 @@ unsigned menu_preset_register(const char *prompt) {
     }
     ASSERT_NOT_REACHED();
 }
+
+int32_t menu_preset_label(const char *prompt, void *relative_from) {
+    static const struct menu_option label_options[] = {
+        {'.', "Here"  },
+        {'+', "+Bytes"},
+        {'-', "-Bytes"},
+        //{'l', "Label"}, // TODO: Implement
+    };
+
+    (void)relative_from; // Silence warnings - FIXME: Needed for "Label" option
+
+    char opt = menu(prompt, ARR_LEN(label_options), label_options, NULL);
+    switch (opt) {
+    case '+': {
+        // TODO: Should be able to cancel and return back to this menu
+        return gethexword(0);
+    }
+    case '-': {
+        // TODO: Should be able to cancel and return back to this menu
+        return -(int32_t)gethexword(0);
+    }
+    case '.': return 0;
+    }
+    ASSERT_NOT_REACHED();
+}

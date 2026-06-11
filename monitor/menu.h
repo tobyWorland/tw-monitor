@@ -2,6 +2,7 @@
 #define MENU_H_INCLUDED
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct menu_option {
     char key;
@@ -22,5 +23,6 @@ char submenu(const char *prompt, unsigned option_count,
 bool menu_preset_continue(const char *prompt, bool erase_on_continue);
 enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt);
 unsigned menu_preset_register(const char *prompt);
+int32_t menu_preset_label(const char *prompt, void *relative_from);
 
 #endif
