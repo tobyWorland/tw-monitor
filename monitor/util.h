@@ -7,4 +7,14 @@
 #define OFFSET_OF(STRUCT, FIELD) ((unsigned)&((STRUCT*)NULL)->FIELD)
 #define __BKPT(IMM)              __asm("bkpt " #IMM)
 
+struct size {
+    unsigned width;
+    unsigned height;
+};
+
+struct position {
+    unsigned x;
+    unsigned y;
+};
+
 #endif

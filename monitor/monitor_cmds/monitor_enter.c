@@ -5,7 +5,7 @@
 #include "../io.h"
 #include "../menu.h"
 #include "../util.h"
-#include "../vt.h"
+#include "../terminal.h"
 #include "../thumb_asm.h"
 
 #include <stdint.h>
@@ -75,7 +75,7 @@ static inline bool handle_input(struct enter_state *state) {
                 state->col--;
                 state->addr -= (unsigned)state->ent_type;
 
-                vt_blank_last_n_chars(state->digit_width + 1 + !!state->extra_space_in_number);
+                terminal_erase_last_chars(state->digit_width + 1 + !!state->extra_space_in_number);
 
                 load_current(state);
                 state->digit_idx = 0;
@@ -154,7 +154,7 @@ static void _monitor_enter(struct enter_state *state) {
 
         // Erase the current entry from the screen so we can reprint it with the new digit
         // +1 for the space
-        vt_blank_last_n_chars(state->digit_width + 1 + !!state->extra_space_in_number);
+        terminal_erase_last_chars(state->digit_width + 1 + !!state->extra_space_in_number);
     }
 
     // Store our changes to the current entry before we exit

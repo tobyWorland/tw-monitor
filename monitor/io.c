@@ -5,7 +5,7 @@
 #include "hardware.h"
 #include "util.h"
 #include "string.h"
-#include "vt.h"
+#include "terminal.h"
 
 #include <stdarg.h>
 
@@ -72,7 +72,7 @@ uint32_t gethexword(uint32_t default_value) {
             result |= digit;
         }
 
-        vt_blank_last_n_chars(9);
+        terminal_erase_last_chars(9);
     }
     putnewline();
 
@@ -119,7 +119,7 @@ void io_printf(const char *fmt, ...) {
     va_end(ap);
 }
 
-const char *io_getline(void) {
+const char *io_gettill(char delimiter, bool echo) {
     #define MAX_BUFFER_LEN 20
     static char buffer[MAX_BUFFER_LEN + 1]; // +1 for NULL terminator
     unsigned count = 0;
@@ -128,23 +128,31 @@ const char *io_getline(void) {
         char c = getchar();
         if (c == '\b') {
             if (count > 0) {
-                vt_blank_last_n_chars(1);
+                terminal_erase_last_chars(1);
                 count--;
             }
-        } else if (c == '\r') {
+        } else if (c == delimiter) {
             break;
         } else {
             if (count < MAX_BUFFER_LEN) {
                 buffer[count++] = c;
-                putchar(c);
+                if (echo) {
+                    putchar(c);
+                }
             }
         }
     }
 
     buffer[count] = '\0';
 
-    putnewline();
+    if (echo) {
+        putnewline();
+    }
 
     return buffer;
     #undef MAX_BUFFER_LEN
+}
+
+const char *io_getline(void) {
+    return io_gettill('\r', true);
 }

@@ -4,7 +4,7 @@
 #include "char.h"
 #include "io.h"
 #include "util.h"
-#include "vt.h"
+#include "terminal.h"
 
 #include <stddef.h>
 
@@ -120,7 +120,7 @@ bool menu_preset_continue(const char *prompt, bool erase_on_continue) {
                      erase_on_continue ? "c" : NULL) == 'c';
 
     if (cont) {
-        vt_clearline();
+        terminal_clearline();
     }
 
     return cont;

@@ -13,7 +13,7 @@
 #include "monitor_cmds/monitor_memory.h"
 #include "util.h"
 #include "string.h"
-#include "vt.h"
+#include "terminal.h"
 #include "transfer.h"
 
 #include "stm32f411xce_timer.h"
@@ -56,7 +56,7 @@ void monitor_main(bool surpress_init) {
     static uint32_t addr = 0;
 
     if (!surpress_init) {
-        vt_clearscreen();
+        terminal_clearscreen();
 
         memory_init();
 
@@ -140,7 +140,7 @@ void monitor_main(bool surpress_init) {
             monitor_dev();
             break;
         case CTRL('l'):
-            vt_clearscreen();
+            terminal_clearscreen();
             break;
         default:
             putstring("Error: Missing action\r\n");
