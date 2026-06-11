@@ -10,7 +10,8 @@
 bool thumb_is_wide_instruction(thumb_t ins) {
     // ARMv7-M Architecture Reference Manual
     // A5.3 32bit Thumb instruction Encoding
-    return ((ins.narrow >> 13) == 7) && ((ins.narrow >> 11) != 0);
+    return ((ins.narrow >> 13) == 7) &&
+        (((ins.narrow >> 11) & 3) != 0);
 }
 
 thumb_t *thumb_ins_ptr_increment(thumb_t *insptr) {
