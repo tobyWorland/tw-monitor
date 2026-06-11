@@ -57,6 +57,8 @@ TEST(string_number, zero_width) {
 TEST(string_number, decimal_unsigned) {
     EXPECT_STREQ(utoa_pad(123, 10), "123");
     EXPECT_STREQ(utoa_pad(5, 10), "5");
+
+    EXPECT_STREQ(utoa_pad(9'8765'4321, 10), "9_8765_4321");
 }
 
 TEST(string_number, decimal_unsigned_width) {
@@ -77,6 +79,9 @@ TEST(string_number, decimal_signed) {
 
     EXPECT_STREQ(itoa_pad(5, 10),   "5");
     EXPECT_STREQ(itoa_pad(-5, 10), "-5");
+
+    EXPECT_STREQ(itoa_pad(9'8765'4321, 10),   "9_8765_4321");
+    EXPECT_STREQ(itoa_pad(-9'8765'4321, 10), "-9_8765_4321");
 }
 
 TEST(string_number, decimal_signed_width) {
