@@ -8,6 +8,8 @@
 
 #include <stddef.h>
 
+static enum thumb_width_specifier width_specifier;
+
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
@@ -44,9 +46,46 @@ static enum thumb_width_specifier show_width_menu(enum thumb_width_specifier cur
     }
 }
 
+static void print_missing_action_message(void) {
+    putstring("Error: Missing action\r\n");
+}
+
+static void assemble_b(thumb_t **paddr) {
+    static const struct menu_option b_options[] = {
+        {'b', "B"},
+        {'x', "BX"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM B> ", ARR_LEN(b_options), b_options, NULL);
+    switch (opt) {
+    case 'b': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_B;
+        instruction.width = width_specifier;
+        thumb_add_operand_immediate(&instruction, menu_preset_label("Branch to? ", paddr));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'x': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_BX;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
-        {'b', "BX"   },
+        {'b', "B..." },
         {'m', "MOVW" },
         {'n', "NOP"  },
         {'s', "SVC"  },
@@ -57,17 +96,13 @@ void monitor_assemble(thumb_t *addr) {
     };
     bool quit = false;
     thumb_t *starting_addr = addr;
-    enum thumb_width_specifier width_specifier = TWS_AUTO;
+    width_specifier = TWS_AUTO;
 
     while (!quit) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
-        case 'b': { // BX
-            struct thumb_instruction_spec instruction = {};
-            instruction.mnemonic = TM_BX;
-            instruction.width = width_specifier;
-            thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
-            assemble_and_show_result(&addr, &instruction);
+        case 'b': { // B...
+            assemble_b(&addr);
             break;
         }
         case 'm': { // MOVW
@@ -125,7 +160,7 @@ void monitor_assemble(thumb_t *addr) {
             quit = true;
             break;
         default:
-            putstring("Error: Missing action\r\n");
+            print_missing_action_message();
             break;
         }
     }

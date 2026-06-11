@@ -82,6 +82,12 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_MOVW;
             thumb_add_operand_reg(&instruction, parts.Rd);
             thumb_add_operand_immediate(&instruction, parts.imm16);
+        } else if (match_b_t4(wide_ins)) {
+            const struct b_t4_parts parts = decode_b_t4(wide_ins);
+
+            instruction.mnemonic = TM_B;
+            // +4 as immediate is relative to PC - check assembling comment
+            thumb_add_operand_immediate(&instruction, parts.simm25 + 4);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -104,6 +110,12 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_SVC;
             thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_b_t2(ins)) {
+            const struct b_t2_parts parts = decode_b_t2(ins);
+
+            instruction.mnemonic = TM_B;
+            // +4 as immediate is relative to PC - check assembling comment
+            thumb_add_operand_immediate(&instruction, parts.simm11 + 4);
         }
     }
 
@@ -143,6 +155,36 @@ encoder_to_asm_result(unsigned encoder_result) {
 #define ENSURE_WIDE()   if (instruction_spec->width == TWS_NARROW) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
     switch (instruction_spec->mnemonic) {
+    case TM_B: {
+        // TODO: Support conditionals
+
+        if (instruction_spec->operand_count != 1 || instruction_spec->operands[0].type != OT_IMMEDIATE) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        // -4 as immediate is relative to PC
+        // And regardless of the width of instruction, the hardware behaves
+        // as if the PC is 4 bytes ahead
+        int32_t label = (int32_t)instruction_spec->operands[0].imm - 4;
+
+        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
+            struct b_t2_parts parts = {
+                .simm11 = label,
+            };
+            unsigned result = encode_b_t2(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+        }
+
+        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE) {
+            struct b_t4_parts parts = {
+                .simm25 = label,
+            };
+            return encoder_to_asm_result(encode_b_t4(&into->wide, &parts));
+        }
+        break;
+    }
     case TM_BKPT: {
         struct bkpt_t1_parts parts;
 
