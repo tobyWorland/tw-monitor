@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// Expose pad_*() to the host for testing
 #ifdef HOST
 void pad_init();
 void pad_hold(char c);
@@ -19,15 +20,11 @@ const char *itoa_pad(int number, unsigned base);
 unsigned strtou(const char *s, char **endptr, unsigned base);
 int strtoi(const char *s, char **endptr, unsigned base);
 
-#ifndef HOST
+#ifndef HOST_HIDE_PROTOTYPES
 void *memset(void *s, char c, size_t n);
 void *memcpy(void *__restrict__ dest, const void *__restrict__ src, size_t n);
 int memcmp(const void *s1, const void *s2, size_t n);
 unsigned strlen(const char *s);
-#else
-// FIXME: Need to handle this better
-// Host should be able to build these implementations and then rename them instead
-#include <string.h>
 #endif
 
 #endif

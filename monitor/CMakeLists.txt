@@ -64,5 +64,6 @@ add_library(host_monitor STATIC
     ${C_SOURCE}
 )
 # Not much point in not having this be PRIVATE as the options won't survive the redefining in demos
-target_compile_options(host_monitor PRIVATE "-DHOST -ffreestanding")
+target_compile_options(host_monitor PRIVATE -ffreestanding)
+target_compile_definitions(host_monitor PRIVATE HOST)
 endif()

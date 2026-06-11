@@ -137,7 +137,6 @@ int strtoi(const char *s, char **endptr, unsigned base) {
     return result;
 }
 
-#ifndef HOST
 // Needed by GCC
 void *memset(void *s, char c, size_t n) {
     char *ptr = s;
@@ -173,4 +172,3 @@ unsigned strlen(const char *s) {
     for (len = 0; *s; s++, len++);
     return len;
 }
-#endif

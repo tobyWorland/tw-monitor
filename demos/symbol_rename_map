@@ -1,2 +1,6 @@
 assert fake_assert
 getchar fake_getchar
+memset fake_memset
+memcpy fake_memcpy
+memcmp fake_memcmp
+strlen fake_strlen

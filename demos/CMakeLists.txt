@@ -5,7 +5,7 @@ enable_language(C)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libhost_monitor_redefined.a
 	DEPENDS host_monitor
-	COMMAND ${CMAKE_OBJCOPY} ARGS 
+	COMMAND ${CMAKE_OBJCOPY} ARGS
 	--redefine-syms=${CMAKE_CURRENT_SOURCE_DIR}/symbol_rename_map
 	../monitor/libhost_monitor.a libhost_monitor_redefined.a
 )
@@ -23,7 +23,10 @@ add_library(demo_fakes STATIC
 	fakes.c
 	demo_support.c
 )
-target_compile_options(demo_fakes PUBLIC "-DHOST")
+target_compile_definitions(demo_fakes PUBLIC
+    HOST
+    HOST_HIDE_PROTOTYPES
+)
 target_include_directories(demo_fakes INTERFACE ".")
 
 add_library(demo_deps INTERFACE)
