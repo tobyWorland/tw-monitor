@@ -118,3 +118,33 @@ void io_printf(const char *fmt, ...) {
 
     va_end(ap);
 }
+
+const char *io_getline(void) {
+    #define MAX_BUFFER_LEN 20
+    static char buffer[MAX_BUFFER_LEN + 1]; // +1 for NULL terminator
+    unsigned count = 0;
+
+    while (1) {
+        char c = getchar();
+        if (c == '\b') {
+            if (count > 0) {
+                vt_blank_last_n_chars(1);
+                count--;
+            }
+        } else if (c == '\r') {
+            break;
+        } else {
+            if (count < MAX_BUFFER_LEN) {
+                buffer[count++] = c;
+                putchar(c);
+            }
+        }
+    }
+
+    buffer[count] = '\0';
+
+    putnewline();
+
+    return buffer;
+    #undef MAX_BUFFER_LEN
+}
