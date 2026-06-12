@@ -1,8 +1,10 @@
 #include "menu.h"
 
+#include "arm.h"
 #include "assert.h"
 #include "char.h"
 #include "io.h"
+#include "memory.h"
 #include "util.h"
 #include "terminal.h"
 #include "string.h"
@@ -305,15 +307,13 @@ unsigned menu_preset_register(const char *prompt) {
     return reg;
 }
 
-int32_t menu_preset_label(const char *prompt, void *relative_from) {
+int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code) {
     static const struct menu_option label_options[] = {
         {'.', "Here"  },
         {'+', "+Bytes"},
         {'-', "-Bytes"},
-        //{'l', "Label"}, // TODO: Implement
+        {'l', "Label"},
     };
-
-    (void)relative_from; // Silence warnings - FIXME: Needed for "Label" option
 
     char opt = menu(prompt, ARR_LEN(label_options), label_options, NULL);
     switch (opt) {
@@ -324,6 +324,25 @@ int32_t menu_preset_label(const char *prompt, void *relative_from) {
     case '-': {
         // TODO: Should be able to cancel and return back to this menu
         return -(int32_t)gethexword(0);
+    }
+    case 'l': {
+        const char *name;
+        while (1) {
+            putstring("Label Name? ");
+            name = io_getline();
+            struct memory_entry *label = memory_lookup_label(name, strlen(name));
+            if (label) {
+                void *label_addr = memory_addr_from_entry(label);
+                if (is_code) {
+                    // Relative addresses to code should not have the interwork bit set
+                    // Should only use interwork for absolute addresses
+                    label_addr = arm_address_set_thumb_intwrk_bit(label_addr, false);
+                }
+                return (int)label_addr - (int)relative_from;
+            } else {
+                putstring("Error: Label does not exist.\r\n");
+            }
+        }
     }
     case '.': return 0;
     }

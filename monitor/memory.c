@@ -90,6 +90,10 @@ bool memory_create_label(const char *name, unsigned name_len, void *ptr,
     new_label->label.name_len = name_len;
     memcpy(new_label->label.name, name, name_len);
 
+    if (is_code) {
+        new_label->addr = arm_address_set_thumb_intwrk_bit(new_label->addr, true);
+    }
+
     g_memory_meta.last_memory_entry = new_label;
 
     return true;
@@ -169,6 +173,10 @@ struct memory_entry *memory_lookup_section(void *ptr) {
     }
 
     return current; // NULL
+}
+
+void *memory_addr_from_entry(struct memory_entry *memory_entry) {
+    return memory_entry->addr;
 }
 
 void memory_print_entries(void) {
