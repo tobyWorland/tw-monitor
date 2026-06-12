@@ -8,36 +8,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-bool number_callback(int *px, char c) {
+static bool quit_number_menu = false;
+enum menu_number_callback_result number_callback(int *px, char c) {
+    enum menu_number_callback_result result = MNCR_PRINT_OPT;
+
     switch (c) {
     case 'i':
         *px += 3;
         break;
     case 'o':
         *px -= 5;
+        result |= MNCR_CLR_REPROMPT;
         break;
     case 'p':
         *px = 172;
-        return false; // Suppress option
+        result &= ~MNCR_PRINT_OPT; // Suppress printing the option
+        break;
     case CTRL('q'):
-        puts(" Quit!\r");
-        exit(0);
+        quit_number_menu = true;
+        result |= MNCR_QUIT_MENU;
         break;
     }
-    return true; // Allow option to be printed
+    return result;
 }
 
 void number_menu() {
     struct menu_option number_opts[] = {
-        {'i',       "Add 3 (shown)"         },
-        {'o',       "Sub 5 (shown)"         },
-        {'p',       "Set to 172 (not shown)"},
-        {CTRL('q'), "Quit"                  },
+        {'i',       "Add 3 (shown)"              },
+        {'o',       "Sub 5 (shown and re-prompt)"},
+        {'p',       "Set to 172 (not shown)"     },
+        {CTRL('q'), "Quit"                       },
     };
 
     const int def = 5;
 
-    while (1) {
+    while (!quit_number_menu) {
         int x = menu_number("NUM> ", def, ARR_LEN(number_opts),
                         number_opts, number_callback);
         printf("Got: %d (%x)\r\n", x, x);

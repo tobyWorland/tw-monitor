@@ -117,7 +117,8 @@ char submenu(const char *prompt, unsigned option_count,
 }
 
 int menu_number(const char *prompt, int init_number, unsigned option_count,
-                const struct menu_option *options, bool (*on_option)(int *, char c)) {
+                const struct menu_option *options,
+                enum menu_number_callback_result (*on_option)(int *, char c)) {
 
     // If no options are given,
     // then there must be a NULL for options & on_option,
@@ -218,10 +219,30 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
         // Check options
         const struct menu_option *opt = find_menu_option(c, option_count, options);
         if (opt != NULL) {
-            if (on_option(&number, c)) {
+            enum menu_number_callback_result callresult = on_option(&number, c);
+            bool need_newline = false;
+
+            if (callresult & MNCR_CLR_REPROMPT) {
+                terminal_clearline();
+                putstring(prompt);
+                if (number == 0 && sign) {
+                    putchar('-');
+                }
+                putstring(itoa_pad(number, base));
+                need_newline = true;
+            }
+            if (callresult & MNCR_PRINT_OPT) {
                 putchar(' ');
                 putstring(opt->name);
+                need_newline = true;
+            }
+
+            if (need_newline) {
                 putnewline();
+            }
+
+            if (callresult & MNCR_QUIT_MENU) {
+                return number;
             }
         }
     }
@@ -257,7 +278,7 @@ enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt) {
     ASSERT_NOT_REACHED();
 }
 
-static bool menu_preset_register_callback(int *reg, char c) {
+static enum menu_number_callback_result menu_preset_register_callback(int *reg, char c) {
     switch (c) {
     case 's':
         *reg = 13;
@@ -269,7 +290,7 @@ static bool menu_preset_register_callback(int *reg, char c) {
         *reg = 15;
         break;
     }
-    return true;
+    return MNCR_CLR_REPROMPT | MNCR_PRINT_OPT | MNCR_QUIT_MENU;
 }
 
 unsigned menu_preset_register(const char *prompt) {
