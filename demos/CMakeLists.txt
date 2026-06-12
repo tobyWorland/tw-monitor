@@ -21,6 +21,7 @@ add_dependencies(host_monitor_redefined libhost_monitor_redefined.a)
 
 add_library(demo_fakes STATIC
 	fakes.c
+    fake_memory.c
 	demo_support.c
 )
 target_compile_definitions(demo_fakes PUBLIC
