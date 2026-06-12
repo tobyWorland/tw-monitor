@@ -308,7 +308,7 @@ unsigned menu_preset_register(const char *prompt) {
 }
 
 #ifndef HOST
-int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code) {
+intptr_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code) {
     static const struct menu_option label_options[] = {
         {'.', "Here"  },
         {'+', "+Bytes"},
@@ -324,7 +324,7 @@ int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool
     }
     case '-': {
         // TODO: Should be able to cancel and return back to this menu
-        return -(int32_t)gethexword(0);
+        return -(intptr_t)gethexword(0);
     }
     case 'l': {
         const char *name;
@@ -339,7 +339,7 @@ int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool
                     // Should only use interwork for absolute addresses
                     label_addr = arm_address_set_thumb_intwrk_bit(label_addr, false);
                 }
-                return (int)label_addr - (int)relative_from;
+                return (intptr_t)label_addr - (intptr_t)relative_from;
             } else {
                 putstring("Error: Label does not exist.\r\n");
             }
