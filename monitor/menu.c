@@ -307,6 +307,7 @@ unsigned menu_preset_register(const char *prompt) {
     return reg;
 }
 
+#ifndef HOST
 int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code) {
     static const struct menu_option label_options[] = {
         {'.', "Here"  },
@@ -348,3 +349,4 @@ int32_t menu_preset_relative_label(const char *prompt, void *relative_from, bool
     }
     ASSERT_NOT_REACHED();
 }
+#endif

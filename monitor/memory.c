@@ -7,6 +7,8 @@
 
 #include <stddef.h>
 
+#ifndef HOST
+
 // NOTE: Update linker script if changing struct
 struct memory_metadata {
     struct memory_entry *first_memory_entry;
@@ -200,3 +202,5 @@ void memory_print_entries(void) {
         }
     }
 }
+
+#endif
