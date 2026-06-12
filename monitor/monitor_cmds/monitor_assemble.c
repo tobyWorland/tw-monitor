@@ -152,7 +152,7 @@ void monitor_assemble(thumb_t *addr) {
                 puthexword((uint32_t)p);
                 putchar(' ');
                 struct thumb_instruction_spec ins_spec = thumb_disassemble(p);
-                thumb_print_instruction(&ins_spec);
+                thumb_print_instruction(&ins_spec, p);
                 putnewline();
             }
             break;

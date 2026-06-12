@@ -1,3 +1,4 @@
+#include "memory.h"
 #define THUMB_ASM_SOURCE
 #include "thumb_asm.h"
 
@@ -122,7 +123,8 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
     return instruction;
 }
 
-void thumb_print_instruction(const struct thumb_instruction_spec *instruction) {
+void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction) {
     putstring(mnemonic_strs[instruction->mnemonic]);
     if (instruction->width == TWS_WIDE) {
         putstring(".W");
@@ -140,6 +142,39 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction) {
             ASSERT_NOT_REACHED();
         }
     }
+    struct thumb_referenced_address_result refd_address_result =
+        thumb_get_referenced_address(instruction, address_of_instruction);
+    if (refd_address_result.found) {
+        io_printf(" ; References %x", refd_address_result.address);
+
+        struct memory_entry *label =
+            memory_rlookup_label(refd_address_result.address);
+        if (label) {
+            putstring(" <");
+            memory_print_name_from_label(label);
+            putchar('>');
+        }
+    }
+}
+
+struct thumb_referenced_address_result
+thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction) {
+    intptr_t address = 0;
+    bool found = false;
+
+    switch (instruction->mnemonic) {
+    case TM_B:
+        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_IMMEDIATE) {
+            found = true;
+            address = (int)address_of_instruction + (int)instruction->operands[0].imm;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return (struct thumb_referenced_address_result){found, (void*)address};
 }
 
 static enum thumb_assemble_result

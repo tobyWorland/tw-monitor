@@ -177,6 +177,11 @@ struct memory_entry *memory_lookup_section(void *ptr) {
     return current; // NULL
 }
 
+void memory_print_name_from_label(struct memory_entry *memory_entry) {
+    assert(memory_entry_is_label(memory_entry));
+    putnstring(memory_entry->label.name, memory_entry->label.name_len);
+}
+
 void *memory_addr_from_entry(struct memory_entry *memory_entry) {
     return memory_entry->addr;
 }

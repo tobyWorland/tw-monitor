@@ -76,7 +76,7 @@ void *debug_monitor(void *pc) {
     puthexword((uint32_t)pc);
     putchar(' ');
     struct thumb_instruction_spec ins_spec = thumb_disassemble(pc);
-    thumb_print_instruction(&ins_spec);
+    thumb_print_instruction(&ins_spec, pc);
     putnewline();
 
     char opt = menu("DEBUG> ", ARR_LEN(debug_options), debug_options, NULL);

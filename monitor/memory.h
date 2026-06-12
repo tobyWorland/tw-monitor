@@ -18,6 +18,7 @@ struct memory_entry *memory_lookup_label(const char* name, unsigned name_len);
 struct memory_entry *memory_rlookup_label(void *ptr);
 struct memory_entry *memory_lookup_section(void *ptr);
 
+void memory_print_name_from_label(struct memory_entry *memory_entry);
 void *memory_addr_from_entry(struct memory_entry *memory_entry);
 
 void memory_print_entries(void);

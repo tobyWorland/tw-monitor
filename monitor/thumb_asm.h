@@ -70,7 +70,16 @@ void thumb_print_register(unsigned reg);
 void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg);
 void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm);
 struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr);
-void thumb_print_instruction(const struct thumb_instruction_spec *instruction);
+void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction);
+
+struct thumb_referenced_address_result {
+    bool found;
+    void *address;
+};
+struct thumb_referenced_address_result
+thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction);
 
 enum thumb_assemble_result {
     AR_FAIL_BAD_MNEMONIC,
