@@ -25,6 +25,7 @@ enum thumb_mnemonic {
     TM_NOP,
     TM_MOVW,
     TM_SVC,
+    TM_UDF,
 };
 
 #ifdef THUMB_ASM_SOURCE
@@ -39,6 +40,7 @@ static const char *mnemonic_strs[] = {
     "NOP",
     "MOVW",
     "SVC",
+    "UDF",
 };
 #endif
 

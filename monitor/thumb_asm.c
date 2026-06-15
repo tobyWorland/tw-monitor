@@ -317,6 +317,29 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(encode_svc_t1(&into->narrow, &parts));
     }
+    case TM_UDF: {
+        if (instruction_spec->operand_count != 1 || instruction_spec->operands[0].type != OT_IMMEDIATE) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
+            struct udf_t1_parts parts = {
+                .imm8 = instruction_spec->operands[0].imm,
+            };
+            unsigned result = encode_udf_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+        }
+
+        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE) {
+            struct udf_t2_parts parts = {
+                .imm16 = instruction_spec->operands[0].imm,
+            };
+            return encoder_to_asm_result(encode_udf_t2(&into->wide, &parts));
+        }
+        break;
+    }
     default:
         break; // Go on to fail
     }

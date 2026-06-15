@@ -109,6 +109,7 @@ void monitor_assemble(thumb_t *addr) {
         {'m', "MOVW" },
         {'n', "NOP"  },
         {'s', "SVC"  },
+        {'u', "UDF"},
         {'x', "BKPT" },
         {'.', "Specify Width"},
         {CTRL('p'), "Print Assembly"},
@@ -146,6 +147,16 @@ void monitor_assemble(thumb_t *addr) {
             uint32_t immediate = gethexword(0);
             struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_SVC;
+            instruction.width = width_specifier;
+            thumb_add_operand_immediate(&instruction, immediate);
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
+        case 'u': { // UDF
+            // TODO: Should have a way of getting a byte or arbitrary width number
+            uint32_t immediate = gethexword(0);
+            struct thumb_instruction_spec instruction = {};
+            instruction.mnemonic = TM_UDF;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
             assemble_and_show_result(&addr, &instruction);
