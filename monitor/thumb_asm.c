@@ -108,6 +108,48 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
             thumb_add_operand_immediate(&instruction, parts.simm25 + 4);
+        } else if (match_ldr_i_t3(wide_ins)) {
+            const struct ldr_i_t3_parts parts = decode_ldr_i_t3(wide_ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm12);
+        } else if (match_ldr_i_t4(wide_ins)) {
+            const struct ldr_i_t4_parts parts = decode_ldr_i_t4(wide_ins);
+
+            instruction.mnemonic = TM_LDR;
+            if (parts.index && parts.writeback) {
+                instruction.addressing_mode = AM_PREINDEX;
+            } else if (!parts.index && parts.writeback) {
+                instruction.addressing_mode = AM_POSTINDEX;
+            } else if (parts.index && !parts.writeback) {
+                instruction.addressing_mode = AM_OFFSET;
+            } else {
+                // TODO: Handle undefined case when !index && !writeback
+                ASSERT_NOT_REACHED();
+            }
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_signed_immediate(&instruction, parts.imm8 * (parts.add ? 1 : -1));
+        } else if (match_ldr_lit_t2(wide_ins)) {
+            const struct ldr_lit_t2_parts parts = decode_ldr_lit_t2(wide_ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, 15); // PC
+            thumb_add_operand_signed_immediate(&instruction, parts.imm12 * (parts.add ? 1 : -1));
+        } else if (match_ldr_r_t2_lsl(wide_ins)) {
+            const struct ldr_r_t2_lsl_parts parts = decode_ldr_r_t2_lsl(wide_ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
+            thumb_add_operand_lslshift(&instruction, parts.lsl_shift_imm2);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -136,6 +178,38 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
             thumb_add_operand_immediate(&instruction, parts.simm11 + 4);
+        } else if (match_ldr_i_t1(ins)) {
+            const struct ldr_i_t1_parts parts = decode_ldr_i_t1(ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm7);
+        } else if (match_ldr_i_t2_sponly(ins)) {
+            const struct ldr_i_t2_sponly_parts parts = decode_ldr_i_t2_sponly(ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, 13); // SP
+            thumb_add_operand_immediate(&instruction, parts.imm10);
+        } else if (match_ldr_lit_t1(ins)) {
+            const struct ldr_lit_t1_parts parts = decode_ldr_lit_t1(ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, 15); // PC
+            thumb_add_operand_immediate(&instruction, parts.imm10);
+        } else if (match_ldr_r_t1(ins)) {
+            const struct ldr_r_t1_parts parts = decode_ldr_r_t1(ins);
+
+            instruction.mnemonic = TM_LDR;
+            instruction.addressing_mode = AM_OFFSET;
+            thumb_add_operand_reg(&instruction, parts.Rt);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
 
@@ -149,18 +223,39 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
         putstring(".W");
     }
     for (unsigned i = 0; i < instruction->operand_count; i++) {
-        putchar(' ');
+        if (i == 1 && instruction->addressing_mode != AM_NONE) {
+            putstring(" [");
+        } else if (instruction->addressing_mode == AM_POSTINDEX &&
+            i == instruction->operand_count - 1) {
+            putstring("], ");
+        } else {
+            putchar(' ');
+        }
+
         switch (instruction->operands[i].type) {
         case OT_REG:
             thumb_print_register(instruction->operands[i].reg);
             break;
-        case OT_IMMEDIATE: // TODO: signed?
-            putstring(utoa_pad(instruction->operands[i].reg, 16));
+        case OT_IMMEDIATE:
+            putstring(utoa_pad(instruction->operands[i].imm, 16));
+            break;
+        case OT_SIGNED_IMMEDIATE:
+            putstring(itoa_pad(instruction->operands[i].simm, 16));
+            break;
+        case OT_LSL_SHIFT:
+            io_printf("LSL %u", instruction->operands[i].shift);
             break;
         default:
             ASSERT_NOT_REACHED();
         }
     }
+
+    if (instruction->addressing_mode == AM_OFFSET) {
+        putchar(']');
+    } else if (instruction->addressing_mode == AM_PREINDEX) {
+        putstring("]!");
+    }
+
     struct thumb_referenced_address_result refd_address_result =
         thumb_get_referenced_address(instruction, address_of_instruction);
     if (refd_address_result.found) {
@@ -208,7 +303,7 @@ encoder_to_asm_result(unsigned encoder_result) {
 #define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE)   return AR_FAIL_INVALID_WIDTH
 #define ENSURE_WIDE()   if (instruction_spec->width == TWS_NARROW) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
-    switch (instruction_spec->mnemonic) {
+    switch (instruction_spec->mnemonic) { // TODO: None of these cases should break, instead they should return AR_FAIL_INVALID_WIDTH
     case TM_B: {
         // TODO: Support conditionals
 
