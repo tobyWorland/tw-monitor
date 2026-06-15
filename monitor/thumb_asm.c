@@ -75,12 +75,9 @@ void thumb_add_operand_signed_immediate(struct thumb_instruction_spec *instructi
     };
 }
 
-void thumb_add_operand_addressing_mode(struct thumb_instruction_spec *instruction,
+void thumb_set_operand_addressing_mode(struct thumb_instruction_spec *instruction,
                                        enum thumb_operand_addressing_mode addressing_mode) {
-    *new_operand(instruction) = (struct thumb_operand){
-        .type = OT_ADDRESSING_MODE,
-        .addressing_mode = addressing_mode,
-    };
+    instruction->addressing_mode = addressing_mode;
 }
 
 void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction, unsigned shift) {
@@ -297,6 +294,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     case TM_LDR: {
         if (instruction_spec->operand_count < 3 || // 3 or 4 operands are valid
             instruction_spec->operand_count > 4 ||
+            instruction_spec->addressing_mode == AM_NONE ||
             instruction_spec->operands[0].type != OT_REG ||
             instruction_spec->operands[1].type != OT_REG) {
             return AR_FAIL_INVALID_OPERAND;
@@ -321,7 +319,8 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 }
             }
 
-            if (instruction_spec->operands[2].type != OT_REG) {
+            if (instruction_spec->operands[2].type != OT_REG ||
+                instruction_spec->addressing_mode != AM_OFFSET) {
                 return AR_FAIL_INVALID_OPERAND;
             }
 
@@ -349,15 +348,13 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 return encoder_to_asm_result(encode_ldr_r_t2_lsl(&into->wide, &parts));
             }
         } else if (instruction_spec->operands[2].type == OT_SIGNED_IMMEDIATE) { // TODO: Support unsigned immediate?
-            if (instruction_spec->operand_count != 4 ||
-                instruction_spec->operands[3].type != OT_ADDRESSING_MODE) {
+            if (instruction_spec->operand_count != 3) {
                 return AR_FAIL_INVALID_OPERAND;
             }
 
             int imm_offset = instruction_spec->operands[2].simm;
             bool neg_offset = imm_offset < 0;
-            enum thumb_operand_addressing_mode addressing_mode =
-                instruction_spec->operands[3].addressing_mode;
+            enum thumb_operand_addressing_mode addressing_mode = instruction_spec->addressing_mode;
 
             // These encodings only support base + unsigned immediate offset
             if (addressing_mode == AM_OFFSET && !neg_offset) {

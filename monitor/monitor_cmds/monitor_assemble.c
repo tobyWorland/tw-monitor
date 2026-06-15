@@ -155,6 +155,8 @@ void monitor_assemble(thumb_t *addr) {
         case 'l': { // LDR
             struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_LDR;
+            // Default to regular offset
+            thumb_set_operand_addressing_mode(&instruction, AM_OFFSET);
             instruction.width = width_specifier;
 
             thumb_add_operand_reg(&instruction, menu_preset_register("Rt? "));
@@ -171,13 +173,11 @@ void monitor_assemble(thumb_t *addr) {
             case 'i':
                 thumb_add_operand_reg(&instruction, 15); // PC
                 thumb_add_operand_signed_immediate(&instruction, gethexword(0));
-                thumb_add_operand_addressing_mode(&instruction, AM_OFFSET);
                 break;
             case 'l':
                 thumb_add_operand_reg(&instruction, 15); // PC
                 thumb_add_operand_signed_immediate(&instruction,
                                             menu_preset_relative_label("Label? ", addr, true));
-                thumb_add_operand_addressing_mode(&instruction, AM_OFFSET);
                 break;
             case 'r': {
                 thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
@@ -192,7 +192,7 @@ void monitor_assemble(thumb_t *addr) {
                     menu("Offset? ", ARR_LEN(ldr2_opts), ldr2_opts, NULL);
                 switch (opt) {
                 case '0':
-                    thumb_add_operand_immediate(&instruction, 0);
+                    thumb_add_operand_signed_immediate(&instruction, 0);
                     break;
                 case 'i': {
                     // TODO: Make signed immediate (gethexword - use menu instead?)
@@ -208,13 +208,13 @@ void monitor_assemble(thumb_t *addr) {
                         "Addr type? ", ARR_LEN(ldr3_opts), ldr3_opts, NULL);
                     switch (addressing_opt) {
                     case ' ':
-                        thumb_add_operand_addressing_mode(&instruction, AM_OFFSET);
+                        // Already default
                         break;
                     case '!':
-                        thumb_add_operand_addressing_mode(&instruction, AM_PREINDEX);
+                        thumb_set_operand_addressing_mode(&instruction, AM_PREINDEX);
                         break;
                     case ',':
-                        thumb_add_operand_addressing_mode(&instruction, AM_POSTINDEX);
+                        thumb_set_operand_addressing_mode(&instruction, AM_POSTINDEX);
                         break;
                     default:
                         print_missing_action_message();
