@@ -107,7 +107,7 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
-            thumb_add_operand_immediate(&instruction, parts.simm25 + 4);
+            thumb_add_operand_signed_immediate(&instruction, parts.simm25 + 4);
         } else if (match_ldr_i_t3(wide_ins)) {
             const struct ldr_i_t3_parts parts = decode_ldr_i_t3(wide_ins);
 
@@ -188,7 +188,7 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
-            thumb_add_operand_immediate(&instruction, parts.simm11 + 4);
+            thumb_add_operand_signed_immediate(&instruction, parts.simm11 + 4);
         } else if (match_ldr_i_t1(ins)) {
             const struct ldr_i_t1_parts parts = decode_ldr_i_t1(ins);
 
@@ -305,6 +305,8 @@ thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
             address = (int)address_of_instruction + (int)instruction->operands[0].imm;
         }
         break;
+        // TODO: Add BL
+        // TODO: Add LDR
     default:
         break;
     }
@@ -335,7 +337,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         // -4 as immediate is relative to PC
         // And regardless of the width of instruction, the hardware behaves
         // as if the PC is 4 bytes ahead
-        int32_t label = (int32_t)instruction_spec->operands[0].imm - 4;
+        int32_t label = (int32_t)instruction_spec->operands[0].imm - 4; // TODO: Use signed immediate
 
         if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
             struct b_t2_parts parts = {
