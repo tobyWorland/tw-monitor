@@ -150,6 +150,11 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
             thumb_add_operand_lslshift(&instruction, parts.lsl_shift_imm2);
+        } else if (match_udf_t2(wide_ins)) {
+            const struct udf_t2_parts parts = decode_udf_t2(wide_ins);
+
+            instruction.mnemonic = TM_UDF;
+            thumb_add_operand_immediate(&instruction, parts.imm16);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -210,6 +215,11 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_reg(&instruction, parts.Rt);
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_udf_t1(ins)) {
+            const struct udf_t1_parts parts = decode_udf_t1(ins);
+
+            instruction.mnemonic = TM_UDF;
+            thumb_add_operand_immediate(&instruction, parts.imm8);
         }
     }
 
