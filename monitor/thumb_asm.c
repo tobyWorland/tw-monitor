@@ -57,7 +57,7 @@ static struct thumb_operand *new_operand(struct thumb_instruction_spec *instruct
 void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg) {
     *new_operand(instruction) = (struct thumb_operand){
         .type = OT_REG,
-        .imm = reg,
+        .reg = reg,
     };
 }
 
