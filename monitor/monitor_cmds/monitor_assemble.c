@@ -111,13 +111,23 @@ static void assemble_p(thumb_t **paddr) {
         {'q', "Quit Menu"},
     };
 
-    char opt = menu("ASM B> ", ARR_LEN(b_options), b_options, NULL);
+    char opt = menu("ASM P> ", ARR_LEN(b_options), b_options, NULL);
     switch (opt) {
     case 'u': { // PUSH
-        ASSERT_NOT_REACHED(); // TODO: Implement
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_PUSH;
+        instruction.width = width_specifier;
+        thumb_add_operand_reglist(&instruction, menu_preset_register_list("To push? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
     }
     case 'o': { // POP
-        ASSERT_NOT_REACHED(); // TODO: Implement
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_POP;
+        instruction.width = width_specifier;
+        thumb_add_operand_reglist(&instruction, menu_preset_register_list("To pop? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
     }
     case 'q':
         break;

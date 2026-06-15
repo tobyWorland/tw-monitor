@@ -61,12 +61,14 @@ struct thumb_operand {
     enum thumb_operand_type {
         OT_NONE,
         OT_REG,
+        OT_REGLIST,
         OT_IMMEDIATE,
         OT_SIGNED_IMMEDIATE,
         OT_LSL_SHIFT,
     } type;
     union {
         unsigned reg;
+        uint16_t reglist;
         unsigned imm;
         int simm;
         unsigned shift;
@@ -92,7 +94,10 @@ thumb_t *thumb_ins_ptr_increment(thumb_t *insptr);
 void thumb_print_register(unsigned reg, bool pad_named_registers);
 void thumb_print_register_list(uint16_t reglist);
 
+unsigned thumb_count_register_list(uint16_t reglist);
+
 void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg);
+void thumb_add_operand_reglist(struct thumb_instruction_spec *instruction, uint16_t reglist);
 void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm);
 void thumb_add_operand_signed_immediate(struct thumb_instruction_spec *instruction, int simm);
 void thumb_set_operand_addressing_mode(struct thumb_instruction_spec *instruction,

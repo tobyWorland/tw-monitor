@@ -71,6 +71,17 @@ void thumb_print_register_list(uint16_t reglist) {
     putchar('}');
 }
 
+unsigned thumb_count_register_list(uint16_t reglist) {
+    unsigned count = 0;
+
+    // Count all the 1s
+    for (; reglist; count++) {
+        reglist &= reglist-1;
+    }
+
+    return count;
+}
+
 static struct thumb_operand *new_operand(struct thumb_instruction_spec *instruction) {
     assert(instruction->operand_count < THUMB_MAX_OPERANDS);
     return &instruction->operands[instruction->operand_count++];
@@ -80,6 +91,13 @@ void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned 
     *new_operand(instruction) = (struct thumb_operand){
         .type = OT_REG,
         .reg = reg,
+    };
+}
+
+void thumb_add_operand_reglist(struct thumb_instruction_spec *instruction, uint16_t reglist) {
+    *new_operand(instruction) = (struct thumb_operand){
+        .type = OT_REGLIST,
+        .reglist = reglist,
     };
 }
 
@@ -183,6 +201,26 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_BL;
             // +4 as immediate is relative to PC - check assembling comment
             thumb_add_operand_signed_immediate(&instruction, parts.simm25 + 4);
+        } else if (match_pop_t2(wide_ins)) {
+            const struct pop_t2_parts parts = decode_pop_t2(wide_ins);
+
+            instruction.mnemonic = TM_POP;
+            thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 14) | (parts.pc << 15));
+        } else if (match_pop_t3(wide_ins)) {
+            const struct pop_t3_parts parts = decode_pop_t3(wide_ins);
+
+            instruction.mnemonic = TM_POP;
+            thumb_add_operand_reglist(&instruction, 1 << parts.Rt);
+        } else if (match_push_t2(wide_ins)) {
+            const struct push_t2_parts parts = decode_push_t2(wide_ins);
+
+            instruction.mnemonic = TM_PUSH;
+            thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 14));
+        } else if (match_push_t3(wide_ins)) {
+            const struct push_t3_parts parts = decode_push_t3(wide_ins);
+
+            instruction.mnemonic = TM_PUSH;
+            thumb_add_operand_reglist(&instruction, 1 << parts.Rt);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -253,6 +291,16 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_BLX;
             thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_pop_t1(ins)) {
+            const struct pop_t1_parts parts = decode_pop_t1(ins);
+
+            instruction.mnemonic = TM_POP;
+            thumb_add_operand_reglist(&instruction, parts.regs | (parts.pc << 15));
+        } else if (match_push_t1(ins)) {
+            const struct push_t1_parts parts = decode_push_t1(ins);
+
+            instruction.mnemonic = TM_PUSH;
+            thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 15));
         }
     }
 
@@ -278,6 +326,9 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
         switch (instruction->operands[i].type) {
         case OT_REG:
             thumb_print_register(instruction->operands[i].reg, false);
+            break;
+        case OT_REGLIST:
+            thumb_print_register_list(instruction->operands[i].reglist);
             break;
         case OT_IMMEDIATE:
             putstring(utoa_pad(instruction->operands[i].imm, 16));
@@ -626,8 +677,140 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(encode_movw_i_t3(&into->wide, &parts));
     }
-        // TODO: POP
-        // TODO: PUSH
+    case TM_POP: {
+        if (instruction_spec->operand_count != 1 ||
+            instruction_spec->operands[0].type != OT_REGLIST) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint16_t reglist = instruction_spec->operands[0].reglist;
+        unsigned regcount = thumb_count_register_list(reglist);
+
+        // Split LR & PC bits as they are often separate from the others in the bitfield
+        bool lr = !!(reglist & (1 << 14));
+        bool pc = !!(reglist & (1 << 15));
+        reglist &= ~((1 << 14) | (1 << 15));
+
+        if (!regcount) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        // TODO: Move these outside the switch
+        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
+        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
+
+        unsigned result;
+
+        // FIXME: Remove reglist check when meta-bfield uses full width parts in structs
+        if (can_be_narrow && !(reglist & ~0xFF) && !lr) {
+            struct pop_t1_parts parts = {
+                .pc = pc,
+                .regs = reglist,
+            };
+            result = encode_pop_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+        }
+
+        if (can_be_wide) {
+            if (regcount == 1) {
+                struct pop_t3_parts parts;
+
+                if (lr) {
+                    parts.Rt = 14;
+                } else if (pc) {
+                    parts.Rt = 15;
+                } else {
+                    parts.Rt = 0;
+                    for (uint16_t x = reglist; x; x >>= 1, parts.Rt++);
+                    parts.Rt--;
+                }
+
+                result = encode_pop_t3(&into->wide, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            } else {
+                struct pop_t2_parts parts = {
+                    .regs = reglist,
+                    .lr = lr,
+                    .pc = pc,
+                };
+                result = encode_pop_t2(&into->wide, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    case TM_PUSH: {
+        if (instruction_spec->operand_count != 1 ||
+            instruction_spec->operands[0].type != OT_REGLIST) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint16_t reglist = instruction_spec->operands[0].reglist;
+        unsigned regcount = thumb_count_register_list(reglist);
+
+        // Split LR bit as it is often separate from the others in the bitfield
+        bool lr = !!(reglist & (1 << 14));
+        reglist &= ~(1 << 14);
+
+        if (!regcount) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        // TODO: Move these outside the switch
+        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
+        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
+
+        unsigned result;
+
+        // FIXME: Remove reglist check when meta-bfield uses full width parts in structs
+        if (can_be_narrow && !(reglist & ~0xFF)) {
+            struct push_t1_parts parts = {
+                .lr = lr,
+                .regs = reglist,
+            };
+            result = encode_push_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+        }
+
+        if (can_be_wide) {
+            if (regcount == 1) {
+                struct push_t3_parts parts;
+
+                if (lr) {
+                    parts.Rt = 14;
+                } else {
+                    parts.Rt = 0;
+                    for (uint16_t x = reglist; x; x >>= 1, parts.Rt++);
+                    parts.Rt--;
+                }
+
+                result = encode_push_t3(&into->wide, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            } else {
+                struct push_t2_parts parts = {
+                    .regs = reglist,
+                    .lr = lr,
+                };
+                result = encode_push_t2(&into->wide, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
     case TM_SVC: {
         struct svc_t1_parts parts;
 
