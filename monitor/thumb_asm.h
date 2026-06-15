@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // Maximum number of operands an instruction can have
-#define THUMB_MAX_OPERANDS 3
+#define THUMB_MAX_OPERANDS 4
 
 // Thumb instructions are a mixture of 32bit wide and 16bit narrow
 typedef union {
@@ -22,8 +22,11 @@ enum thumb_mnemonic {
     TM_BL,
     TM_BLX,
     TM_BX,
+    TM_LDR,
     TM_NOP,
     TM_MOVW,
+    TM_POP,
+    TM_PUSH,
     TM_SVC,
     TM_UDF,
 };
@@ -37,22 +40,37 @@ static const char *mnemonic_strs[] = {
     "BL",
     "BLX",
     "BX",
+    "LDR",
     "NOP",
     "MOVW",
+    "POP",
+    "PUSH",
     "SVC",
     "UDF",
 };
 #endif
 
+enum thumb_operand_addressing_mode {
+    AM_OFFSET,
+    AM_PREINDEX,
+    AM_POSTINDEX
+};
+
 struct thumb_operand {
     enum thumb_operand_type {
         OT_NONE,
         OT_REG,
-        OT_IMMEDIATE
+        OT_IMMEDIATE,
+        OT_SIGNED_IMMEDIATE,
+        OT_ADDRESSING_MODE,
+        OT_LSL_SHIFT,
     } type;
     union {
         unsigned reg;
         unsigned imm;
+        int simm;
+        enum thumb_operand_addressing_mode addressing_mode;
+        unsigned shift;
     };
 };
 
@@ -75,6 +93,10 @@ void thumb_print_register(unsigned reg);
 
 void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg);
 void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm);
+void thumb_add_operand_signed_immediate(struct thumb_instruction_spec *instruction, int simm);
+void thumb_add_operand_addressing_mode(struct thumb_instruction_spec *instruction,
+                                       enum thumb_operand_addressing_mode addressing_mode);
+void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction, unsigned shift);
 struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr);
 void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
                              void *address_of_instruction);

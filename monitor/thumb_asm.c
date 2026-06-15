@@ -68,6 +68,28 @@ void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, uns
     };
 }
 
+void thumb_add_operand_signed_immediate(struct thumb_instruction_spec *instruction, int simm) {
+    *new_operand(instruction) = (struct thumb_operand){
+        .type = OT_SIGNED_IMMEDIATE,
+        .simm = simm,
+    };
+}
+
+void thumb_add_operand_addressing_mode(struct thumb_instruction_spec *instruction,
+                                       enum thumb_operand_addressing_mode addressing_mode) {
+    *new_operand(instruction) = (struct thumb_operand){
+        .type = OT_ADDRESSING_MODE,
+        .addressing_mode = addressing_mode,
+    };
+}
+
+void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction, unsigned shift) {
+    *new_operand(instruction) = (struct thumb_operand){
+        .type = OT_LSL_SHIFT,
+        .shift = shift,
+    };
+}
+
 struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
     struct thumb_instruction_spec instruction = {};
 
@@ -272,6 +294,160 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(encode_bx_t1(&into->narrow, &parts));
     }
+    case TM_LDR: {
+        if (instruction_spec->operand_count < 3 || // 3 or 4 operands are valid
+            instruction_spec->operand_count > 4 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rt = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+        bool can_be_narrow = (instruction_spec->width == TWS_AUTO ||
+                       instruction_spec->width == TWS_NARROW);
+        bool can_be_wide = (instruction_spec->width == TWS_AUTO ||
+                            instruction_spec->width == TWS_WIDE);
+        unsigned result;
+
+        if (instruction_spec->operands[2].type == OT_REG) {
+            unsigned lsl_shift = 0;
+
+            if (instruction_spec->operand_count == 4) {
+                if (instruction_spec->operands[3].type == OT_LSL_SHIFT) {
+                    lsl_shift = instruction_spec->operands[3].shift;
+                } else {
+                    return AR_FAIL_INVALID_OPERAND;
+                }
+            }
+
+            if (instruction_spec->operands[2].type != OT_REG) {
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            uint8_t Rm = instruction_spec->operands[2].reg;
+
+            if (can_be_narrow && !lsl_shift) {
+                struct ldr_r_t1_parts parts = {
+                    .Rt = Rt,
+                    .Rn = Rn,
+                    .Rm = Rm
+                };
+                result = encode_ldr_r_t1(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+
+            if (can_be_wide) {
+                struct ldr_r_t2_lsl_parts parts = {
+                    .Rt = Rt,
+                    .Rn = Rn,
+                    .Rm = Rm,
+                    .lsl_shift_imm2 = lsl_shift,
+                };
+                return encoder_to_asm_result(encode_ldr_r_t2_lsl(&into->wide, &parts));
+            }
+        } else if (instruction_spec->operands[2].type == OT_SIGNED_IMMEDIATE) { // TODO: Support unsigned immediate?
+            if (instruction_spec->operand_count != 4 ||
+                instruction_spec->operands[3].type != OT_ADDRESSING_MODE) {
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            int imm_offset = instruction_spec->operands[2].simm;
+            bool neg_offset = imm_offset < 0;
+            enum thumb_operand_addressing_mode addressing_mode =
+                instruction_spec->operands[3].addressing_mode;
+
+            // These encodings only support base + unsigned immediate offset
+            if (addressing_mode == AM_OFFSET && !neg_offset) {
+                if (can_be_narrow) {
+                    if (Rn == 13) { // SP specific encoding
+                        struct ldr_i_t2_sponly_parts parts = {
+                            .Rt = Rt,
+                            .imm10 = imm_offset,
+                        };
+                        result = encode_ldr_i_t2_sponly(&into->narrow, &parts);
+                        if (result != 0) {
+                            return encoder_to_asm_result(result);
+                        }
+                    } else if (Rn == 15) { // PC specific encoding (for loading literals)
+                        struct ldr_lit_t1_parts parts = {
+                            .Rt = Rt,
+                            .imm10 = imm_offset,
+                        };
+                        result = encode_ldr_lit_t1(&into->narrow, &parts);
+                        if (result != 0) {
+                            return encoder_to_asm_result(result);
+                        }
+                    }
+
+                    struct ldr_i_t1_parts parts = {
+                        .Rt = Rt,
+                        .Rn = Rn,
+                        .imm7 = imm_offset,
+                    };
+                    result = encode_ldr_i_t1(&into->narrow, &parts);
+                    if (result != 0) {
+                        return encoder_to_asm_result(result);
+                    }
+                }
+
+                if (can_be_wide) {
+                    // TODO: Remove? Any point to this? It's the same encoding as the non literal version
+                    if (Rn == 15) { // PC specific encoding (for loading literals)
+                        struct ldr_lit_t2_parts parts = {
+                            .Rt = Rt,
+                            .imm12 = imm_offset,
+                        };
+                        result = encode_ldr_lit_t2(&into->wide, &parts);
+                        if (result != 0) {
+                            return encoder_to_asm_result(result);
+                        }
+                    }
+
+                    struct ldr_i_t3_parts parts = {
+                        .Rt = Rt,
+                        .Rn = Rn,
+                        .imm12 = imm_offset,
+                    };
+                    result = encode_ldr_i_t3(&into->wide, &parts);
+                    if (result != 0) {
+                        return encoder_to_asm_result(result);
+                    }
+                }
+            }
+
+            if (can_be_wide) {
+                struct ldr_i_t4_parts parts = {
+                    .Rt = Rt,
+                    .Rn = Rn,
+
+                     // Offset is unsigned, and made negative by setting `.add` to false
+                    .imm8 = neg_offset ? -imm_offset : imm_offset,
+                    .add = !neg_offset,
+                };
+
+                if (addressing_mode == AM_PREINDEX) { // LDR Rt, [Rn, offset]!
+                    parts.index = true;
+                    parts.writeback = true;
+                } else if (addressing_mode == AM_POSTINDEX) { // LDR Rt, [Rn], offset
+                    parts.index = false;
+                    parts.writeback = true;
+                } else { // AM_OFFSET // LDR Rt, [Rn, offset]
+                    parts.index = true;
+                    parts.writeback = false;
+                }
+
+                return encoder_to_asm_result(encode_ldr_i_t4(&into->wide, &parts));
+            }
+
+        } else {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        break;
+    }
     case TM_NOP: {
         if (instruction_spec->operand_count != 0) {
             return AR_FAIL_INVALID_OPERAND;
@@ -304,6 +480,8 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(encode_movw_i_t3(&into->wide, &parts));
     }
+        // TODO: POP
+        // TODO: PUSH
     case TM_SVC: {
         struct svc_t1_parts parts;
 
