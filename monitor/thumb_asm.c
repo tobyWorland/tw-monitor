@@ -52,6 +52,25 @@ void thumb_print_register(unsigned reg, bool pad_named_registers) {
     }
 }
 
+void thumb_print_register_list(uint16_t reglist) {
+    bool first = true;
+    putchar('{');
+    // TODO: Should be able to print ranges e.g. {r0-r3} instead of {r0, r1, r2, r3}
+
+    for (unsigned i = 0, mask = 1; i < 16; i++, mask <<= 1) {
+        if (reglist & mask) {
+            if (first) {
+                first = false;
+            } else {
+                putstring(", ");
+            }
+            thumb_print_register(i, false);
+        }
+    }
+
+    putchar('}');
+}
+
 static struct thumb_operand *new_operand(struct thumb_instruction_spec *instruction) {
     assert(instruction->operand_count < THUMB_MAX_OPERANDS);
     return &instruction->operands[instruction->operand_count++];

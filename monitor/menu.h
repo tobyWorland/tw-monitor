@@ -40,5 +40,6 @@ bool menu_preset_continue(const char *prompt, bool erase_on_continue);
 enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt);
 unsigned menu_preset_register(const char *prompt);
 intptr_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code);
+uint16_t menu_preset_register_list(const char *prompt);
 
 #endif

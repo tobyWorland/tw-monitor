@@ -90,6 +90,7 @@ struct thumb_instruction_spec {
 bool thumb_is_wide_instruction(thumb_t ins);
 thumb_t *thumb_ins_ptr_increment(thumb_t *insptr);
 void thumb_print_register(unsigned reg, bool pad_named_registers);
+void thumb_print_register_list(uint16_t reglist);
 
 void thumb_add_operand_reg(struct thumb_instruction_spec *instruction, unsigned reg);
 void thumb_add_operand_immediate(struct thumb_instruction_spec *instruction, unsigned imm);
