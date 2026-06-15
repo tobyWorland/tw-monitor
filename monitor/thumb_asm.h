@@ -19,6 +19,8 @@ enum thumb_mnemonic {
 
     TM_B,
     TM_BKPT,
+    TM_BL,
+    TM_BLX,
     TM_BX,
     TM_NOP,
     TM_MOVW,
@@ -31,6 +33,8 @@ static const char *mnemonic_strs[] = {
 
     "B",
     "BKPT",
+    "BL",
+    "BLX",
     "BX",
     "NOP",
     "MOVW",

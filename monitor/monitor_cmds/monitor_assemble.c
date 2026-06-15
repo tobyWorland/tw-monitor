@@ -53,6 +53,8 @@ static void print_missing_action_message(void) {
 static void assemble_b(thumb_t **paddr) {
     static const struct menu_option b_options[] = {
         {'b', "B"},
+        {'l', "BL"},
+        {'L', "BLX"},
         {'x', "BX"},
         {'q', "Quit Menu"},
     };
@@ -65,6 +67,23 @@ static void assemble_b(thumb_t **paddr) {
         instruction.width = width_specifier;
         thumb_add_operand_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'l': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_BL;
+        instruction.width = width_specifier;
+        thumb_add_operand_immediate(&instruction,
+                                    menu_preset_relative_label("Branch to? ", *paddr, true));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'L': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_BLX;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
         assemble_and_show_result(paddr, &instruction);
         break;
     }
