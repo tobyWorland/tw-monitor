@@ -391,18 +391,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 }
 
                 if (can_be_wide) {
-                    // TODO: Remove? Any point to this? It's the same encoding as the non literal version
-                    if (Rn == 15) { // PC specific encoding (for loading literals)
-                        struct ldr_lit_t2_parts parts = {
-                            .Rt = Rt,
-                            .imm12 = imm_offset,
-                        };
-                        result = encode_ldr_lit_t2(&into->wide, &parts);
-                        if (result != 0) {
-                            return encoder_to_asm_result(result);
-                        }
-                    }
-
                     struct ldr_i_t3_parts parts = {
                         .Rt = Rt,
                         .Rn = Rn,
@@ -416,6 +404,20 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             }
 
             if (can_be_wide) {
+                if (Rn == 15 && addressing_mode == AM_OFFSET) { // PC specific encoding (for loading literals)
+                    struct ldr_lit_t2_parts parts = {
+                        .Rt = Rt,
+
+                        // Offset is unsigned, and made negative by setting `.add` to false
+                        .imm12 = neg_offset ? -imm_offset : imm_offset,
+                        .add = !neg_offset
+                    };
+                    result = encode_ldr_lit_t2(&into->wide, &parts);
+                    if (result != 0) {
+                        return encoder_to_asm_result(result);
+                    }
+                }
+
                 struct ldr_i_t4_parts parts = {
                     .Rt = Rt,
                     .Rn = Rn,
