@@ -155,6 +155,12 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_UDF;
             thumb_add_operand_immediate(&instruction, parts.imm16);
+        } else if (match_bl_t1(wide_ins)) {
+            const struct bl_t1_parts parts = decode_bl_t1(wide_ins);
+
+            instruction.mnemonic = TM_BL;
+            // +4 as immediate is relative to PC - check assembling comment
+            thumb_add_operand_signed_immediate(&instruction, parts.simm25 + 4);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -220,6 +226,11 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_UDF;
             thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_blx_t1(ins)) {
+            const struct blx_t1_parts parts = decode_blx_t1(ins);
+
+            instruction.mnemonic = TM_BLX;
+            thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
 
@@ -362,8 +373,15 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         ENSURE_WIDE();
 
-        if (instruction_spec->operand_count == 1 && instruction_spec->operands[0].type == OT_IMMEDIATE) {
-            parts.simm25 = instruction_spec->operands[0].imm;
+        if (instruction_spec->operand_count == 1 &&
+            instruction_spec->operands[0].type == OT_IMMEDIATE) {
+
+            // -4 as immediate is relative to PC
+            // And regardless of the width of instruction, the hardware behaves
+            // as if the PC is 4 bytes ahead
+            int32_t label = (int32_t)instruction_spec->operands[0].imm - 4; // TODO: Use signed immediate
+
+            parts.simm25 = label;
         } else {
             return AR_FAIL_INVALID_OPERAND;
         }
