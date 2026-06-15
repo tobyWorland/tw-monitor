@@ -378,9 +378,12 @@ thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
             address = (int)address_of_instruction + instruction->operands[0].simm;
         }
         break;
+    case TM_BL:
+        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
+            found = true;
+            address = (int)address_of_instruction + instruction->operands[0].simm;
         }
         break;
-        // TODO: Add BL
         // TODO: Add LDR
     default:
         break;
