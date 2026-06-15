@@ -66,7 +66,7 @@ static void assemble_b(thumb_t **paddr) {
         struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_B;
         instruction.width = width_specifier;
-        thumb_add_operand_immediate(&instruction,
+        thumb_add_operand_signed_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));
         assemble_and_show_result(paddr, &instruction);
         break;
@@ -75,7 +75,7 @@ static void assemble_b(thumb_t **paddr) {
         struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_BL;
         instruction.width = width_specifier;
-        thumb_add_operand_immediate(&instruction,
+        thumb_add_operand_signed_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));
         assemble_and_show_result(paddr, &instruction);
         break;

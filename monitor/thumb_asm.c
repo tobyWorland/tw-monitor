@@ -373,9 +373,11 @@ thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
 
     switch (instruction->mnemonic) {
     case TM_B:
-        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_IMMEDIATE) {
+        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
             found = true;
-            address = (int)address_of_instruction + (int)instruction->operands[0].imm;
+            address = (int)address_of_instruction + instruction->operands[0].simm;
+        }
+        break;
         }
         break;
         // TODO: Add BL
@@ -403,14 +405,14 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     case TM_B: {
         // TODO: Support conditionals
 
-        if (instruction_spec->operand_count != 1 || instruction_spec->operands[0].type != OT_IMMEDIATE) {
+        if (instruction_spec->operand_count != 1 || instruction_spec->operands[0].type != OT_SIGNED_IMMEDIATE) {
             return AR_FAIL_INVALID_OPERAND;
         }
 
         // -4 as immediate is relative to PC
         // And regardless of the width of instruction, the hardware behaves
         // as if the PC is 4 bytes ahead
-        int32_t label = (int32_t)instruction_spec->operands[0].imm - 4; // TODO: Use signed immediate
+        int32_t label = instruction_spec->operands[0].simm - 4;
 
         if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
             struct b_t2_parts parts = {
@@ -449,12 +451,12 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         ENSURE_WIDE();
 
         if (instruction_spec->operand_count == 1 &&
-            instruction_spec->operands[0].type == OT_IMMEDIATE) {
+            instruction_spec->operands[0].type == OT_SIGNED_IMMEDIATE) {
 
             // -4 as immediate is relative to PC
             // And regardless of the width of instruction, the hardware behaves
             // as if the PC is 4 bytes ahead
-            int32_t label = (int32_t)instruction_spec->operands[0].imm - 4; // TODO: Use signed immediate
+            int32_t label = instruction_spec->operands[0].simm - 4;
 
             parts.simm25 = label;
         } else {
