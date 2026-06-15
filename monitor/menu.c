@@ -24,14 +24,26 @@ static void print_menu_help(unsigned option_count,
     for (unsigned i = 0; i < option_count; i++) {
         const struct menu_option *opt = &options[i];
         putstring(" * ");
-        if (IS_CTRL(opt->key)) {
-            putstring("c-");
-            putchar(opt->key + 'A' - 1); // -1 as C-A is 1 not 0
-        } else {
-            assert(char_isprint(opt->key));
-            putchar('\'');
-            putchar(opt->key);
-            putchar('\'');
+        switch (opt->key) {  // TODO: TEST
+        case '\r':
+            putstring("RET");
+            break;
+        case '\b':
+            putstring("BAK");
+            break;
+        case ' ':
+            putstring("SPC");
+            break;
+        default:
+            if (IS_CTRL(opt->key)) {
+                putstring("c-");
+                putchar(opt->key + 'A' - 1); // -1 as C-A is 1 not 0
+            } else {
+                assert(char_isprint(opt->key));
+                putchar('\'');
+                putchar(opt->key);
+                putchar('\'');
+            }
         }
         putstring(" - ");
         putstring(opt->name);
