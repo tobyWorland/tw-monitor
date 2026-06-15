@@ -221,6 +221,7 @@ print_registers:
         beq     2f
 
         mov     r0,     r5
+        movs    r1,     1
         bl      thumb_print_register
         mov     r0,     ' '
         bl      putchar

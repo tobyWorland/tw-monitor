@@ -25,7 +25,7 @@ thumb_t *thumb_ins_ptr_increment(thumb_t *insptr) {
     return rawp;
 }
 
-void thumb_print_register(unsigned reg) {
+void thumb_print_register(unsigned reg, bool pad_named_registers) {
     assert(reg <= 15);
     if (reg < 13) {
         putchar('R');
@@ -44,6 +44,9 @@ void thumb_print_register(unsigned reg) {
             break;
         default:
             ASSERT_NOT_REACHED();
+        }
+        if (!pad_named_registers) {
+            name++; // Skip string to after padding space
         }
         putstring(name);
     }
@@ -255,7 +258,7 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
 
         switch (instruction->operands[i].type) {
         case OT_REG:
-            thumb_print_register(instruction->operands[i].reg);
+            thumb_print_register(instruction->operands[i].reg, false);
             break;
         case OT_IMMEDIATE:
             putstring(utoa_pad(instruction->operands[i].imm, 16));
