@@ -7,6 +7,14 @@ import matplotlib.pyplot as plt
 
 os.chdir(os.path.dirname(sys.argv[0]) + "/..")
 
+save = False
+
+if len(sys.argv) == 2:
+    save = sys.argv[1] == "save"
+    if not save:
+        print("Unknown command line arg:", sys.argv[1])
+        exit(1)
+
 binutils_size = "arm-none-eabi-size"
 build = "flash"
 base_path = "builds/target_{}/monitor".format(build)
@@ -90,4 +98,11 @@ files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(objs), dont_
 fsize = 11
 fig, ax = plt.subplots(figsize=(fsize, fsize))
 pie = ax.pie(sizes, labels=files, autopct='%1.1f%%', rotatelabels=False)
-plt.show()
+
+if save:
+    fig_filename = "size_{}.png".format(build)
+    print("Saving to '" + fig_filename + "'...", end=" ")
+    plt.savefig(fig_filename)
+    print("Saved.")
+else:
+    plt.show()
