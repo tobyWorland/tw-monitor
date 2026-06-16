@@ -51,6 +51,16 @@ static void print_missing_action_message(void) {
     putstring("Error: Missing action\r\n");
 }
 
+static bool set_flags_menu(void) {
+    static const struct menu_option set_flags_options[] = {
+        {'s', "Set Flags"      },
+        {' ', "Don't Set Flags"},
+    };
+
+    return menu("Set Flags? ", ARR_LEN(set_flags_options), set_flags_options,
+                NULL) == 's';
+}
+
 static void assemble_b(thumb_t **paddr) {
     static const struct menu_option b_options[] = {
         {'b', "B"},
@@ -104,14 +114,57 @@ static void assemble_b(thumb_t **paddr) {
     }
 }
 
+static void assemble_m(thumb_t **paddr) {
+    static const struct menu_option m_options[] = {
+        {'i', "MOV{S} Immediate"},
+        {'w', "MOV Immediate Wide (MOVW)"},
+        {'r', "MOV{S} Register"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM M> ", ARR_LEN(m_options), m_options, NULL);
+    switch (opt) {
+    case 'i': // MOV{S} (Immediate)
+    case 'w': { // MOVW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_MOVW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // MOV{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 static void assemble_p(thumb_t **paddr) {
-    static const struct menu_option b_options[] = {
+    static const struct menu_option p_options[] = {
         {'u', "PUSH"     },
         {'o', "POP"      },
         {'q', "Quit Menu"},
     };
 
-    char opt = menu("ASM P> ", ARR_LEN(b_options), b_options, NULL);
+    char opt = menu("ASM P> ", ARR_LEN(p_options), p_options, NULL);
     switch (opt) {
     case 'u': { // PUSH
         struct thumb_instruction_spec instruction = {};
@@ -141,7 +194,7 @@ void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'b', "B..."},
         {'l', "LDR" },
-        {'m', "MOVW"},
+        {'m', "M..."},
         {'n', "NOP" },
         {'p', "P..."},
         {'s', "SVC" },
@@ -264,13 +317,8 @@ void monitor_assemble(thumb_t *addr) {
             assemble_and_show_result(&addr, &instruction);
             break;
         }
-        case 'm': { // MOVW // TODO: Support the other MOVs
-            struct thumb_instruction_spec instruction = {};
-            instruction.mnemonic = TM_MOVW;
-            instruction.width = width_specifier;
-            thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-            thumb_add_operand_immediate(&instruction, gethexword(0));
-            assemble_and_show_result(&addr, &instruction);
+        case 'm': { // M...
+            assemble_m(&addr);
             break;
         }
         case 'n': { // NOP

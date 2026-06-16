@@ -142,6 +142,12 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_MOVW;
             thumb_add_operand_reg(&instruction, parts.Rd);
             thumb_add_operand_immediate(&instruction, parts.imm16);
+        } else if (match_mov_r_t3_opt_s(wide_ins)) {
+            const struct mov_r_t3_opt_s_parts parts = decode_mov_r_t3_opt_s(wide_ins);
+
+            instruction.mnemonic = parts.setflags ? TM_MOVS : TM_MOV;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         } else if (match_b_t4(wide_ins)) {
             const struct b_t4_parts parts = decode_b_t4(wide_ins);
 
@@ -233,6 +239,24 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_immediate(&instruction, parts.imm8);
         } else if (match_nop_t1(ins)) {
             instruction.mnemonic = TM_NOP;
+        } else if (match_movs_i_t1(ins)) {
+            const struct movs_i_t1_parts parts = decode_movs_i_t1(ins);
+
+            instruction.mnemonic = TM_MOVS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_mov_r_t1(ins)) {
+            const struct mov_r_t1_parts parts = decode_mov_r_t1(ins);
+
+            instruction.mnemonic = TM_MOV;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_movs_r_t2_noit(ins)) {
+            const struct movs_r_t2_noit_parts parts = decode_movs_r_t2_noit(ins);
+
+            instruction.mnemonic = TM_MOVS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         } else if (match_bx_t1(ins)) {
             const struct bx_t1_parts parts = decode_bx_t1(ins);
 
@@ -665,7 +689,123 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         return encoder_to_asm_result(enc_result);
     }
-        // TODO: Support MOV
+    case TM_MOV: {
+        if (instruction_spec->operand_count != 2 ||
+            instruction_spec->operands[0].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        unsigned result;
+
+        // TODO: Move these outside the switch
+        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
+        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
+
+        switch (instruction_spec->operands[1].type) {
+        case OT_IMMEDIATE:
+            if (Rd == 15 || Rd == 13) {
+                // Is undefined for Rd to be PC or SP
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            // TODO: Implement MOW (Immediate) T2
+            goto asm_movw; // Fallback to MOVW
+        case OT_REG: {
+            uint8_t Rm = instruction_spec->operands[1].reg;
+
+            if (can_be_narrow) {
+                struct mov_r_t1_parts parts = {
+                    .Rd = Rd,
+                    .Rm = Rm,
+                };
+                result = encode_mov_r_t1(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+
+            if (can_be_wide) {
+                struct mov_r_t3_opt_s_parts parts = {
+                    .setflags = false,
+                    .Rd = Rd,
+                    .Rm = Rm,
+                };
+                return encoder_to_asm_result(encode_mov_r_t3_opt_s(&into->wide, &parts));
+            }
+            break;
+        }
+        default:
+            break;
+        }
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    case TM_MOVS: {
+        if (instruction_spec->operand_count != 2 ||
+            instruction_spec->operands[0].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        unsigned result;
+
+        // TODO: Move these outside the switch
+        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
+        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
+
+        switch (instruction_spec->operands[1].type) {
+        case OT_IMMEDIATE: {
+            unsigned immediate = instruction_spec->operands[1].imm;
+
+            if (Rd == 15 || Rd == 13) {
+                // Is undefined for Rd to be PC or SP
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            if (can_be_narrow) {
+                struct movs_i_t1_parts parts = {
+                    .Rd = Rd,
+                    .imm8 = immediate
+                };
+                result = encode_movs_i_t1(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+
+            // TODO: Implement MOWS (Immediate) T2
+            break;
+        }
+        case OT_REG: {
+            uint8_t Rm = instruction_spec->operands[1].reg;
+
+            if (can_be_narrow) {
+                struct movs_r_t2_noit_parts parts = {
+                    .Rd = Rd,
+                    .Rm = Rm,
+                };
+                result = encode_movs_r_t2_noit(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            }
+
+            if (can_be_wide) {
+                struct mov_r_t3_opt_s_parts parts = {
+                    .setflags = true,
+                    .Rd = Rd,
+                    .Rm = Rm,
+                };
+                return encoder_to_asm_result(encode_mov_r_t3_opt_s(&into->wide, &parts));
+            }
+            break;
+        }
+        default:
+            break;
+        }
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    asm_movw:
     case TM_MOVW: {
         struct movw_i_t3_parts parts;
 
@@ -679,6 +819,11 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         parts.Rd = instruction_spec->operands[0].reg;
         parts.imm16 = instruction_spec->operands[1].imm;
+
+        if (parts.Rd == 15 || parts.Rd == 13) {
+            // Is undefined for Rd to be PC or SP
+            return AR_FAIL_INVALID_OPERAND;
+        }
 
         return encoder_to_asm_result(encode_movw_i_t3(&into->wide, &parts));
     }
