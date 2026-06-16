@@ -61,6 +61,42 @@ static bool set_flags_menu(void) {
                 NULL) == 's';
 }
 
+static enum thumb_condition set_condition_menu(void) {
+    static const struct menu_option set_condition_options[] = {
+        {' ', "No condition"},
+
+        // TODO: Should reuse the strings "condition_strs" from thumb_asm
+        {'e', "EQ"          },
+        {'n', "NE"          },
+        {'c', "CS"          },
+        {'C', "CC"          },
+        {'m', "MI"          },
+        {'p', "PL"          },
+        {'v', "VS"          },
+        {'V', "VC"          },
+        {'h', "HI"          },
+        {'l', "LS"          },
+        {'g', "GE"          },
+        {'L', "LT"          },
+        {'G', "GT"          },
+        {'E', "LE"          },
+        {'a', "AL"          },
+    };
+
+    char opt = menu("Condition? ",
+                    ARR_LEN(set_condition_options),
+                    set_condition_options,
+                    NULL);
+    enum thumb_condition condition_result = TC_NONE;
+
+    for (unsigned i = 0; i < ARR_LEN(set_condition_options); i++) {
+        if (set_condition_options[i].key == opt) {
+            return i;
+        }
+    }
+    return condition_result;
+}
+
 static void assemble_a(thumb_t **paddr) {
     static const struct menu_option a_options[] = {
         {'i', "ADD{S} Immediate"},
@@ -120,6 +156,7 @@ static void assemble_b(thumb_t **paddr) {
     case 'b': {
         struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_B;
+        thumb_set_condition(&instruction, set_condition_menu());
         instruction.width = width_specifier;
         thumb_add_operand_signed_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));

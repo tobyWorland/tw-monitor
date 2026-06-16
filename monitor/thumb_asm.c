@@ -115,6 +115,10 @@ void thumb_add_operand_signed_immediate(struct thumb_instruction_spec *instructi
     };
 }
 
+void thumb_set_condition(struct thumb_instruction_spec *instruction, enum thumb_condition condition) {
+    instruction->condition = condition;
+}
+
 void thumb_set_operand_addressing_mode(struct thumb_instruction_spec *instruction,
                                        enum thumb_operand_addressing_mode addressing_mode) {
     instruction->addressing_mode = addressing_mode;
@@ -154,6 +158,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
             thumb_add_operand_signed_immediate(&instruction, parts.simm25 + 4);
+        } else if (match_b_cond_t3_noit(wide_ins)) {
+            const struct b_cond_t3_noit_parts parts = decode_b_cond_t3_noit(wide_ins);
+
+            instruction.mnemonic = TM_B;
+            thumb_set_condition(&instruction, parts.cond + 1);
+            // +4 as immediate is relative to PC - check assembling comment
+            thumb_add_operand_signed_immediate(&instruction, parts.simm21 + 4);
         } else if (match_ldr_i_t3(wide_ins)) {
             const struct ldr_i_t3_parts parts = decode_ldr_i_t3(wide_ins);
 
@@ -287,6 +298,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_B;
             // +4 as immediate is relative to PC - check assembling comment
             thumb_add_operand_signed_immediate(&instruction, parts.simm11 + 4);
+        } else if (match_b_cond_t1_noit(ins)) {
+            const struct b_cond_t1_noit_parts parts = decode_b_cond_t1_noit(ins);
+
+            instruction.mnemonic = TM_B;
+            thumb_set_condition(&instruction, parts.cond + 1);
+            // +4 as immediate is relative to PC - check assembling comment
+            thumb_add_operand_signed_immediate(&instruction, parts.simm8 + 4);
         } else if (match_ldr_i_t1(ins)) {
             const struct ldr_i_t1_parts parts = decode_ldr_i_t1(ins);
 
@@ -415,6 +433,9 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
                              void *address_of_instruction) {
     putstring(mnemonic_strs[instruction->mnemonic]);
+    if (instruction->condition != TC_NONE) {
+        putstring(condition_strs[instruction->condition]);
+    }
     if (instruction->width == TWS_WIDE) {
         putstring(".W");
     }
@@ -632,8 +653,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         return encoder_to_asm_result(encode_addw_i_t4(&into->wide, &parts));
     }
     case TM_B: {
-        // TODO: Support conditionals
-
         if (instruction_spec->operand_count != 1 || instruction_spec->operands[0].type != OT_SIGNED_IMMEDIATE) {
             return AR_FAIL_INVALID_OPERAND;
         }
@@ -644,20 +663,39 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         int32_t label = instruction_spec->operands[0].simm - 4;
 
         if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
-            struct b_t2_parts parts = {
-                .simm11 = label,
-            };
-            unsigned result = encode_b_t2(&into->narrow, &parts);
-            if (result != 0) {
-                return encoder_to_asm_result(result);
+            if (instruction_spec->condition == TC_NONE) {
+                struct b_t2_parts parts = {
+                    .simm11 = label,
+                };
+                unsigned result = encode_b_t2(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
+            } else {
+                struct b_cond_t1_noit_parts parts = {
+                    .cond = instruction_spec->condition - 1,
+                    .simm8 = label,
+                };
+                unsigned result = encode_b_cond_t1_noit(&into->narrow, &parts);
+                if (result != 0) {
+                    return encoder_to_asm_result(result);
+                }
             }
         }
 
         if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE) {
-            struct b_t4_parts parts = {
-                .simm25 = label,
-            };
-            return encoder_to_asm_result(encode_b_t4(&into->wide, &parts));
+            if (instruction_spec->condition == TC_NONE) {
+                struct b_t4_parts parts = {
+                    .simm25 = label,
+                };
+                return encoder_to_asm_result(encode_b_t4(&into->wide, &parts));
+            } else {
+                struct b_cond_t3_noit_parts parts = {
+                    .cond = instruction_spec->condition - 1,
+                    .simm21 = label,
+                };
+                return encoder_to_asm_result(encode_b_cond_t3_noit(&into->wide, &parts));
+            }
         }
         break;
     }
