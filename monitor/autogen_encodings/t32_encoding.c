@@ -153,7 +153,7 @@ bool match_push_t3(uint32_t field) {
 bool match_subs_i_t1(uint16_t field) {
     return (BIT_EXTRACT(field, 9, 7) == 0xFU);
 }
-bool match_sub_i_t2(uint16_t field) {
+bool match_subs_i_t2(uint16_t field) {
     return (BIT_EXTRACT(field, 11, 5) == 0x7U);
 }
 bool match_subw_i_t4(uint32_t field) {
@@ -762,7 +762,7 @@ unsigned encode_subs_i_t1(uint16_t *out, struct subs_i_t1_parts *parts) {
     *out = encoded;
     return 16;
 }
-unsigned encode_sub_i_t2(uint16_t *out, struct sub_i_t2_parts *parts) {
+unsigned encode_subs_i_t2(uint16_t *out, struct subs_i_t2_parts *parts) {
     uint16_t encoded = 0x3800;
     if (!UNSIGNED_CHECK_FIT(parts->Rdn, 3)) {
         return 0;
@@ -1148,8 +1148,8 @@ struct subs_i_t1_parts decode_subs_i_t1(uint16_t field) {
     result.Rd = BIT_EXTRACT(field, 0, 3);
     return result;
 }
-struct sub_i_t2_parts decode_sub_i_t2(uint16_t field) {
-    struct sub_i_t2_parts result = {};
+struct subs_i_t2_parts decode_subs_i_t2(uint16_t field) {
+    struct subs_i_t2_parts result = {};
     result.Rdn = BIT_EXTRACT(field, 8, 3);
     result.imm8 = BIT_EXTRACT(field, 0, 8);
     return result;

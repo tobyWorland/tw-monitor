@@ -235,6 +235,62 @@ static void assemble_p(thumb_t **paddr) {
     }
 }
 
+static void assemble_s(thumb_t **paddr) {
+    static const struct menu_option s_options[] = {
+        {'i', "SUB{S} Immediate"         },
+        {'w', "SUB Immediate Wide (SUBW)"},
+        {'r', "SUB{S} Register"          },
+        {'v', "SVC"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM S> ", ARR_LEN(s_options), s_options, NULL);
+    switch (opt) {
+    case 'i': // SUB{S} (Immediate)
+    case 'w': { // SUBW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_SUBW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // SUB{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'v': { // SVC
+        // TODO: Should have a way of getting a byte or arbitrary width number
+        uint32_t immediate = gethexword(0);
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_SVC;
+        instruction.width = width_specifier;
+        thumb_add_operand_immediate(&instruction, immediate);
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'a', "A.."},
@@ -244,7 +300,7 @@ void monitor_assemble(thumb_t *addr) {
         {'m', "M..."},
         {'n', "NOP" },
         {'p', "P..."},
-        {'s', "SVC" },
+        {'s', "S..." },
         {'u', "UDF"},
         {'x', "BKPT" },
         {'.', "Specify Width"},
@@ -409,14 +465,8 @@ void monitor_assemble(thumb_t *addr) {
             assemble_p(&addr);
             break;
         }
-        case 's': { // SVC
-            // TODO: Should have a way of getting a byte or arbitrary width number
-            uint32_t immediate = gethexword(0);
-            struct thumb_instruction_spec instruction = {};
-            instruction.mnemonic = TM_SVC;
-            instruction.width = width_specifier;
-            thumb_add_operand_immediate(&instruction, immediate);
-            assemble_and_show_result(&addr, &instruction);
+        case 's': { // S...
+            assemble_s(&addr);
             break;
         }
         case 'u': { // UDF

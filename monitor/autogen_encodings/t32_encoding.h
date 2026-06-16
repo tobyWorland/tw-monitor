@@ -193,7 +193,7 @@ struct subs_i_t1_parts {
     uint32_t Rd;
 };
 
-struct sub_i_t2_parts {
+struct subs_i_t2_parts {
     uint32_t Rdn;
     uint32_t imm8;
 };
@@ -260,7 +260,7 @@ bool match_push_t1(uint16_t field);
 bool match_push_t2(uint32_t field);
 bool match_push_t3(uint32_t field);
 bool match_subs_i_t1(uint16_t field);
-bool match_sub_i_t2(uint16_t field);
+bool match_subs_i_t2(uint16_t field);
 bool match_subw_i_t4(uint32_t field);
 bool match_subs_r_t1(uint16_t field);
 bool match_svc_t1(uint16_t field);
@@ -305,7 +305,7 @@ unsigned encode_push_t1(uint16_t *out, struct push_t1_parts *parts);
 unsigned encode_push_t2(uint32_t *out, struct push_t2_parts *parts);
 unsigned encode_push_t3(uint32_t *out, struct push_t3_parts *parts);
 unsigned encode_subs_i_t1(uint16_t *out, struct subs_i_t1_parts *parts);
-unsigned encode_sub_i_t2(uint16_t *out, struct sub_i_t2_parts *parts);
+unsigned encode_subs_i_t2(uint16_t *out, struct subs_i_t2_parts *parts);
 unsigned encode_subw_i_t4(uint32_t *out, struct subw_i_t4_parts *parts);
 unsigned encode_subs_r_t1(uint16_t *out, struct subs_r_t1_parts *parts);
 unsigned encode_svc_t1(uint16_t *out, struct svc_t1_parts *parts);
@@ -348,7 +348,7 @@ struct push_t1_parts decode_push_t1(uint16_t field);
 struct push_t2_parts decode_push_t2(uint32_t field);
 struct push_t3_parts decode_push_t3(uint32_t field);
 struct subs_i_t1_parts decode_subs_i_t1(uint16_t field);
-struct sub_i_t2_parts decode_sub_i_t2(uint16_t field);
+struct subs_i_t2_parts decode_subs_i_t2(uint16_t field);
 struct subw_i_t4_parts decode_subw_i_t4(uint32_t field);
 struct subs_r_t1_parts decode_subs_r_t1(uint16_t field);
 struct svc_t1_parts decode_svc_t1(uint16_t field);

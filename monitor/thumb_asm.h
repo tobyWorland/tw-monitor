@@ -33,6 +33,9 @@ enum thumb_mnemonic {
     TM_MOVW,
     TM_POP,
     TM_PUSH,
+    TM_SUB,
+    TM_SUBS,
+    TM_SUBW,
     TM_SVC,
     TM_UDF,
 };
@@ -57,6 +60,9 @@ static const char *mnemonic_strs[] = {
     "MOVW",
     "POP",
     "PUSH",
+    "SUB",
+    "SUBS",
+    "SUBW",
     "SVC",
     "UDF",
 };

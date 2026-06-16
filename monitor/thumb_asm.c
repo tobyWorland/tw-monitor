@@ -234,6 +234,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_reg(&instruction, parts.Rd);
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_immediate(&instruction, parts.imm12);
+        } else if (match_subw_i_t4(wide_ins)) {
+            const struct subw_i_t4_parts parts = decode_subw_i_t4(wide_ins);
+
+            instruction.mnemonic = TM_SUBW;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm12);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -377,6 +384,27 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_ADD;
             thumb_add_operand_reg(&instruction, parts.Rdn);
             thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_subs_i_t1(ins)) {
+            const struct subs_i_t1_parts parts = decode_subs_i_t1(ins);
+
+            instruction.mnemonic = TM_SUBS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm3);
+        } else if (match_subs_i_t2(ins)) {
+            const struct subs_i_t2_parts parts = decode_subs_i_t2(ins);
+
+            instruction.mnemonic = TM_SUBS;
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_subs_r_t1(ins)) {
+            const struct subs_r_t1_parts parts = decode_subs_r_t1(ins);
+
+            instruction.mnemonic = TM_SUBS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
@@ -1175,6 +1203,118 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         return AR_FAIL_INVALID_WIDTH;
+    }
+    case TM_SUB: {
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+
+        switch (instruction_spec->operands[2].type) {
+        case OT_IMMEDIATE: {
+            if (Rn == 13 || Rn == 15) {
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            // TODO: Implement SUB (Immediate) T3
+            goto asm_subw; // Fallback to SUBW
+            break;
+        }
+        case OT_REG: {
+            (void)Rd; // TODO:
+            break; // TODO: Implement SUB (Register) T2
+        }
+        default:
+            break;
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    case TM_SUBS: {
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+
+        unsigned result;
+
+        switch (instruction_spec->operands[2].type) {
+        case OT_IMMEDIATE: {
+            unsigned immediate = instruction_spec->operands[2].imm;
+
+            ENSURE_NARROW(); // TODO: Implement SUBS (Immediate) T3 wide encoding
+
+            struct subs_i_t1_parts parts = {
+                .Rd = Rd,
+                .Rn = Rn,
+                .imm3 = immediate,
+            };
+            result = encode_subs_i_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+
+            if (Rd == Rn) {
+                struct subs_i_t2_parts parts = {
+                    .Rdn = Rd,
+                    .imm8 = immediate,
+                };
+                return encoder_to_asm_result(encode_subs_i_t2(&into->narrow, &parts));
+            }
+            break;
+        }
+        case OT_REG: {
+            uint8_t Rm = instruction_spec->operands[2].reg;
+
+            ENSURE_NARROW(); // TODO: Implement SUBS (Register) T2 wide encoding
+
+            struct subs_r_t1_parts parts = {
+                .Rd = Rd,
+                .Rn = Rn,
+                .Rm = Rm,
+            };
+            return encoder_to_asm_result(encode_subs_r_t1(&into->narrow, &parts));
+        }
+        default:
+            break;
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    asm_subw:
+    case TM_SUBW: {
+        struct subw_i_t4_parts parts;
+
+        ENSURE_WIDE();
+
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG ||
+            instruction_spec->operands[2].type != OT_IMMEDIATE) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+        unsigned immediate = instruction_spec->operands[2].imm;
+
+        if (Rn == 13 || Rn == 15) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        parts.Rd = Rd;
+        parts.Rn = Rn;
+        parts.imm12 = immediate;
+
+        return encoder_to_asm_result(encode_subw_i_t4(&into->wide, &parts));
     }
     case TM_SVC: {
         struct svc_t1_parts parts;
