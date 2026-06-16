@@ -105,9 +105,11 @@ dont_show_objs_under_percentage = 2.00
 
 files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(objs), dont_show_objs_under_percentage)
 
-fsize = 11
+fsize = 12
 fig, ax = plt.subplots(figsize=(fsize, fsize))
-pie = ax.pie(sizes, labels=files, autopct='%1.1f%%', rotatelabels=False)
+pie = ax.pie(sizes)
+ax.pie_label(pie, files, distance=1.2)
+ax.pie_label(pie, '{absval:d}\n{frac:.1%}', distance=0.9)
 
 if save:
     fig_filename = "size_{}.png".format(build)
