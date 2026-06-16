@@ -851,8 +851,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         unsigned result;
 
-        // FIXME: Remove reglist check when meta-bfield uses full width parts in structs
-        if (can_be_narrow && !(reglist & ~0xFF) && !lr) {
+        if (can_be_narrow && !lr) {
             struct pop_t1_parts parts = {
                 .pc = pc,
                 .regs = reglist,
@@ -919,8 +918,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         unsigned result;
 
-        // FIXME: Remove reglist check when meta-bfield uses full width parts in structs
-        if (can_be_narrow && !(reglist & ~0xFF)) {
+        if (can_be_narrow) {
             struct push_t1_parts parts = {
                 .lr = lr,
                 .regs = reglist,
