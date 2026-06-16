@@ -11,7 +11,7 @@ struct adds_i_t1_parts {
     uint32_t Rd;
 };
 
-struct add_i_t2_parts {
+struct adds_i_t2_parts {
     uint32_t Rdn;
     uint32_t imm8;
 };
@@ -223,7 +223,7 @@ struct udf_t2_parts {
 };
 
 bool match_adds_i_t1(uint16_t field);
-bool match_add_i_t2(uint16_t field);
+bool match_adds_i_t2(uint16_t field);
 bool match_addw_i_t4(uint32_t field);
 bool match_adds_r_t1(uint16_t field);
 bool match_add_r_t2(uint16_t field);
@@ -268,7 +268,7 @@ bool match_udf_t1(uint16_t field);
 bool match_udf_t2(uint32_t field);
 
 unsigned encode_adds_i_t1(uint16_t *out, struct adds_i_t1_parts *parts);
-unsigned encode_add_i_t2(uint16_t *out, struct add_i_t2_parts *parts);
+unsigned encode_adds_i_t2(uint16_t *out, struct adds_i_t2_parts *parts);
 unsigned encode_addw_i_t4(uint32_t *out, struct addw_i_t4_parts *parts);
 unsigned encode_adds_r_t1(uint16_t *out, struct adds_r_t1_parts *parts);
 unsigned encode_add_r_t2(uint16_t *out, struct add_r_t2_parts *parts);
@@ -313,7 +313,7 @@ unsigned encode_udf_t1(uint16_t *out, struct udf_t1_parts *parts);
 unsigned encode_udf_t2(uint32_t *out, struct udf_t2_parts *parts);
 
 struct adds_i_t1_parts decode_adds_i_t1(uint16_t field);
-struct add_i_t2_parts decode_add_i_t2(uint16_t field);
+struct adds_i_t2_parts decode_adds_i_t2(uint16_t field);
 struct addw_i_t4_parts decode_addw_i_t4(uint32_t field);
 struct adds_r_t1_parts decode_adds_r_t1(uint16_t field);
 struct add_r_t2_parts decode_add_r_t2(uint16_t field);

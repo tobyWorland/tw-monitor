@@ -17,6 +17,9 @@ typedef union {
 enum thumb_mnemonic {
     TM_UNKNOWN,
 
+    TM_ADD,
+    TM_ADDS,
+    TM_ADDW,
     TM_B,
     TM_BKPT,
     TM_BL,
@@ -38,6 +41,9 @@ enum thumb_mnemonic {
 static const char *mnemonic_strs[] = {
     "UNKNOWN",
 
+    "ADD",
+    "ADDS",
+    "ADDW",
     "B",
     "BKPT",
     "BL",

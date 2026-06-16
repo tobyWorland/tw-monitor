@@ -61,6 +61,51 @@ static bool set_flags_menu(void) {
                 NULL) == 's';
 }
 
+static void assemble_a(thumb_t **paddr) {
+    static const struct menu_option a_options[] = {
+        {'i', "ADD{S} Immediate"},
+        {'w', "ADD Immediate Wide (ADDW)"},
+        {'r', "ADD{S} Register"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM A> ", ARR_LEN(a_options), a_options, NULL);
+    switch (opt) {
+    case 'i': // ADD{S} (Immediate)
+    case 'w': { // ADDW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_ADDW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // ADD{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 static void assemble_b(thumb_t **paddr) {
     static const struct menu_option b_options[] = {
         {'b', "B"},
@@ -192,6 +237,7 @@ static void assemble_p(thumb_t **paddr) {
 
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
+        {'a', "A.."},
         {'b', "B..."},
         {'c', "CMP"},
         {'l', "LDR" },
@@ -212,6 +258,10 @@ void monitor_assemble(thumb_t *addr) {
     while (!quit) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
+        case 'a': { // A...
+            assemble_a(&addr);
+            break;
+        }
         case 'b': { // B...
             assemble_b(&addr);
             break;

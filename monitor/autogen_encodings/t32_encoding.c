@@ -18,7 +18,7 @@
 bool match_adds_i_t1(uint16_t field) {
     return (BIT_EXTRACT(field, 9, 7) == 0xEU);
 }
-bool match_add_i_t2(uint16_t field) {
+bool match_adds_i_t2(uint16_t field) {
     return (BIT_EXTRACT(field, 11, 5) == 0x6U);
 }
 bool match_addw_i_t4(uint32_t field) {
@@ -192,7 +192,7 @@ unsigned encode_adds_i_t1(uint16_t *out, struct adds_i_t1_parts *parts) {
     *out = encoded;
     return 16;
 }
-unsigned encode_add_i_t2(uint16_t *out, struct add_i_t2_parts *parts) {
+unsigned encode_adds_i_t2(uint16_t *out, struct adds_i_t2_parts *parts) {
     uint16_t encoded = 0x3000;
     if (!UNSIGNED_CHECK_FIT(parts->Rdn, 3)) {
         return 0;
@@ -852,8 +852,8 @@ struct adds_i_t1_parts decode_adds_i_t1(uint16_t field) {
     result.Rd = BIT_EXTRACT(field, 0, 3);
     return result;
 }
-struct add_i_t2_parts decode_add_i_t2(uint16_t field) {
-    struct add_i_t2_parts result = {};
+struct adds_i_t2_parts decode_adds_i_t2(uint16_t field) {
+    struct adds_i_t2_parts result = {};
     result.Rdn = BIT_EXTRACT(field, 8, 3);
     result.imm8 = BIT_EXTRACT(field, 0, 8);
     return result;

@@ -227,6 +227,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_PUSH;
             thumb_add_operand_reglist(&instruction, 1 << parts.Rt);
+        } else if (match_addw_i_t4(wide_ins)) {
+            const struct addw_i_t4_parts parts = decode_addw_i_t4(wide_ins);
+
+            instruction.mnemonic = TM_ADDW;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm12);
         }
     } else {
         uint16_t ins = insptr->narrow;
@@ -343,6 +350,34 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             instruction.mnemonic = TM_CMP;
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_adds_i_t1(ins)) {
+            const struct adds_i_t1_parts parts = decode_adds_i_t1(ins);
+
+            instruction.mnemonic = TM_ADDS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm3);
+        } else if (match_adds_i_t2(ins)) {
+            const struct adds_i_t2_parts parts = decode_adds_i_t2(ins);
+
+            instruction.mnemonic = TM_ADDS;
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_adds_r_t1(ins)) {
+            const struct adds_r_t1_parts parts = decode_adds_r_t1(ins);
+
+            instruction.mnemonic = TM_ADDS;
+            thumb_add_operand_reg(&instruction, parts.Rd);
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_add_r_t2(ins)) {
+            const struct add_r_t2_parts parts = decode_add_r_t2(ins);
+
+            instruction.mnemonic = TM_ADD;
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_reg(&instruction, parts.Rdn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
 
@@ -447,6 +482,127 @@ encoder_to_asm_result(unsigned encoder_result) {
 #define ENSURE_WIDE()   if (instruction_spec->width == TWS_NARROW) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
     switch (instruction_spec->mnemonic) { // TODO: None of these cases should break, instead they should return AR_FAIL_INVALID_WIDTH
+    case TM_ADD: {
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+
+        switch (instruction_spec->operands[2].type) {
+        case OT_IMMEDIATE: {
+            if (Rn == 13 || Rn == 15) {
+                return AR_FAIL_INVALID_OPERAND;
+            }
+
+            // TODO: Implement ADD (Immediate) T3
+            goto asm_addw; // Fallback to ADDW
+            break;
+        }
+        case OT_REG: {
+            ENSURE_NARROW(); // TODO: Implement ADD (Register) T3 wide encoding
+
+            uint8_t Rm = instruction_spec->operands[2].reg;
+
+            if (Rd == Rn) {
+                struct add_r_t2_parts parts = {
+                    .Rdn = Rd,
+                    .Rm = Rm,
+                };
+                return encoder_to_asm_result(encode_add_r_t2(&into->narrow, &parts));
+            }
+        }
+        default:
+            break;
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    case TM_ADDS: {
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+
+        unsigned result;
+
+        switch (instruction_spec->operands[2].type) {
+        case OT_IMMEDIATE: {
+            unsigned immediate = instruction_spec->operands[2].imm;
+
+            ENSURE_NARROW(); // TODO: Implement ADDS (Immediate) T3 wide encoding
+
+            struct adds_i_t1_parts parts = {
+                .Rd = Rd,
+                .Rn = Rn,
+                .imm3 = immediate,
+            };
+            result = encode_adds_i_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+
+            if (Rd == Rn) {
+                struct adds_i_t2_parts parts = {
+                    .Rdn = Rd,
+                    .imm8 = immediate,
+                };
+                return encoder_to_asm_result(encode_adds_i_t2(&into->narrow, &parts));
+            }
+            break;
+        }
+        case OT_REG: {
+            uint8_t Rm = instruction_spec->operands[2].reg;
+
+            ENSURE_NARROW(); // TODO: Implement ADDS (Register) T3 wide encoding
+
+            struct adds_r_t1_parts parts = {
+                .Rd = Rd,
+                .Rn = Rn,
+                .Rm = Rm,
+            };
+            return encoder_to_asm_result(encode_adds_r_t1(&into->narrow, &parts));
+        }
+        default:
+            break;
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
+    }
+    asm_addw:
+    case TM_ADDW: {
+        struct addw_i_t4_parts parts;
+
+        ENSURE_WIDE();
+
+        if (instruction_spec->operand_count != 3 ||
+            instruction_spec->operands[0].type != OT_REG ||
+            instruction_spec->operands[1].type != OT_REG ||
+            instruction_spec->operands[2].type != OT_IMMEDIATE) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rd = instruction_spec->operands[0].reg;
+        uint8_t Rn = instruction_spec->operands[1].reg;
+        unsigned immediate = instruction_spec->operands[2].imm;
+
+        if (Rn == 13 || Rn == 15) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        parts.Rd = Rd;
+        parts.Rn = Rn;
+        parts.imm12 = immediate;
+
+        return encoder_to_asm_result(encode_addw_i_t4(&into->wide, &parts));
+    }
     case TM_B: {
         // TODO: Support conditionals
 
