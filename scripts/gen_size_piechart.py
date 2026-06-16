@@ -9,14 +9,24 @@ os.chdir(os.path.dirname(sys.argv[0]) + "/..")
 
 save = False
 
-if len(sys.argv) == 2:
-    save = sys.argv[1] == "save"
+def usage():
+    print("{} <sram|flash> [save]".format(sys.argv[0]))
+    exit(1)
+
+if len(sys.argv) >= 2:
+    build = sys.argv[1]
+    if build not in ["sram", "flash"]:
+        usage()
+else:
+    usage()
+
+if len(sys.argv) == 3:
+    save = sys.argv[2] == "save"
     if not save:
-        print("Unknown command line arg:", sys.argv[1])
-        exit(1)
+        print("Unknown command line arg:", sys.argv[2])
+        usage()
 
 binutils_size = "arm-none-eabi-size"
-build = "flash"
 base_path = "builds/target_{}/monitor".format(build)
 
 def get_objs(base):
