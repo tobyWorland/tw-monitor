@@ -87,6 +87,7 @@ dont_show_objs_under_percentage = 2.00
 
 files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(objs), dont_show_objs_under_percentage)
 
-fig, ax = plt.subplots()
-pie = ax.pie(sizes, labels=files, autopct='%1.1f%%', rotatelabels=True)
+fsize = 11
+fig, ax = plt.subplots(figsize=(fsize, fsize))
+pie = ax.pie(sizes, labels=files, autopct='%1.1f%%', rotatelabels=False)
 plt.show()
