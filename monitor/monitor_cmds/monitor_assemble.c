@@ -193,6 +193,7 @@ static void assemble_p(thumb_t **paddr) {
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'b', "B..."},
+        {'c', "CMP"},
         {'l', "LDR" },
         {'m', "M..."},
         {'n', "NOP" },
@@ -213,6 +214,32 @@ void monitor_assemble(thumb_t *addr) {
         switch (opt) {
         case 'b': { // B...
             assemble_b(&addr);
+            break;
+        }
+        case 'c': { // CMP
+            struct thumb_instruction_spec instruction = {};
+            instruction.mnemonic = TM_CMP;
+            instruction.width = width_specifier;
+            thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+
+            static const struct menu_option cmp_opts[] = {
+                {'i', "Immediate"},
+                {'r', "Register" },
+            };
+            char opt = menu("I/R? ", ARR_LEN(cmp_opts), cmp_opts, NULL);
+            switch (opt) {
+            case 'i':
+                thumb_add_operand_immediate(&instruction, gethexword(0));
+                break;
+            case 'r':
+                thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+                break;
+            default:
+                print_missing_action_message();
+                break;
+            }
+
+            assemble_and_show_result(&addr, &instruction);
             break;
         }
         case 'l': { // LDR

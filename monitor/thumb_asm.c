@@ -325,6 +325,24 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
 
             instruction.mnemonic = TM_PUSH;
             thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 15));
+        } else if (match_cmp_i_t1(ins)) {
+            const struct cmp_i_t1_parts parts = decode_cmp_i_t1(ins);
+
+            instruction.mnemonic = TM_CMP;
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_cmp_r_t1(ins)) {
+            const struct cmp_r_t1_parts parts = decode_cmp_r_t1(ins);
+
+            instruction.mnemonic = TM_CMP;
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
+        } else if (match_cmp_r_t2(ins)) {
+            const struct cmp_r_t2_parts parts = decode_cmp_r_t2(ins);
+
+            instruction.mnemonic = TM_CMP;
+            thumb_add_operand_reg(&instruction, parts.Rn);
+            thumb_add_operand_reg(&instruction, parts.Rm);
         }
     }
 
@@ -517,6 +535,49 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         return encoder_to_asm_result(encode_bx_t1(&into->narrow, &parts));
+    }
+    case TM_CMP: {
+        ENSURE_NARROW(); // TODO: Wide encodings are not implemented
+
+        if (instruction_spec->operand_count != 2 ||
+            instruction_spec->operands[0].type != OT_REG) {
+            return AR_FAIL_INVALID_OPERAND;
+        }
+
+        uint8_t Rn = instruction_spec->operands[0].reg;
+        unsigned result;
+
+        switch (instruction_spec->operands[1].type) {
+        case OT_IMMEDIATE: {
+            struct cmp_i_t1_parts parts = {
+                .Rn = Rn,
+                .imm8 = instruction_spec->operands[1].imm,
+            };
+            return encoder_to_asm_result(encode_cmp_i_t1(&into->narrow, &parts));
+        }
+        case OT_REG: {
+            uint8_t Rm = instruction_spec->operands[1].reg;
+
+            struct cmp_r_t1_parts parts = {
+                .Rn = Rn,
+                .Rm = Rm,
+            };
+            result = encode_cmp_r_t1(&into->narrow, &parts);
+            if (result != 0) {
+                return encoder_to_asm_result(result);
+            }
+
+            struct cmp_r_t2_parts parts2 = {
+                .Rn = Rn,
+                .Rm = Rm,
+            };
+            return encoder_to_asm_result(encode_cmp_r_t2(&into->narrow, &parts2));
+        }
+        default:
+            break;
+        }
+
+        return AR_FAIL_INVALID_WIDTH;
     }
     case TM_LDR: {
         if (instruction_spec->operand_count < 3 || // 3 or 4 operands are valid
