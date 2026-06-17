@@ -530,6 +530,10 @@ encoder_to_asm_result(unsigned encoder_result) {
 #define ENSURE_NARROW() if (instruction_spec->width == TWS_WIDE)   return AR_FAIL_INVALID_WIDTH
 #define ENSURE_WIDE()   if (instruction_spec->width == TWS_NARROW) return AR_FAIL_INVALID_WIDTH
 enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_instruction_spec *instruction_spec) {
+    bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
+    bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
+    unsigned result = 0;
+
     switch (instruction_spec->mnemonic) { // TODO: None of these cases should break, instead they should return AR_FAIL_INVALID_WIDTH
     case TM_ADD: {
         if (instruction_spec->operand_count != 3 ||
@@ -579,8 +583,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         uint8_t Rd = instruction_spec->operands[0].reg;
         uint8_t Rn = instruction_spec->operands[1].reg;
-
-        unsigned result;
 
         switch (instruction_spec->operands[2].type) {
         case OT_IMMEDIATE: {
@@ -667,7 +669,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 struct b_t2_parts parts = {
                     .simm11 = label,
                 };
-                unsigned result = encode_b_t2(&into->narrow, &parts);
+                result = encode_b_t2(&into->narrow, &parts);
                 if (result != 0) {
                     return encoder_to_asm_result(result);
                 }
@@ -676,7 +678,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                     .cond = instruction_spec->condition - 1,
                     .simm8 = label,
                 };
-                unsigned result = encode_b_cond_t1_noit(&into->narrow, &parts);
+                result = encode_b_cond_t1_noit(&into->narrow, &parts);
                 if (result != 0) {
                     return encoder_to_asm_result(result);
                 }
@@ -767,7 +769,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         uint8_t Rn = instruction_spec->operands[0].reg;
-        unsigned result;
 
         switch (instruction_spec->operands[1].type) {
         case OT_IMMEDIATE: {
@@ -812,11 +813,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         uint8_t Rt = instruction_spec->operands[0].reg;
         uint8_t Rn = instruction_spec->operands[1].reg;
-        bool can_be_narrow = (instruction_spec->width == TWS_AUTO ||
-                       instruction_spec->width == TWS_NARROW);
-        bool can_be_wide = (instruction_spec->width == TWS_AUTO ||
-                            instruction_spec->width == TWS_WIDE);
-        unsigned result;
 
         if (instruction_spec->operands[2].type == OT_REG) {
             unsigned lsl_shift = 0;
@@ -962,15 +958,13 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        unsigned enc_result;
-
         if (instruction_spec->width == TWS_WIDE) {
-            enc_result = encode_nop_t2((void*)into);
+            result = encode_nop_t2((void*)into);
         } else {
-            enc_result = encode_nop_t1(&into->narrow);
+            result = encode_nop_t1(&into->narrow);
         }
 
-        return encoder_to_asm_result(enc_result);
+        return encoder_to_asm_result(result);
     }
     case TM_MOV: {
         if (instruction_spec->operand_count != 2 ||
@@ -979,11 +973,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         uint8_t Rd = instruction_spec->operands[0].reg;
-        unsigned result;
-
-        // TODO: Move these outside the switch
-        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
-        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
 
         switch (instruction_spec->operands[1].type) {
         case OT_IMMEDIATE:
@@ -1030,11 +1019,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         }
 
         uint8_t Rd = instruction_spec->operands[0].reg;
-        unsigned result;
-
-        // TODO: Move these outside the switch
-        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
-        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
 
         switch (instruction_spec->operands[1].type) {
         case OT_IMMEDIATE: {
@@ -1128,12 +1112,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        // TODO: Move these outside the switch
-        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
-        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
-
-        unsigned result;
-
         if (can_be_narrow && !lr) {
             struct pop_t1_parts parts = {
                 .pc = pc,
@@ -1194,12 +1172,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         if (!regcount) {
             return AR_FAIL_INVALID_OPERAND;
         }
-
-        // TODO: Move these outside the switch
-        bool can_be_narrow = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW);
-        bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
-
-        unsigned result;
 
         if (can_be_narrow) {
             struct push_t1_parts parts = {
@@ -1281,8 +1253,6 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
 
         uint8_t Rd = instruction_spec->operands[0].reg;
         uint8_t Rn = instruction_spec->operands[1].reg;
-
-        unsigned result;
 
         switch (instruction_spec->operands[2].type) {
         case OT_IMMEDIATE: {
@@ -1376,7 +1346,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             struct udf_t1_parts parts = {
                 .imm8 = instruction_spec->operands[0].imm,
             };
-            unsigned result = encode_udf_t1(&into->narrow, &parts);
+            result = encode_udf_t1(&into->narrow, &parts);
             if (result != 0) {
                 return encoder_to_asm_result(result);
             }
