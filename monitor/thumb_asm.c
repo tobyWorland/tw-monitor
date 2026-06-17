@@ -534,7 +534,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
     bool can_be_wide = (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE);
     unsigned result = 0;
 
-    switch (instruction_spec->mnemonic) { // TODO: None of these cases should break, instead they should return AR_FAIL_INVALID_WIDTH
+    switch (instruction_spec->mnemonic) {
     case TM_ADD: {
         if (instruction_spec->operand_count != 3 ||
             instruction_spec->operands[0].type != OT_REG ||
@@ -567,9 +567,10 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 };
                 return encoder_to_asm_result(encode_add_r_t2(&into->narrow, &parts));
             }
+            break;
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
 
         return AR_FAIL_INVALID_WIDTH;
@@ -622,7 +623,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return encoder_to_asm_result(encode_adds_r_t1(&into->narrow, &parts));
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
 
         return AR_FAIL_INVALID_WIDTH;
@@ -664,7 +665,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
         // as if the PC is 4 bytes ahead
         int32_t label = instruction_spec->operands[0].simm - 4;
 
-        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
+        if (can_be_narrow) {
             if (instruction_spec->condition == TC_NONE) {
                 struct b_t2_parts parts = {
                     .simm11 = label,
@@ -685,7 +686,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             }
         }
 
-        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE) {
+        if (can_be_wide) {
             if (instruction_spec->condition == TC_NONE) {
                 struct b_t4_parts parts = {
                     .simm25 = label,
@@ -699,7 +700,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                 return encoder_to_asm_result(encode_b_cond_t3_noit(&into->wide, &parts));
             }
         }
-        break;
+        return AR_FAIL_INVALID_WIDTH;
     }
     case TM_BKPT: {
         struct bkpt_t1_parts parts;
@@ -797,7 +798,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return encoder_to_asm_result(encode_cmp_r_t2(&into->narrow, &parts2));
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
 
         return AR_FAIL_INVALID_WIDTH;
@@ -928,7 +929,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
                     .Rt = Rt,
                     .Rn = Rn,
 
-                     // Offset is unsigned, and made negative by setting `.add` to false
+                    // Offset is unsigned, and made negative by setting `.add` to false
                     .imm8 = neg_offset ? -imm_offset : imm_offset,
                     .add = !neg_offset,
                 };
@@ -951,7 +952,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        break;
+        return AR_FAIL_INVALID_WIDTH;
     }
     case TM_NOP: {
         if (instruction_spec->operand_count != 0) {
@@ -1008,7 +1009,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             break;
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
         return AR_FAIL_INVALID_WIDTH;
     }
@@ -1068,8 +1069,9 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             break;
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
+
         return AR_FAIL_INVALID_WIDTH;
     }
     asm_movw:
@@ -1239,7 +1241,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             break; // TODO: Implement SUB (Register) T2
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
 
         return AR_FAIL_INVALID_WIDTH;
@@ -1292,7 +1294,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return encoder_to_asm_result(encode_subs_r_t1(&into->narrow, &parts));
         }
         default:
-            break;
+            return AR_FAIL_INVALID_OPERAND;
         }
 
         return AR_FAIL_INVALID_WIDTH;
@@ -1342,7 +1344,7 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             return AR_FAIL_INVALID_OPERAND;
         }
 
-        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_NARROW) {
+        if (can_be_narrow) {
             struct udf_t1_parts parts = {
                 .imm8 = instruction_spec->operands[0].imm,
             };
@@ -1352,13 +1354,13 @@ enum thumb_assemble_result thumb_assemble(thumb_t *into, const struct thumb_inst
             }
         }
 
-        if (instruction_spec->width == TWS_AUTO || instruction_spec->width == TWS_WIDE) {
+        if (can_be_wide) {
             struct udf_t2_parts parts = {
                 .imm16 = instruction_spec->operands[0].imm,
             };
             return encoder_to_asm_result(encode_udf_t2(&into->wide, &parts));
         }
-        break;
+        return AR_FAIL_INVALID_WIDTH;
     }
     default:
         break; // Go on to fail
