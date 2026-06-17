@@ -7,29 +7,13 @@ import matplotlib.pyplot as plt
 
 os.chdir(os.path.dirname(sys.argv[0]) + "/..")
 
-save = False
+binutils_size = "arm-none-eabi-size"
 
 def usage():
     print("{} <sram|flash> [save]".format(sys.argv[0]))
     exit(1)
 
-if len(sys.argv) >= 2:
-    build = sys.argv[1]
-    if build not in ["sram", "flash"]:
-        usage()
-else:
-    usage()
-
-if len(sys.argv) == 3:
-    save = sys.argv[2] == "save"
-    if not save:
-        print("Unknown command line arg:", sys.argv[2])
-        usage()
-
-binutils_size = "arm-none-eabi-size"
-base_path = "builds/target_{}/monitor".format(build)
-
-def get_objs(base):
+def get_objs(base, build):
     path_expr = base + "/**/*.obj"
     objs = glob.glob(path_expr, recursive=True)
 
@@ -38,7 +22,6 @@ def get_objs(base):
 
     return objs
 
-
 def callsize(objpath):
     result = subprocess.run([binutils_size, objpath], capture_output=True, check=True)
     output = result.stdout.decode().strip()
@@ -46,14 +29,15 @@ def callsize(objpath):
     lines = output.split('\n')
 
     if len(lines) != 2:
-        raise Exception("Only expected 2 lines from {} output, but got {}".format(binutils_size, len(lines)))
+        raise Exception("Only expected 2 lines from {} output, but got {}"
+                        .format(binutils_size, len(lines)))
 
     keys = lines[0].replace('\t', ' ').split()
     values = lines[1].replace('\t', ' ').split()
 
     return dict(zip(keys, values))
 
-def get_obj_file_sizes(objs):
+def get_obj_file_sizes(base_path, build, objs):
     files = []
     sizes = []
     size_sum = 0
@@ -100,21 +84,49 @@ def remove_files_less_than_x_percent(files, sizes, size_sum, percent_threshold):
 
     return (output_files, output_sizes)
 
-objs = get_objs(base_path)
-dont_show_objs_under_percentage = 2.00
+def process_commandline_args(argv):
+    build = None
+    save = False
 
-files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(objs), dont_show_objs_under_percentage)
+    argc = len(argv)
+    if argc >= 2:
+        build = argv[1]
+        if build not in ["sram", "flash"]:
+            usage()
+    else:
+        usage()
 
-fsize = 12
-fig, ax = plt.subplots(figsize=(fsize, fsize))
-pie = ax.pie(sizes)
-ax.pie_label(pie, files, distance=1.2)
-ax.pie_label(pie, '{absval:d}\n{frac:.1%}', distance=0.9)
+    if argc == 3:
+        save = argv[2] == "save"
+        if not save:
+            print("Unknown command line arg:", sys.argv[2])
+            usage()
 
-if save:
-    fig_filename = "size_{}.png".format(build)
-    print("Saving to '" + fig_filename + "'...", end=" ")
-    plt.savefig(fig_filename)
-    print("Saved.")
-else:
-    plt.show()
+    return build, save
+
+def main():
+    build, save = process_commandline_args(sys.argv)
+
+    base_path = "builds/target_{}/monitor".format(build)
+    objs = get_objs(base_path, build)
+    dont_show_objs_under_percentage = 2.00
+
+    files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(base_path, build, objs),
+                                                    dont_show_objs_under_percentage)
+
+    fsize = 12
+    fig, ax = plt.subplots(figsize=(fsize, fsize))
+    pie = ax.pie(sizes)
+    ax.pie_label(pie, files, distance=1.2)
+    ax.pie_label(pie, '{absval:d}\n{frac:.1%}', distance=0.9)
+
+    if save:
+        fig_filename = "size_{}.png".format(build)
+        print("Saving to '" + fig_filename + "'...", end=" ")
+        plt.savefig(fig_filename)
+        print("Saved.")
+    else:
+        plt.show()
+
+if __name__ == "__main__":
+    main()
