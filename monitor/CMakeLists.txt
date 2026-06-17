@@ -26,8 +26,13 @@ set(C_SOURCE
     terminal.c
     transfer.c
 
-    autogen_encodings/t32_encoding.h
     autogen_encodings/t32_encoding.c
+)
+
+# Always set -Os on autogen encoding files regardless of build type
+set_source_files_properties(
+    autogen_encodings/t32_encoding.c
+    PROPERTIES COMPILE_OPTIONS "-Os"
 )
 
 set(TARGET_SOURCE
