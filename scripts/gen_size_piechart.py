@@ -101,11 +101,14 @@ def main():
     files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(base_path, build, objs),
                                                     dont_show_objs_under_percentage)
 
+    binary_size = callsize(base_path + f"/monitor_{build}")['dec']
+
     fig_size = 12
     fig, ax = plt.subplots(figsize=(fig_size, fig_size))
     pie = ax.pie(sizes)
     ax.pie_label(pie, files, distance=1.2)
     ax.pie_label(pie, '{absval:d}\n{frac:.1%}', distance=0.9)
+    ax.set_title(f"Total: {binary_size} ({build})", fontdict={"fontsize": 20})
 
     if save:
         fig_filename = "size_{}.png".format(build)
