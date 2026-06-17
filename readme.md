@@ -26,7 +26,7 @@ assmebling and disassembling.
 
 ## Misc Dependencies
 * [meta-bfield](https://github.com/tobyWorland/meta-bfield) (1)
-* Python3 & matplotlib (optional - generating piechart breakdown of large object files)
+* Python3 & matplotlib (optional - generate piechart breakdown of large object files)
 
 (1) Pragmatically generates the C source for encoding and decoding thumb instructions. Written for this project. Output is stored in `monitor/autogen_encodings`
 
