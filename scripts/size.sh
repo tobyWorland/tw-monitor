@@ -11,5 +11,5 @@ case "$build" in
 	exit 1
 esac
 
-arm-none-eabi-size `find builds/target_$build/monitor/ -name "*.obj"`
+arm-none-eabi-size -t `find builds/target_$build/monitor/ -name "*.obj"`
 arm-none-eabi-size builds/target_$build/monitor/monitor_$build
