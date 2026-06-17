@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
+import argparse
 import glob
-import subprocess
-import os
-import sys
 import matplotlib.pyplot as plt
-
-os.chdir(os.path.dirname(sys.argv[0]) + "/..")
+import os
+import subprocess
+import sys
 
 binutils_size = "arm-none-eabi-size"
-
-def usage():
-    print("{} <sram|flash> [save]".format(sys.argv[0]))
-    exit(1)
 
 def get_objs(base, build):
     path_expr = base + "/**/*.obj"
@@ -84,28 +79,20 @@ def remove_files_less_than_x_percent(files, sizes, size_sum, percent_threshold):
 
     return (output_files, output_sizes)
 
-def process_commandline_args(argv):
-    build = None
-    save = False
+def process_commandline_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--save", action="store_true", help="Save to size_${build}.png")
+    parser.add_argument("build", choices=["sram", "flash"], help="Which build to get sizes from")
 
-    argc = len(argv)
-    if argc >= 2:
-        build = argv[1]
-        if build not in ["sram", "flash"]:
-            usage()
-    else:
-        usage()
+    args = parser.parse_args()
 
-    if argc == 3:
-        save = argv[2] == "save"
-        if not save:
-            print("Unknown command line arg:", sys.argv[2])
-            usage()
-
-    return build, save
+    return args.build, args.save
 
 def main():
-    build, save = process_commandline_args(sys.argv)
+    # Change directory to the root of the repo
+    os.chdir(os.path.dirname(sys.argv[0]) + "/..")
+
+    build, save = process_commandline_args()
 
     base_path = "builds/target_{}/monitor".format(build)
     objs = get_objs(base_path, build)
@@ -114,8 +101,8 @@ def main():
     files, sizes = remove_files_less_than_x_percent(*get_obj_file_sizes(base_path, build, objs),
                                                     dont_show_objs_under_percentage)
 
-    fsize = 12
-    fig, ax = plt.subplots(figsize=(fsize, fsize))
+    fig_size = 12
+    fig, ax = plt.subplots(figsize=(fig_size, fig_size))
     pie = ax.pie(sizes)
     ax.pie_label(pie, files, distance=1.2)
     ax.pie_label(pie, '{absval:d}\n{frac:.1%}', distance=0.9)
