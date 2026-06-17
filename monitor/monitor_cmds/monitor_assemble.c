@@ -1,5 +1,6 @@
 #include "monitor_assemble.h"
 
+#include "../assert.h"
 #include "../char.h"
 #include "../io.h"
 #include "../menu.h"
@@ -50,9 +51,102 @@ static void print_missing_action_message(void) {
     putstring("Error: Missing action\r\n");
 }
 
+static bool set_flags_menu(void) {
+    static const struct menu_option set_flags_options[] = {
+        {'s', "Set Flags"      },
+        {' ', "Don't Set Flags"},
+    };
+
+    return menu("Set Flags? ", ARR_LEN(set_flags_options), set_flags_options,
+                NULL) == 's';
+}
+
+static enum thumb_condition set_condition_menu(void) {
+    static const struct menu_option set_condition_options[] = {
+        {' ', "No condition"},
+
+        // TODO: Should reuse the strings "condition_strs" from thumb_asm
+        {'e', "EQ"          },
+        {'n', "NE"          },
+        {'c', "CS"          },
+        {'C', "CC"          },
+        {'m', "MI"          },
+        {'p', "PL"          },
+        {'v', "VS"          },
+        {'V', "VC"          },
+        {'h', "HI"          },
+        {'l', "LS"          },
+        {'g', "GE"          },
+        {'L', "LT"          },
+        {'G', "GT"          },
+        {'E', "LE"          },
+        {'a', "AL"          },
+    };
+
+    char opt = menu("Condition? ",
+                    ARR_LEN(set_condition_options),
+                    set_condition_options,
+                    NULL);
+    enum thumb_condition condition_result = TC_NONE;
+
+    for (unsigned i = 0; i < ARR_LEN(set_condition_options); i++) {
+        if (set_condition_options[i].key == opt) {
+            return i;
+        }
+    }
+    return condition_result;
+}
+
+static void assemble_a(thumb_t **paddr) {
+    static const struct menu_option a_options[] = {
+        {'i', "ADD{S} Immediate"},
+        {'w', "ADD Immediate Wide (ADDW)"},
+        {'r', "ADD{S} Register"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM A> ", ARR_LEN(a_options), a_options, NULL);
+    switch (opt) {
+    case 'i': // ADD{S} (Immediate)
+    case 'w': { // ADDW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_ADDW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // ADD{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 static void assemble_b(thumb_t **paddr) {
     static const struct menu_option b_options[] = {
         {'b', "B"},
+        {'l', "BL"},
+        {'L', "BLX"},
         {'x', "BX"},
         {'q', "Quit Menu"},
     };
@@ -62,9 +156,27 @@ static void assemble_b(thumb_t **paddr) {
     case 'b': {
         struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_B;
+        thumb_set_condition(&instruction, set_condition_menu());
         instruction.width = width_specifier;
-        thumb_add_operand_immediate(&instruction,
+        thumb_add_operand_signed_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'l': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_BL;
+        instruction.width = width_specifier;
+        thumb_add_operand_signed_immediate(&instruction,
+                                    menu_preset_relative_label("Branch to? ", *paddr, true));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'L': {
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_BLX;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -84,12 +196,149 @@ static void assemble_b(thumb_t **paddr) {
     }
 }
 
+static void assemble_m(thumb_t **paddr) {
+    static const struct menu_option m_options[] = {
+        {'i', "MOV{S} Immediate"},
+        {'w', "MOV Immediate Wide (MOVW)"},
+        {'r', "MOV{S} Register"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM M> ", ARR_LEN(m_options), m_options, NULL);
+    switch (opt) {
+    case 'i': // MOV{S} (Immediate)
+    case 'w': { // MOVW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_MOVW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // MOV{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
+static void assemble_p(thumb_t **paddr) {
+    static const struct menu_option p_options[] = {
+        {'u', "PUSH"     },
+        {'o', "POP"      },
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM P> ", ARR_LEN(p_options), p_options, NULL);
+    switch (opt) {
+    case 'u': { // PUSH
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_PUSH;
+        instruction.width = width_specifier;
+        thumb_add_operand_reglist(&instruction, menu_preset_register_list("To push? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'o': { // POP
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_POP;
+        instruction.width = width_specifier;
+        thumb_add_operand_reglist(&instruction, menu_preset_register_list("To pop? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
+static void assemble_s(thumb_t **paddr) {
+    static const struct menu_option s_options[] = {
+        {'i', "SUB{S} Immediate"         },
+        {'w', "SUB Immediate Wide (SUBW)"},
+        {'r', "SUB{S} Register"          },
+        {'v', "SVC"},
+        {'q', "Quit Menu"},
+    };
+
+    char opt = menu("ASM S> ", ARR_LEN(s_options), s_options, NULL);
+    switch (opt) {
+    case 'i': // SUB{S} (Immediate)
+    case 'w': { // SUBW
+        struct thumb_instruction_spec instruction = {};
+
+        if (opt == 'w') {
+            instruction.mnemonic = TM_SUBW;
+        } else { // 'i'
+            instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+        }
+
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_immediate(&instruction, gethexword(0));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'r': { // SUB{S} (Register)
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+        instruction.width = width_specifier;
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'v': { // SVC
+        // TODO: Should have a way of getting a byte or arbitrary width number
+        uint32_t immediate = gethexword(0);
+        struct thumb_instruction_spec instruction = {};
+        instruction.mnemonic = TM_SVC;
+        instruction.width = width_specifier;
+        thumb_add_operand_immediate(&instruction, immediate);
+        assemble_and_show_result(paddr, &instruction);
+        break;
+    }
+    case 'q':
+        break;
+    default:
+        print_missing_action_message();
+        break;
+    }
+}
+
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
-        {'b', "B..." },
-        {'m', "MOVW" },
-        {'n', "NOP"  },
-        {'s', "SVC"  },
+        {'a', "A.."},
+        {'b', "B..."},
+        {'c', "CMP"},
+        {'l', "LDR" },
+        {'m', "M..."},
+        {'n', "NOP" },
+        {'p', "P..."},
+        {'s', "S..." },
+        {'u', "UDF"},
         {'x', "BKPT" },
         {'.', "Specify Width"},
         {CTRL('p'), "Print Assembly"},
@@ -102,17 +351,144 @@ void monitor_assemble(thumb_t *addr) {
     while (!quit) {
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
+        case 'a': { // A...
+            assemble_a(&addr);
+            break;
+        }
         case 'b': { // B...
             assemble_b(&addr);
             break;
         }
-        case 'm': { // MOVW
+        case 'c': { // CMP
             struct thumb_instruction_spec instruction = {};
-            instruction.mnemonic = TM_MOVW;
+            instruction.mnemonic = TM_CMP;
             instruction.width = width_specifier;
-            thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-            thumb_add_operand_immediate(&instruction, gethexword(0));
+            thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+
+            static const struct menu_option cmp_opts[] = {
+                {'i', "Immediate"},
+                {'r', "Register" },
+            };
+            char opt = menu("I/R? ", ARR_LEN(cmp_opts), cmp_opts, NULL);
+            switch (opt) {
+            case 'i':
+                thumb_add_operand_immediate(&instruction, gethexword(0));
+                break;
+            case 'r':
+                thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+                break;
+            default:
+                print_missing_action_message();
+                break;
+            }
+
             assemble_and_show_result(&addr, &instruction);
+            break;
+        }
+        case 'l': { // LDR
+            struct thumb_instruction_spec instruction = {};
+            instruction.mnemonic = TM_LDR;
+            // Default to regular offset
+            thumb_set_operand_addressing_mode(&instruction, AM_OFFSET);
+            instruction.width = width_specifier;
+
+            thumb_add_operand_reg(&instruction, menu_preset_register("Rt? "));
+
+            static const struct menu_option ldr1_opts[] = {
+                {'i', "PC Relative Immediate"},
+                {'l', "PC Relative Label"    },
+                {'r', "Register Base"        },
+                // TODO: '=' Literal pool
+            };
+
+            char opt = menu("LDR> ", ARR_LEN(ldr1_opts), ldr1_opts, NULL);
+            switch (opt) {
+            case 'i':
+                thumb_add_operand_reg(&instruction, 15); // PC
+                thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+                break;
+            case 'l':
+                thumb_add_operand_reg(&instruction, 15); // PC
+                thumb_add_operand_signed_immediate(&instruction,
+                                            menu_preset_relative_label("Label? ", addr, true));
+                break;
+            case 'r': {
+                thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+
+                static const struct menu_option ldr2_opts[] = {
+                    {'0', "Zero Offset"     },
+                    {'i', "Immediate Offset"},
+                    {'r', "Register Offset" },
+                };
+
+                char opt =
+                    menu("Offset? ", ARR_LEN(ldr2_opts), ldr2_opts, NULL);
+                switch (opt) {
+                case '0':
+                    thumb_add_operand_signed_immediate(&instruction, 0);
+                    break;
+                case 'i': {
+                    // TODO: Make signed immediate (gethexword - use menu instead?)
+                    thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+
+                    static const struct menu_option ldr3_opts[] = {
+                        {' ', "Base Offset"         },
+                        {'!', "Pre-Indexing Offset" },
+                        {',', "Post-Indexing Offset"},
+                    };
+
+                    char addressing_opt = menu(
+                        "Addr type? ", ARR_LEN(ldr3_opts), ldr3_opts, NULL);
+                    switch (addressing_opt) {
+                    case ' ':
+                        // Already default
+                        break;
+                    case '!':
+                        thumb_set_operand_addressing_mode(&instruction, AM_PREINDEX);
+                        break;
+                    case ',':
+                        thumb_set_operand_addressing_mode(&instruction, AM_POSTINDEX);
+                        break;
+                    default:
+                        print_missing_action_message();
+                        break;
+                    }
+
+                    break;
+                }
+                case 'r': {
+                    thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+
+                    static const struct menu_option ldr4_opts[] = {
+                        {' ', "No Shift"},
+                        {'l', "LSL"     },
+                    };
+
+                    char shift_opt = menu("Shift? ", ARR_LEN(ldr4_opts), ldr4_opts, "l");
+
+                    if (shift_opt == 'l') {
+                        thumb_add_operand_lslshift(&instruction, gethexword(0));
+                    }
+
+                    break;
+                }
+                default:
+                    print_missing_action_message();
+                    break;
+                }
+
+                break;
+            }
+            default:
+                print_missing_action_message();
+                break;
+            }
+
+            assemble_and_show_result(&addr, &instruction);
+            break;
+        }
+        case 'm': { // M...
+            assemble_m(&addr);
             break;
         }
         case 'n': { // NOP
@@ -122,11 +498,19 @@ void monitor_assemble(thumb_t *addr) {
             assemble_and_show_result(&addr, &instruction);
             break;
         }
-        case 's': { // SVC
+        case 'p': { // P...
+            assemble_p(&addr);
+            break;
+        }
+        case 's': { // S...
+            assemble_s(&addr);
+            break;
+        }
+        case 'u': { // UDF
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
             struct thumb_instruction_spec instruction = {};
-            instruction.mnemonic = TM_SVC;
+            instruction.mnemonic = TM_UDF;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
             assemble_and_show_result(&addr, &instruction);

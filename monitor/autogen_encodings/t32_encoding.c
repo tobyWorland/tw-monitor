@@ -15,6 +15,23 @@
 #define SIGN_BIT_SET(VALUE, WIDTH) !!((VALUE) & BIT(WIDTH-1))
 #define SIGNED_EXTEND(VALUE, OLD_WIDTH) (SIGN_BIT_SET(VALUE, OLD_WIDTH) ? (VALUE) | ~BIT_MASK(OLD_WIDTH) : (VALUE))
 
+bool match_adds_i_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 9, 7) == 0xEU);
+}
+bool match_adds_i_t2(uint16_t field) {
+    return (BIT_EXTRACT(field, 11, 5) == 0x6U);
+}
+bool match_addw_i_t4(uint32_t field) {
+    return (BIT_EXTRACT(field, 31, 1) == 0x0U) && \
+        (BIT_EXTRACT(field, 11, 5) == 0x1EU) && \
+        (BIT_EXTRACT(field, 4, 6) == 0x20U);
+}
+bool match_adds_r_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 9, 7) == 0xCU);
+}
+bool match_add_r_t2(uint16_t field) {
+    return (BIT_EXTRACT(field, 8, 8) == 0x44U);
+}
 bool match_b_cond_t1_noit(uint16_t field) {
     return (BIT_EXTRACT(field, 12, 4) == 0xDU);
 }
@@ -46,6 +63,15 @@ bool match_blx_t1(uint16_t field) {
 bool match_bx_t1(uint16_t field) {
     return (BIT_EXTRACT(field, 7, 9) == 0x8EU) && \
         (BIT_EXTRACT(field, 0, 3) == 0x0U);
+}
+bool match_cmp_i_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 11, 5) == 0x5U);
+}
+bool match_cmp_r_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 6, 10) == 0x10AU);
+}
+bool match_cmp_r_t2(uint16_t field) {
+    return (BIT_EXTRACT(field, 8, 8) == 0x45U);
 }
 bool match_ldr_i_t1(uint16_t field) {
     return (BIT_EXTRACT(field, 11, 5) == 0xDU);
@@ -124,6 +150,20 @@ bool match_push_t3(uint32_t field) {
     return (BIT_EXTRACT(field, 16, 12) == 0xD04U) && \
         (BIT_EXTRACT(field, 0, 16) == 0xF84DU);
 }
+bool match_subs_i_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 9, 7) == 0xFU);
+}
+bool match_subs_i_t2(uint16_t field) {
+    return (BIT_EXTRACT(field, 11, 5) == 0x7U);
+}
+bool match_subw_i_t4(uint32_t field) {
+    return (BIT_EXTRACT(field, 31, 1) == 0x0U) && \
+        (BIT_EXTRACT(field, 11, 5) == 0x1EU) && \
+        (BIT_EXTRACT(field, 4, 6) == 0x2AU);
+}
+bool match_subs_r_t1(uint16_t field) {
+    return (BIT_EXTRACT(field, 9, 7) == 0xDU);
+}
 bool match_svc_t1(uint16_t field) {
     return (BIT_EXTRACT(field, 8, 8) == 0xDFU);
 }
@@ -135,6 +175,91 @@ bool match_udf_t2(uint32_t field) {
         (BIT_EXTRACT(field, 4, 12) == 0xF7FU);
 }
 
+unsigned encode_adds_i_t1(uint16_t *out, struct adds_i_t1_parts *parts) {
+    uint16_t encoded = 0x1c00;
+    if (!UNSIGNED_CHECK_FIT(parts->imm3, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->imm3) << 6);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 3);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_adds_i_t2(uint16_t *out, struct adds_i_t2_parts *parts) {
+    uint16_t encoded = 0x3000;
+    if (!UNSIGNED_CHECK_FIT(parts->Rdn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rdn) << 8);
+    if (!UNSIGNED_CHECK_FIT(parts->imm8, 8)) {
+        return 0;
+    }
+    encoded |= ((parts->imm8) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_addw_i_t4(uint32_t *out, struct addw_i_t4_parts *parts) {
+    uint32_t encoded = 0xf200;
+    if (!UNSIGNED_CHECK_FIT(parts->imm12 >> 0, 12)) {
+        return 0;
+    }
+    uint32_t i = BIT_EXTRACT(parts->imm12, 11, 1);
+    uint32_t imm3 = BIT_EXTRACT(parts->imm12, 8, 3);
+    uint32_t imm8 = BIT_EXTRACT(parts->imm12, 0, 8);
+    encoded |= ((imm3) << 28);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 24);
+    encoded |= ((imm8) << 16);
+    encoded |= ((i) << 10);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 0);
+    *out = encoded;
+    return 32;
+}
+unsigned encode_adds_r_t1(uint16_t *out, struct adds_r_t1_parts *parts) {
+    uint16_t encoded = 0x1800;
+    if (!UNSIGNED_CHECK_FIT(parts->Rm, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rm) << 6);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 3);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_add_r_t2(uint16_t *out, struct add_r_t2_parts *parts) {
+    uint16_t encoded = 0x4400;
+    if (!UNSIGNED_CHECK_FIT(parts->Rdn >> 0, 4)) {
+        return 0;
+    }
+    uint32_t Rdn_3 = BIT_EXTRACT(parts->Rdn, 3, 1);
+    uint32_t Rdn_2_0 = BIT_EXTRACT(parts->Rdn, 0, 3);
+    encoded |= ((Rdn_3) << 7);
+    if (!UNSIGNED_CHECK_FIT(parts->Rm, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rm) << 3);
+    encoded |= ((Rdn_2_0) << 0);
+    *out = encoded;
+    return 16;
+}
 unsigned encode_b_cond_t1_noit(uint16_t *out, struct b_cond_t1_noit_parts *parts) {
     uint16_t encoded = 0xd000;
     if (BIT_EXTRACT(parts->simm8, 0, 1)) {
@@ -256,6 +381,48 @@ unsigned encode_bx_t1(uint16_t *out, struct bx_t1_parts *parts) {
         return 0;
     }
     encoded |= ((parts->Rm) << 3);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_cmp_i_t1(uint16_t *out, struct cmp_i_t1_parts *parts) {
+    uint16_t encoded = 0x2800;
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 8);
+    if (!UNSIGNED_CHECK_FIT(parts->imm8, 8)) {
+        return 0;
+    }
+    encoded |= ((parts->imm8) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_cmp_r_t1(uint16_t *out, struct cmp_r_t1_parts *parts) {
+    uint16_t encoded = 0x4280;
+    if (!UNSIGNED_CHECK_FIT(parts->Rm, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rm) << 3);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_cmp_r_t2(uint16_t *out, struct cmp_r_t2_parts *parts) {
+    uint16_t encoded = 0x4500;
+    if (!UNSIGNED_CHECK_FIT(parts->Rn >> 0, 4)) {
+        return 0;
+    }
+    uint32_t Rn_3 = BIT_EXTRACT(parts->Rn, 3, 1);
+    uint32_t Rn_2_0 = BIT_EXTRACT(parts->Rn, 0, 3);
+    encoded |= ((Rn_3) << 7);
+    if (!UNSIGNED_CHECK_FIT(parts->Rm, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rm) << 3);
+    encoded |= ((Rn_2_0) << 0);
     *out = encoded;
     return 16;
 }
@@ -578,6 +745,75 @@ unsigned encode_push_t3(uint32_t *out, struct push_t3_parts *parts) {
     *out = encoded;
     return 32;
 }
+unsigned encode_subs_i_t1(uint16_t *out, struct subs_i_t1_parts *parts) {
+    uint16_t encoded = 0x1e00;
+    if (!UNSIGNED_CHECK_FIT(parts->imm3, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->imm3) << 6);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 3);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_subs_i_t2(uint16_t *out, struct subs_i_t2_parts *parts) {
+    uint16_t encoded = 0x3800;
+    if (!UNSIGNED_CHECK_FIT(parts->Rdn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rdn) << 8);
+    if (!UNSIGNED_CHECK_FIT(parts->imm8, 8)) {
+        return 0;
+    }
+    encoded |= ((parts->imm8) << 0);
+    *out = encoded;
+    return 16;
+}
+unsigned encode_subw_i_t4(uint32_t *out, struct subw_i_t4_parts *parts) {
+    uint32_t encoded = 0xf2a0;
+    if (!UNSIGNED_CHECK_FIT(parts->imm12 >> 0, 12)) {
+        return 0;
+    }
+    uint32_t i = BIT_EXTRACT(parts->imm12, 11, 1);
+    uint32_t imm3 = BIT_EXTRACT(parts->imm12, 8, 3);
+    uint32_t imm8 = BIT_EXTRACT(parts->imm12, 0, 8);
+    encoded |= ((imm3) << 28);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 24);
+    encoded |= ((imm8) << 16);
+    encoded |= ((i) << 10);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 4)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 0);
+    *out = encoded;
+    return 32;
+}
+unsigned encode_subs_r_t1(uint16_t *out, struct subs_r_t1_parts *parts) {
+    uint16_t encoded = 0x1a00;
+    if (!UNSIGNED_CHECK_FIT(parts->Rm, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rm) << 6);
+    if (!UNSIGNED_CHECK_FIT(parts->Rn, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rn) << 3);
+    if (!UNSIGNED_CHECK_FIT(parts->Rd, 3)) {
+        return 0;
+    }
+    encoded |= ((parts->Rd) << 0);
+    *out = encoded;
+    return 16;
+}
 unsigned encode_svc_t1(uint16_t *out, struct svc_t1_parts *parts) {
     uint16_t encoded = 0xdf00;
     if (!UNSIGNED_CHECK_FIT(parts->imm8, 8)) {
@@ -609,6 +845,51 @@ unsigned encode_udf_t2(uint32_t *out, struct udf_t2_parts *parts) {
     return 32;
 }
 
+struct adds_i_t1_parts decode_adds_i_t1(uint16_t field) {
+    struct adds_i_t1_parts result = {};
+    result.imm3 = BIT_EXTRACT(field, 6, 3);
+    result.Rn = BIT_EXTRACT(field, 3, 3);
+    result.Rd = BIT_EXTRACT(field, 0, 3);
+    return result;
+}
+struct adds_i_t2_parts decode_adds_i_t2(uint16_t field) {
+    struct adds_i_t2_parts result = {};
+    result.Rdn = BIT_EXTRACT(field, 8, 3);
+    result.imm8 = BIT_EXTRACT(field, 0, 8);
+    return result;
+}
+struct addw_i_t4_parts decode_addw_i_t4(uint32_t field) {
+    struct addw_i_t4_parts result = {};
+    uint32_t imm3 = BIT_EXTRACT(field, 28, 3);
+    result.Rd = BIT_EXTRACT(field, 24, 4);
+    uint32_t imm8 = BIT_EXTRACT(field, 16, 8);
+    uint32_t i = BIT_EXTRACT(field, 10, 1);
+    result.Rn = BIT_EXTRACT(field, 0, 4);
+    uint32_t imm12 = 0;
+    imm12 |= i << 11;
+    imm12 |= imm3 << 8;
+    imm12 |= imm8 << 0;
+    result.imm12 = imm12;
+    return result;
+}
+struct adds_r_t1_parts decode_adds_r_t1(uint16_t field) {
+    struct adds_r_t1_parts result = {};
+    result.Rm = BIT_EXTRACT(field, 6, 3);
+    result.Rn = BIT_EXTRACT(field, 3, 3);
+    result.Rd = BIT_EXTRACT(field, 0, 3);
+    return result;
+}
+struct add_r_t2_parts decode_add_r_t2(uint16_t field) {
+    struct add_r_t2_parts result = {};
+    uint32_t Rdn_3 = BIT_EXTRACT(field, 7, 1);
+    result.Rm = BIT_EXTRACT(field, 3, 4);
+    uint32_t Rdn_2_0 = BIT_EXTRACT(field, 0, 3);
+    uint32_t Rdn = 0;
+    Rdn |= Rdn_3 << 3;
+    Rdn |= Rdn_2_0 << 0;
+    result.Rdn = Rdn;
+    return result;
+}
 struct b_cond_t1_noit_parts decode_b_cond_t1_noit(uint16_t field) {
     struct b_cond_t1_noit_parts result = {};
     result.cond = BIT_EXTRACT(field, 8, 4);
@@ -688,6 +969,29 @@ struct blx_t1_parts decode_blx_t1(uint16_t field) {
 struct bx_t1_parts decode_bx_t1(uint16_t field) {
     struct bx_t1_parts result = {};
     result.Rm = BIT_EXTRACT(field, 3, 4);
+    return result;
+}
+struct cmp_i_t1_parts decode_cmp_i_t1(uint16_t field) {
+    struct cmp_i_t1_parts result = {};
+    result.Rn = BIT_EXTRACT(field, 8, 3);
+    result.imm8 = BIT_EXTRACT(field, 0, 8);
+    return result;
+}
+struct cmp_r_t1_parts decode_cmp_r_t1(uint16_t field) {
+    struct cmp_r_t1_parts result = {};
+    result.Rm = BIT_EXTRACT(field, 3, 3);
+    result.Rn = BIT_EXTRACT(field, 0, 3);
+    return result;
+}
+struct cmp_r_t2_parts decode_cmp_r_t2(uint16_t field) {
+    struct cmp_r_t2_parts result = {};
+    uint32_t Rn_3 = BIT_EXTRACT(field, 7, 1);
+    result.Rm = BIT_EXTRACT(field, 3, 4);
+    uint32_t Rn_2_0 = BIT_EXTRACT(field, 0, 3);
+    uint32_t Rn = 0;
+    Rn |= Rn_3 << 3;
+    Rn |= Rn_2_0 << 0;
+    result.Rn = Rn;
     return result;
 }
 struct ldr_i_t1_parts decode_ldr_i_t1(uint16_t field) {
@@ -835,6 +1139,40 @@ struct push_t2_parts decode_push_t2(uint32_t field) {
 struct push_t3_parts decode_push_t3(uint32_t field) {
     struct push_t3_parts result = {};
     result.Rt = BIT_EXTRACT(field, 28, 4);
+    return result;
+}
+struct subs_i_t1_parts decode_subs_i_t1(uint16_t field) {
+    struct subs_i_t1_parts result = {};
+    result.imm3 = BIT_EXTRACT(field, 6, 3);
+    result.Rn = BIT_EXTRACT(field, 3, 3);
+    result.Rd = BIT_EXTRACT(field, 0, 3);
+    return result;
+}
+struct subs_i_t2_parts decode_subs_i_t2(uint16_t field) {
+    struct subs_i_t2_parts result = {};
+    result.Rdn = BIT_EXTRACT(field, 8, 3);
+    result.imm8 = BIT_EXTRACT(field, 0, 8);
+    return result;
+}
+struct subw_i_t4_parts decode_subw_i_t4(uint32_t field) {
+    struct subw_i_t4_parts result = {};
+    uint32_t imm3 = BIT_EXTRACT(field, 28, 3);
+    result.Rd = BIT_EXTRACT(field, 24, 4);
+    uint32_t imm8 = BIT_EXTRACT(field, 16, 8);
+    uint32_t i = BIT_EXTRACT(field, 10, 1);
+    result.Rn = BIT_EXTRACT(field, 0, 4);
+    uint32_t imm12 = 0;
+    imm12 |= i << 11;
+    imm12 |= imm3 << 8;
+    imm12 |= imm8 << 0;
+    result.imm12 = imm12;
+    return result;
+}
+struct subs_r_t1_parts decode_subs_r_t1(uint16_t field) {
+    struct subs_r_t1_parts result = {};
+    result.Rm = BIT_EXTRACT(field, 6, 3);
+    result.Rn = BIT_EXTRACT(field, 3, 3);
+    result.Rd = BIT_EXTRACT(field, 0, 3);
     return result;
 }
 struct svc_t1_parts decode_svc_t1(uint16_t field) {

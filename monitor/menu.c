@@ -5,6 +5,7 @@
 #include "char.h"
 #include "io.h"
 #include "memory.h"
+#include "thumb_asm.h"
 #include "util.h"
 #include "terminal.h"
 #include "string.h"
@@ -24,14 +25,26 @@ static void print_menu_help(unsigned option_count,
     for (unsigned i = 0; i < option_count; i++) {
         const struct menu_option *opt = &options[i];
         putstring(" * ");
-        if (IS_CTRL(opt->key)) {
-            putstring("c-");
-            putchar(opt->key + 'A' - 1); // -1 as C-A is 1 not 0
-        } else {
-            assert(char_isprint(opt->key));
-            putchar('\'');
-            putchar(opt->key);
-            putchar('\'');
+        switch (opt->key) {  // TODO: TEST
+        case '\r':
+            putstring("RET");
+            break;
+        case '\b':
+            putstring("BAK");
+            break;
+        case ' ':
+            putstring("SPC");
+            break;
+        default:
+            if (IS_CTRL(opt->key)) {
+                putstring("c-");
+                putchar(opt->key + 'A' - 1); // -1 as C-A is 1 not 0
+            } else {
+                assert(char_isprint(opt->key));
+                putchar('\'');
+                putchar(opt->key);
+                putchar('\'');
+            }
         }
         putstring(" - ");
         putstring(opt->name);
@@ -350,3 +363,56 @@ intptr_t menu_preset_relative_label(const char *prompt, void *relative_from, boo
     ASSERT_NOT_REACHED();
 }
 #endif
+
+static bool mp_register_list_valid_reg(unsigned reg) {
+    if (reg > 15) {
+        io_printf("Invalid Register %u\r\n", reg);
+        return false;
+    }
+    return true;
+}
+
+uint16_t menu_preset_register_list(const char *prompt) {
+    static const struct menu_option list_options[] = {
+        {',',  "Toggle Register"},
+        {'-',  "Toggle Range"   },
+        {'\r', "Submit"         },
+    };
+
+    uint16_t reg_list = 0;
+    bool quit = false;
+
+    while (!quit) {
+        terminal_clearline();
+        thumb_print_register_list(reg_list);
+        putchar(' ');
+
+        char opt = menu(prompt, ARR_LEN(list_options), list_options, NULL);
+
+        switch (opt) {
+        case ',': {
+            const unsigned reg = menu_preset_register("REG ");
+            if (mp_register_list_valid_reg(reg)) {
+                reg_list ^= (1U << reg);
+            }
+            break;
+        }
+        case '-': {
+            const unsigned start = menu_preset_register("FROM ");
+            const unsigned end = menu_preset_register("TO ");
+            if (mp_register_list_valid_reg(start) &&
+                mp_register_list_valid_reg(end)) {
+                for (unsigned r = start; r <= end; r++) {
+                    reg_list ^= (1U << r);
+                }
+            }
+            break;
+        }
+        case '\r':
+            quit = true;
+            break;
+        }
+    }
+
+    return reg_list;
+}
