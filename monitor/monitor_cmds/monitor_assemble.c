@@ -327,14 +327,13 @@ static void assemble_ldr(thumb_t **paddr) {
     case 'r': // Register Base
         add_reg_rn();
 
-        static const struct menu_option ldr2_opts[] = {
+        static const struct menu_option ldr_offset_opts[] = {
             {'0', "Zero Offset"     },
             {'i', "Immediate Offset"},
             {'r', "Register Offset" },
         };
 
-        char opt =
-            menu("Offset? ", ARR_LEN(ldr2_opts), ldr2_opts, NULL);
+        char opt = menu("Offset? ", ARR_LEN(ldr_offset_opts), ldr_offset_opts, NULL);
         switch (opt) {
         case '0':
             thumb_add_operand_signed_immediate(&instruction, 0);
