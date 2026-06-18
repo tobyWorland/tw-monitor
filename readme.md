@@ -1,13 +1,11 @@
 # Monitor
 
-On chip stepping debugger, inspecting hardware and modifying memory
-interactivity over the UART. Similar to those found on vintage home
-computers.
+An on-chip stepping debugger, with support for assmebling instructions
+and modifying memory interactivity over the UART. Similar to those found
+on vintage home computers.
 
-This was mostly written to explore using the debug monitor exception
-available on some ARM cores, and to experiment with interactivity
-poking the hardware and assembling some instructions on the MCU
-itself.
+This was initially written to explore using the debug monitor exception
+available on some ARM cores.
 
 * Target code is written in C and Thumb assembly
 * Unit test code is written in C and C++ with googletest
@@ -37,8 +35,7 @@ git submodule update --init
 ./scripts/build.sh
 ```
 
-1. You will want to flash `builds/target_flash/monitor/monitor_flash`
-to your board.
+1. You will want to flash `builds/target_flash/monitor/monitor_flash` to your board.
 2. Check the serial console (115200bps, no parity, one stop bit, no flow control) for the menu.
 3. Disconnect your debugger and reset, you may need to cut power.
 4. If the serial terminal reports "Halting debug? YES" try step 3 again. This means the hardware debugger will take priority and the debug monitor exception will NOT get triggered on breakpoints.
