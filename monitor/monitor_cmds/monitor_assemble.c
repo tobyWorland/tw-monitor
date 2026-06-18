@@ -32,8 +32,8 @@ static void add_immediate(void) {
 }
 
 static void add_signed_immediate(void) {
-    // TODO: Actually accept a signed number
-    thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+    int simm = menu_number("Signed Immediate? ", 0, 0, NULL, NULL);
+    thumb_add_operand_signed_immediate(&instruction, simm);
 }
 
 static void add_label(const char *prompt, void *addr, bool code) {
@@ -257,8 +257,6 @@ static void assemble_s(thumb_t **paddr) {
 
 static void _ldr_register_base_immediate_offset() {
     // Get immediate offset
-
-    // TODO: Make signed immediate (gethexword - use menu instead?)
     add_signed_immediate();
 
     // Set addressing mode
