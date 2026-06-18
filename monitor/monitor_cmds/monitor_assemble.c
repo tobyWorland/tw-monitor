@@ -36,6 +36,11 @@ static void add_signed_immediate(void) {
     thumb_add_operand_signed_immediate(&instruction, gethexword(0));
 }
 
+static void add_label(const char *prompt, void *addr, bool code) {
+    thumb_add_operand_signed_immediate(&instruction,
+                                       menu_preset_relative_label(prompt, addr, code));
+}
+
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
@@ -105,15 +110,13 @@ static void assemble_b(thumb_t **paddr) {
     case 'b': {
         instruction.mnemonic = TM_B;
         thumb_set_condition(&instruction, menu_preset_instruction_set_condition_menu());
-        thumb_add_operand_signed_immediate(&instruction,
-                                    menu_preset_relative_label("Branch to? ", *paddr, true));
+        add_label("Branch to? ", *paddr, true);
         assemble_and_show_result(paddr, &instruction);
         break;
     }
     case 'l': {
         instruction.mnemonic = TM_BL;
-        thumb_add_operand_signed_immediate(&instruction,
-                                    menu_preset_relative_label("Branch to? ", *paddr, true));
+        add_label("Branch to? ", *paddr, true);
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -334,8 +337,7 @@ void monitor_assemble(thumb_t *addr) {
                 break;
             case 'l':
                 thumb_add_operand_reg(&instruction, 15); // PC
-                thumb_add_operand_signed_immediate(&instruction,
-                                            menu_preset_relative_label("Label? ", addr, true));
+                add_label("Label? ", addr, true);
                 break;
             case 'r': {
                 add_reg_rn();
