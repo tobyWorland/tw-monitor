@@ -7,12 +7,12 @@
  */
 
 #include <fcntl.h>
-#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #define ACK 6
@@ -122,14 +122,18 @@ int main(int argc, char **argv) {
     transfer_bytes((void*)&len_u16, sizeof(len_u16));
 
     printf("Length sent. Sending file bytes...\n");
-    int last_i = INT_MIN + 1;
+
+    time_t last_time = 0;
     for (int i = 0; i < file_size; i++) {
-        // Redisplay sending message if more than 50 bytes was sent since the last message
-        if ((i - last_i) > 50) {
+        // Redisplay sending message if a second has past since the last message
+        time_t current_time = time(NULL);
+        if (current_time != last_time) {
             printf("\rSending %d of %d (%.02f%)...", i, file_size, 100.0f / file_size * i);
             fflush(stdout);
-            last_i = i;
+            last_time = current_time;
         }
+
+        // Get byte from file
         int b = fgetc(file);
         //printf("Putting %02X\n", b);
         if (b == EOF) {
@@ -137,6 +141,7 @@ int main(int argc, char **argv) {
             break;
         }
 
+        // Send byte over serial
         if (!transfer_byte(b)) {
             break;
         }
