@@ -47,6 +47,45 @@ static void add_label(const char *prompt, void *addr, bool code) {
                                        menu_preset_relative_label(prompt, addr, code));
 }
 
+// WARNING: Assumes already set to AM_OFFSET
+static void set_addressing_mode() {
+    static const struct menu_option addressing_mode_opts[] = {
+        {' ', "Base Offset"         },
+        {'!', "Pre-Indexing Offset" },
+        {',', "Post-Indexing Offset"},
+    };
+
+    char addressing_opt = menu(
+        "Addressing mode? ", ARR_LEN(addressing_mode_opts), addressing_mode_opts, NULL);
+    switch (addressing_opt) {
+    case ' ':
+        // Already default
+        break;
+    case '!':
+        thumb_set_operand_addressing_mode(&instruction, AM_PREINDEX);
+        break;
+    case ',':
+        thumb_set_operand_addressing_mode(&instruction, AM_POSTINDEX);
+        break;
+    default:
+        menu_print_missing_action_message();
+        break;
+    }
+}
+
+static void add_optional_lsl_shift(void) {
+    static const struct menu_option lsl_shift_opts[] = {
+        {' ', "No Shift"},
+        {'l', "LSL"     },
+    };
+
+    char shift_opt = menu("Shift? ", ARR_LEN(lsl_shift_opts), lsl_shift_opts, "l");
+
+    if (shift_opt == 'l') {
+        thumb_add_operand_lslshift(&instruction, gethexword(0));
+    }
+}
+
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
@@ -261,52 +300,6 @@ static void assemble_s(thumb_t **paddr) {
     }
 }
 
-static void _ldr_register_base_immediate_offset() {
-    // Get immediate offset
-    add_signed_immediate();
-
-    // Set addressing mode
-    static const struct menu_option addressing_mode_opts[] = {
-        {' ', "Base Offset"         },
-        {'!', "Pre-Indexing Offset" },
-        {',', "Post-Indexing Offset"},
-    };
-
-    char addressing_opt = menu(
-        "Addressing mode? ", ARR_LEN(addressing_mode_opts), addressing_mode_opts, NULL);
-    switch (addressing_opt) {
-    case ' ':
-        // Already default
-        break;
-    case '!':
-        thumb_set_operand_addressing_mode(&instruction, AM_PREINDEX);
-        break;
-    case ',':
-        thumb_set_operand_addressing_mode(&instruction, AM_POSTINDEX);
-        break;
-    default:
-        menu_print_missing_action_message();
-        break;
-    }
-}
-
-static void _ldr_register_base_register_offset() {
-    // Get register offset (Rm)
-    add_reg_rm();
-
-    // Get optional LSL shift
-    static const struct menu_option lsl_shift_opts[] = {
-        {' ', "No Shift"},
-        {'l', "LSL"     },
-    };
-
-    char shift_opt = menu("Shift? ", ARR_LEN(lsl_shift_opts), lsl_shift_opts, "l");
-
-    if (shift_opt == 'l') {
-        thumb_add_operand_lslshift(&instruction, gethexword(0));
-    }
-}
-
 static void assemble_ldr(thumb_t **paddr) {
     instruction.mnemonic = TM_LDR;
 
@@ -315,14 +308,14 @@ static void assemble_ldr(thumb_t **paddr) {
 
     add_reg_rt();
 
-    static const struct menu_option ldr1_opts[] = {
+    static const struct menu_option ldr_base_opts[] = {
         {'i', "PC Relative Immediate"},
         {'l', "PC Relative Label"    },
         {'r', "Register Base"        },
         // TODO: '=' Literal pool
     };
 
-    char opt = menu("LDR> ", ARR_LEN(ldr1_opts), ldr1_opts, NULL);
+    char opt = menu("LDR Base? ", ARR_LEN(ldr_base_opts), ldr_base_opts, NULL);
     switch (opt) {
     case 'i': // PC Relative Immediate
         thumb_add_operand_reg(&instruction, 15); // PC
@@ -348,10 +341,12 @@ static void assemble_ldr(thumb_t **paddr) {
             thumb_add_operand_signed_immediate(&instruction, 0);
             break;
         case 'i':
-            _ldr_register_base_immediate_offset();
+            add_signed_immediate();
+            set_addressing_mode();
             break;
         case 'r':
-            _ldr_register_base_register_offset();
+            add_reg_rm();
+            add_optional_lsl_shift();
             break;
         default:
             menu_print_missing_action_message();
