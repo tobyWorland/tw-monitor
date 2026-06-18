@@ -103,12 +103,12 @@ static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruc
 
 static void assemble_a(thumb_t **paddr) {
     static const struct menu_option a_options[] = {
-        {'i', "ADD  Immediate"},
-        {'I', "ADDS Immediate"},
+        {'i', "ADD  Immediate"            },
+        {'I', "ADDS Immediate"            },
         {'w', "ADD  Immediate Wide (ADDW)"},
-        {'r', "ADD  Register"},
-        {'R', "ADDS Register"},
-        {'q', "Quit Menu"},
+        {'r', "ADD  Register"             },
+        {'R', "ADDS Register"             },
+        {'q', "Quit Menu"                 },
     };
 
     char opt = menu("ASM A> ", ARR_LEN(a_options), a_options, NULL);
@@ -145,10 +145,10 @@ static void assemble_a(thumb_t **paddr) {
 
 static void assemble_b(thumb_t **paddr) {
     static const struct menu_option b_options[] = {
-        {'b', "B"},
-        {'l', "BL"},
-        {'L', "BLX"},
-        {'x', "BX"},
+        {'b', "B"        },
+        {'l', "BL"       },
+        {'L', "BLX"      },
+        {'x', "BX"       },
         {'q', "Quit Menu"},
     };
 
@@ -185,12 +185,12 @@ static void assemble_b(thumb_t **paddr) {
 
 static void assemble_m(thumb_t **paddr) {
     static const struct menu_option m_options[] = {
-        {'i', "MOV  Immediate"},
-        {'I', "MOVS Immediate"},
+        {'i', "MOV  Immediate"            },
+        {'I', "MOVS Immediate"            },
         {'w', "MOV  Immediate Wide (MOVW)"},
-        {'r', "MOV  Register"},
-        {'R', "MOVS Register"},
-        {'q', "Quit Menu"},
+        {'r', "MOV  Register"             },
+        {'R', "MOVS Register"             },
+        {'q', "Quit Menu"                 },
     };
 
     char opt = menu("ASM M> ", ARR_LEN(m_options), m_options, NULL);
@@ -252,13 +252,13 @@ static void assemble_p(thumb_t **paddr) {
 
 static void assemble_s(thumb_t **paddr) {
     static const struct menu_option s_options[] = {
-        {'i', "SUB  Immediate"         },
-        {'I', "SUBS Immediate"         },
+        {'i', "SUB  Immediate"            },
+        {'I', "SUBS Immediate"            },
         {'w', "SUB  Immediate Wide (SUBW)"},
-        {'r', "SUB  Register"          },
-        {'R', "SUBS Register"          },
-        {'v', "SVC"},
-        {'q', "Quit Menu"},
+        {'r', "SUB  Register"             },
+        {'R', "SUBS Register"             },
+        {'v', "SVC"                       },
+        {'q', "Quit Menu"                 },
     };
 
     char opt = menu("ASM S> ", ARR_LEN(s_options), s_options, NULL);
@@ -363,19 +363,19 @@ static void assemble_ldr(thumb_t **paddr) {
 
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
-        {'a', "A.."},
-        {'b', "B..."},
-        {'c', "CMP"},
-        {'l', "LDR" },
-        {'m', "M..."},
-        {'n', "NOP" },
-        {'p', "P..."},
-        {'s', "S..." },
-        {'u', "UDF"},
-        {'x', "BKPT" },
-        {'.', "Specify Width"},
+        {'a',       "A.."           },
+        {'b',       "B..."          },
+        {'c',       "CMP"           },
+        {'l',       "LDR"           },
+        {'m',       "M..."          },
+        {'n',       "NOP"           },
+        {'p',       "P..."          },
+        {'s',       "S..."          },
+        {'u',       "UDF"           },
+        {'x',       "BKPT"          },
+        {'.',       "Specify Width" },
         {CTRL('p'), "Print Assembly"},
-        {CTRL('q'), "Quit"},
+        {CTRL('q'), "Quit"          },
     };
     bool quit = false;
     thumb_t *starting_addr = addr;
