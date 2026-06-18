@@ -23,6 +23,11 @@ void monitor_call_function(void (*fn)(), bool step) {
     // Do call
     if (step) {
         arm_enable_debug_stepping(true);
+
+        // If using hardware, use a breakpoint instruction to trigger debugger
+        if (arm_halting_debug_active()) {
+            __BKPT(1);
+        }
     }
     fn();
 }

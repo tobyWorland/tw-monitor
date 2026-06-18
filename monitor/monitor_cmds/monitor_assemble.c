@@ -1,5 +1,7 @@
 #include "monitor_assemble.h"
 
+#include "monitor_call.h"
+#include "../arm.h"
 #include "../assert.h"
 #include "../char.h"
 #include "../io.h"
@@ -373,6 +375,7 @@ void monitor_assemble(thumb_t *addr) {
         {'u',       "UDF"           },
         {'x',       "BKPT"          },
         {'.',       "Specify Width" },
+        {CTRL('c'), "Call Assembly" },
         {CTRL('p'), "Print Assembly"},
         {CTRL('q'), "Quit"          },
     };
@@ -446,10 +449,15 @@ void monitor_assemble(thumb_t *addr) {
             add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
-        case '.':
+        case '.': // Specify Width
             width_specifier = menu_preset_instruction_width_menu(width_specifier);
             break;
-        case CTRL('p'):
+        case CTRL('c'): { // Call Assembly
+            void *fn_address = arm_address_set_thumb_intwrk_bit(starting_addr, true);
+            monitor_call_function(fn_address, true); // Call with step
+            break;
+        }
+        case CTRL('p'): // Print Assembly
             for (thumb_t *p = starting_addr; p < addr; p = thumb_ins_ptr_increment(p)) {
                 puthexword((uint32_t)p);
                 putchar(' ');
@@ -458,7 +466,7 @@ void monitor_assemble(thumb_t *addr) {
                 putnewline();
             }
             break;
-        case CTRL('q'):
+        case CTRL('q'): // Quit
             quit = true;
             break;
         default:
