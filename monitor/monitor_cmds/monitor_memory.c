@@ -31,7 +31,7 @@ void monitor_memory() {
             const char *name = io_getline();
             bool created =
                 memory_create_label(name, strlen(name), ptr, opt == 'c');
-            io_printf("%s\r\n", created ? "Created label!" : "Error: Label already exists.");
+            io_printf("%s\r\n", created ? "Created label!" : "Error: Label already exists or name is invalid.");
             break;
         }
         case 'q':
