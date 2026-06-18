@@ -27,6 +27,15 @@ static void add_reg_rm(void) {
     thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
 }
 
+static void add_immediate(void) {
+    thumb_add_operand_immediate(&instruction, gethexword(0));
+}
+
+static void add_signed_immediate(void) {
+    // TODO: Actually accept a signed number
+    thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+}
+
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
@@ -62,7 +71,7 @@ static void assemble_a(thumb_t **paddr) {
 
         add_reg_rd();
         add_reg_rn();
-        thumb_add_operand_immediate(&instruction, gethexword(0));
+        add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -147,7 +156,7 @@ static void assemble_m(thumb_t **paddr) {
         }
 
         add_reg_rd();
-        thumb_add_operand_immediate(&instruction, gethexword(0));
+        add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -216,7 +225,7 @@ static void assemble_s(thumb_t **paddr) {
 
         add_reg_rd();
         add_reg_rn();
-        thumb_add_operand_immediate(&instruction, gethexword(0));
+        add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -230,9 +239,8 @@ static void assemble_s(thumb_t **paddr) {
     }
     case 'v': { // SVC
         // TODO: Should have a way of getting a byte or arbitrary width number
-        uint32_t immediate = gethexword(0);
         instruction.mnemonic = TM_SVC;
-        thumb_add_operand_immediate(&instruction, immediate);
+        add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -291,7 +299,7 @@ void monitor_assemble(thumb_t *addr) {
             char opt = menu("I/R? ", ARR_LEN(cmp_opts), cmp_opts, NULL);
             switch (opt) {
             case 'i':
-                thumb_add_operand_immediate(&instruction, gethexword(0));
+                add_immediate();
                 break;
             case 'r':
                 add_reg_rm();
@@ -322,7 +330,7 @@ void monitor_assemble(thumb_t *addr) {
             switch (opt) {
             case 'i':
                 thumb_add_operand_reg(&instruction, 15); // PC
-                thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+                add_signed_immediate();
                 break;
             case 'l':
                 thumb_add_operand_reg(&instruction, 15); // PC
@@ -346,7 +354,7 @@ void monitor_assemble(thumb_t *addr) {
                     break;
                 case 'i': {
                     // TODO: Make signed immediate (gethexword - use menu instead?)
-                    thumb_add_operand_signed_immediate(&instruction, gethexword(0));
+                    add_signed_immediate();
 
                     static const struct menu_option ldr3_opts[] = {
                         {' ', "Base Offset"         },
@@ -423,17 +431,15 @@ void monitor_assemble(thumb_t *addr) {
         }
         case 'u': { // UDF
             // TODO: Should have a way of getting a byte or arbitrary width number
-            uint32_t immediate = gethexword(0);
             instruction.mnemonic = TM_UDF;
-            thumb_add_operand_immediate(&instruction, immediate);
+            add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
         }
         case 'x': { // BKPT
             // TODO: Should have a way of getting a byte or arbitrary width number
-            uint32_t immediate = gethexword(0);
             instruction.mnemonic = TM_BKPT;
-            thumb_add_operand_immediate(&instruction, immediate);
+            add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
         }
