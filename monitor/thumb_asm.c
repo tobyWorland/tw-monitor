@@ -138,7 +138,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
         uint32_t wide_ins = insptr->wide;
         instruction.width = TWS_WIDE;
 
-        if (match_nop_t2(wide_ins)) {
+        // Make sure UDF is first as some undefined encodings won't decode properly (e.g. B cond with AL)
+        if (match_udf_t2(wide_ins)) {
+            const struct udf_t2_parts parts = decode_udf_t2(wide_ins);
+
+            instruction.mnemonic = TM_UDF;
+            thumb_add_operand_immediate(&instruction, parts.imm16);
+        } else if (match_nop_t2(wide_ins)) {
             instruction.mnemonic = TM_NOP;
         } else if (match_movw_i_t3(wide_ins)) {
             const struct movw_i_t3_parts parts = decode_movw_i_t3(wide_ins);
@@ -207,11 +213,6 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
             thumb_add_operand_lslshift(&instruction, parts.lsl_shift_imm2);
-        } else if (match_udf_t2(wide_ins)) {
-            const struct udf_t2_parts parts = decode_udf_t2(wide_ins);
-
-            instruction.mnemonic = TM_UDF;
-            thumb_add_operand_immediate(&instruction, parts.imm16);
         } else if (match_bl_t1(wide_ins)) {
             const struct bl_t1_parts parts = decode_bl_t1(wide_ins);
 
@@ -257,7 +258,13 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
         uint16_t ins = insptr->narrow;
         instruction.width = TWS_NARROW;
 
-        if (match_bkpt_t1(ins)) {
+        // Make sure UDF is first (see comment from wide branch)
+        if (match_udf_t1(ins)) {
+            const struct udf_t1_parts parts = decode_udf_t1(ins);
+
+            instruction.mnemonic = TM_UDF;
+            thumb_add_operand_immediate(&instruction, parts.imm8);
+        } else if (match_bkpt_t1(ins)) {
             const struct bkpt_t1_parts parts = decode_bkpt_t1(ins);
 
             instruction.mnemonic = TM_BKPT;
@@ -337,11 +344,6 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             thumb_add_operand_reg(&instruction, parts.Rt);
             thumb_add_operand_reg(&instruction, parts.Rn);
             thumb_add_operand_reg(&instruction, parts.Rm);
-        } else if (match_udf_t1(ins)) {
-            const struct udf_t1_parts parts = decode_udf_t1(ins);
-
-            instruction.mnemonic = TM_UDF;
-            thumb_add_operand_immediate(&instruction, parts.imm8);
         } else if (match_blx_t1(ins)) {
             const struct blx_t1_parts parts = decode_blx_t1(ins);
 
