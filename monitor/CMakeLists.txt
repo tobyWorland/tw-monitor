@@ -65,6 +65,16 @@ add_executable(${MONITOR_NAME}
 )
 
 set_target_properties(${MONITOR_NAME} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+
+add_custom_command(TARGET ${MONITOR_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY}
+    ARGS
+    -O binary
+    ${MONITOR_NAME} ${MONITOR_NAME}.bin
+)
+
+
 else()
 add_library(host_monitor STATIC
     ${C_SOURCE}
