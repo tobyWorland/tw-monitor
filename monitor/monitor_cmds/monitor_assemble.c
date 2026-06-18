@@ -28,7 +28,13 @@ static void add_reg_rm(void) {
 }
 
 static void add_immediate(void) {
-    thumb_add_operand_immediate(&instruction, gethexword(0));
+    // We won't ever need an unsigned 32bit, so a positive signed 32bit typecasted is perfectly fine
+    int imm;
+    do {
+        // TODO: Should have an arg on menu_number to only allow positive
+        imm = menu_number("Unsigned Immediate? ", 0, 0, NULL, NULL);
+    } while (imm < 0);
+    thumb_add_operand_immediate(&instruction, imm);
 }
 
 static void add_signed_immediate(void) {
