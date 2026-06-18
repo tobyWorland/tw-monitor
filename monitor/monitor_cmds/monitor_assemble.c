@@ -26,77 +26,6 @@ static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruc
     }
 }
 
-static enum thumb_width_specifier show_width_menu(enum thumb_width_specifier current) {
-    // NOTE: Make sure these line up with the order in the enum as I use it to print them
-    static const struct menu_option width_menu[] = {
-        {'a', "AUTO"  },
-        {'n', "NARROW"},
-        {'w', "WIDE"  },
-    };
-
-    putstring("Current: ");
-    putstring(width_menu[current].name);
-    putnewline();
-
-    char opt = menu("New width? ", ARR_LEN(width_menu), width_menu, NULL);
-    // TODO: feels like there would be a way to reuse the struct instead of a switch
-    switch (opt) {
-    case 'n': return TWS_NARROW;
-    case 'w': return TWS_WIDE;
-    default: return TWS_AUTO;
-    }
-}
-
-static void print_missing_action_message(void) {
-    putstring("Error: Missing action\r\n");
-}
-
-static bool set_flags_menu(void) {
-    static const struct menu_option set_flags_options[] = {
-        {'s', "Set Flags"      },
-        {' ', "Don't Set Flags"},
-    };
-
-    return menu("Set Flags? ", ARR_LEN(set_flags_options), set_flags_options,
-                NULL) == 's';
-}
-
-static enum thumb_condition set_condition_menu(void) {
-    static const struct menu_option set_condition_options[] = {
-        {' ', "No condition"},
-
-        // TODO: Should reuse the strings "condition_strs" from thumb_asm
-        {'e', "EQ"          },
-        {'n', "NE"          },
-        {'c', "CS"          },
-        {'C', "CC"          },
-        {'m', "MI"          },
-        {'p', "PL"          },
-        {'v', "VS"          },
-        {'V', "VC"          },
-        {'h', "HI"          },
-        {'l', "LS"          },
-        {'g', "GE"          },
-        {'L', "LT"          },
-        {'G', "GT"          },
-        {'E', "LE"          },
-        {'a', "AL"          },
-    };
-
-    char opt = menu("Condition? ",
-                    ARR_LEN(set_condition_options),
-                    set_condition_options,
-                    NULL);
-    enum thumb_condition condition_result = TC_NONE;
-
-    for (unsigned i = 0; i < ARR_LEN(set_condition_options); i++) {
-        if (set_condition_options[i].key == opt) {
-            return i;
-        }
-    }
-    return condition_result;
-}
-
 static void assemble_a(thumb_t **paddr) {
     static const struct menu_option a_options[] = {
         {'i', "ADD{S} Immediate"},
@@ -114,7 +43,7 @@ static void assemble_a(thumb_t **paddr) {
         if (opt == 'w') {
             instruction.mnemonic = TM_ADDW;
         } else { // 'i'
-            instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
         }
 
         instruction.width = width_specifier;
@@ -126,7 +55,7 @@ static void assemble_a(thumb_t **paddr) {
     }
     case 'r': { // ADD{S} (Register)
         struct thumb_instruction_spec instruction = {};
-        instruction.mnemonic = set_flags_menu() ? TM_ADDS : TM_ADD;
+        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
         thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
@@ -137,7 +66,7 @@ static void assemble_a(thumb_t **paddr) {
     case 'q':
         break;
     default:
-        print_missing_action_message();
+        menu_print_missing_action_message();
         break;
     }
 }
@@ -156,7 +85,7 @@ static void assemble_b(thumb_t **paddr) {
     case 'b': {
         struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_B;
-        thumb_set_condition(&instruction, set_condition_menu());
+        thumb_set_condition(&instruction, menu_preset_instruction_set_condition_menu());
         instruction.width = width_specifier;
         thumb_add_operand_signed_immediate(&instruction,
                                     menu_preset_relative_label("Branch to? ", *paddr, true));
@@ -191,7 +120,7 @@ static void assemble_b(thumb_t **paddr) {
     case 'q':
         break;
     default:
-        print_missing_action_message();
+        menu_print_missing_action_message();
         break;
     }
 }
@@ -213,7 +142,7 @@ static void assemble_m(thumb_t **paddr) {
         if (opt == 'w') {
             instruction.mnemonic = TM_MOVW;
         } else { // 'i'
-            instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
         }
 
         instruction.width = width_specifier;
@@ -224,7 +153,7 @@ static void assemble_m(thumb_t **paddr) {
     }
     case 'r': { // MOV{S} (Register)
         struct thumb_instruction_spec instruction = {};
-        instruction.mnemonic = set_flags_menu() ? TM_MOVS : TM_MOV;
+        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
         thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
@@ -234,7 +163,7 @@ static void assemble_m(thumb_t **paddr) {
     case 'q':
         break;
     default:
-        print_missing_action_message();
+        menu_print_missing_action_message();
         break;
     }
 }
@@ -267,7 +196,7 @@ static void assemble_p(thumb_t **paddr) {
     case 'q':
         break;
     default:
-        print_missing_action_message();
+        menu_print_missing_action_message();
         break;
     }
 }
@@ -290,7 +219,7 @@ static void assemble_s(thumb_t **paddr) {
         if (opt == 'w') {
             instruction.mnemonic = TM_SUBW;
         } else { // 'i'
-            instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
         }
 
         instruction.width = width_specifier;
@@ -302,7 +231,7 @@ static void assemble_s(thumb_t **paddr) {
     }
     case 'r': { // SUB{S} (Register)
         struct thumb_instruction_spec instruction = {};
-        instruction.mnemonic = set_flags_menu() ? TM_SUBS : TM_SUB;
+        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
         thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
@@ -323,7 +252,7 @@ static void assemble_s(thumb_t **paddr) {
     case 'q':
         break;
     default:
-        print_missing_action_message();
+        menu_print_missing_action_message();
         break;
     }
 }
@@ -378,7 +307,7 @@ void monitor_assemble(thumb_t *addr) {
                 thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
                 break;
             default:
-                print_missing_action_message();
+                menu_print_missing_action_message();
                 break;
             }
 
@@ -450,7 +379,7 @@ void monitor_assemble(thumb_t *addr) {
                         thumb_set_operand_addressing_mode(&instruction, AM_POSTINDEX);
                         break;
                     default:
-                        print_missing_action_message();
+                        menu_print_missing_action_message();
                         break;
                     }
 
@@ -473,14 +402,14 @@ void monitor_assemble(thumb_t *addr) {
                     break;
                 }
                 default:
-                    print_missing_action_message();
+                    menu_print_missing_action_message();
                     break;
                 }
 
                 break;
             }
             default:
-                print_missing_action_message();
+                menu_print_missing_action_message();
                 break;
             }
 
@@ -527,7 +456,7 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case '.': {
-            width_specifier = show_width_menu(width_specifier);
+            width_specifier = menu_preset_instruction_width_menu(width_specifier);
             break;
         }
         case CTRL('p'): {
@@ -545,7 +474,7 @@ void monitor_assemble(thumb_t *addr) {
             quit = true;
             break;
         default:
-            print_missing_action_message();
+            menu_print_missing_action_message();
             break;
         }
     }
