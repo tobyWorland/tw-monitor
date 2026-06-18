@@ -7,24 +7,23 @@
 
 #include <stddef.h>
 
+#define MAX_NAME_LEN 8
+
 #ifndef HOST
 
-// NOTE: Update linker script if changing struct
-struct memory_metadata {
-    struct memory_entry *first_memory_entry;
-    struct memory_entry *last_memory_entry;
-};
-
 // Both defined in linker script
-extern struct memory_metadata g_memory_meta;
+extern uint64_t stack_ceiling;
 extern unsigned user_start;
+
+// Memory entries grow from the stack ceiling down to the lower
+// addresses of memory. So the next entry will be before the current.
 
 // TODO: Make define?
 // TODO: Type could be tagged on to the most significant bits of the pointer?
 enum entry_type {
-    ET_SECTION    = 0,
-    ET_LABEL_CODE = 1,
-    ET_LABEL_DATA = 2,
+    ET_SECTION,
+    ET_LABEL_CODE,
+    ET_LABEL_DATA,
 };
 
 struct memory_entry {
@@ -35,68 +34,76 @@ struct memory_entry {
             unsigned size;
         } section;
         struct {
-            unsigned name_len;
+            uint8_t name_len;
             // NOTE: name is **NOT** null terminated
-            char name[];
+            char name[MAX_NAME_LEN];
         } label;
     };
 };
 
-static unsigned memory_sizeof_entry(struct memory_entry *memory_entry) {
-    unsigned size = sizeof(struct memory_entry);
-    switch (memory_entry->type) {
-    case ET_SECTION:
-        break;
-    case ET_LABEL_CODE:
-    case ET_LABEL_DATA:
-        size += memory_entry->label.name_len;
-        break;
-    default:
-        assert(false);
-    }
-    return size;
+static struct memory_entry *s_next_free_memory_entry = NULL;
+
+static struct memory_entry *get_first_memory_entry(void) {
+    void *ptr = &stack_ceiling;
+    return ptr - sizeof(struct memory_entry);
 }
 
-// Check from the last memory entry to the first
-static struct memory_entry *memory_get_next_entry(struct memory_entry *memory_entry) {
-    if (memory_entry == g_memory_meta.first_memory_entry) {
-        // Was the first entry so no more entries exist after this
+static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
+    entry--;
+
+    if (entry == s_next_free_memory_entry) {
         return NULL;
     } else {
-        return (void *)memory_entry + memory_sizeof_entry(memory_entry);
+        return entry;
     }
+}
+
+static struct memory_entry *create_memory_entry() {
+    struct memory_entry *result = s_next_free_memory_entry;
+    s_next_free_memory_entry = result - 1;
+    return result;
 }
 
 void memory_init(void) {
-    struct memory_entry *first = (void*)&g_memory_meta - sizeof(struct memory_entry);
+    s_next_free_memory_entry = get_first_memory_entry();
 
-    first->type = ET_SECTION;
-    first->addr = &user_start;
-    first->section.size = 0;
-
-    g_memory_meta.first_memory_entry = first;
-    g_memory_meta.last_memory_entry = first;
+    struct memory_entry *entry = create_memory_entry();
+    *entry = (struct memory_entry) {
+        .type = ET_SECTION,
+        .addr = &user_start,
+        .section = {
+            .size = 0
+        }
+    };
 }
 
 bool memory_create_label(const char *name, unsigned name_len, void *ptr,
                          bool is_code) {
+    // Check if name_len is valid
+    if ((name_len == 0) || (name_len > MAX_NAME_LEN)) {
+        return false;
+    }
+
+    // Check if label already exists
     if (memory_lookup_label(name, name_len)) {
         return false;
     }
 
-    struct memory_entry *new_label = g_memory_meta.last_memory_entry;
-    new_label = (void*)new_label - sizeof(struct memory_entry) - name_len;
+    // Create new_label
+    struct memory_entry *new_label = create_memory_entry();
+    *new_label = (struct memory_entry) {
+        .type = is_code ? ET_LABEL_CODE : ET_LABEL_DATA,
+        .addr = ptr,
+    };
 
-    new_label->type = is_code ? ET_LABEL_CODE : ET_LABEL_DATA;
-    new_label->addr = ptr;
+    // Write name
     new_label->label.name_len = name_len;
     memcpy(new_label->label.name, name, name_len);
 
+    // Set interwork bit if it's a code label for absolute addressing
     if (is_code) {
         new_label->addr = arm_address_set_thumb_intwrk_bit(new_label->addr, true);
     }
-
-    g_memory_meta.last_memory_entry = new_label;
 
     return true;
 }
@@ -120,9 +127,9 @@ bool memory_entry_is_section(struct memory_entry *memory_entry) {
 }
 
 struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
-    struct memory_entry *current = g_memory_meta.last_memory_entry;
+    struct memory_entry *current = get_first_memory_entry();
 
-    for (; current; current = memory_get_next_entry(current)) {
+    for (; current; current = get_next_memory_entry(current)) {
         if (memory_entry_is_label(current) &&
             current->label.name_len == name_len &&
             !memcmp(current->label.name, name, name_len)) {
@@ -134,9 +141,9 @@ struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
 }
 
 struct memory_entry *memory_rlookup_label(void *ptr) {
-    struct memory_entry *current = g_memory_meta.last_memory_entry;
+    struct memory_entry *current = get_first_memory_entry();
 
-    for (; current; current = memory_get_next_entry(current)) {
+    for (; current; current = get_next_memory_entry(current)) {
         if (!memory_entry_is_label(current)) {
             continue;
         }
@@ -159,9 +166,9 @@ struct memory_entry *memory_rlookup_label(void *ptr) {
 }
 
 struct memory_entry *memory_lookup_section(void *ptr) {
-    struct memory_entry *current = g_memory_meta.last_memory_entry;
+    struct memory_entry *current = get_first_memory_entry();
 
-    for (; current; current = memory_get_next_entry(current)) {
+    for (; current; current = get_next_memory_entry(current)) {
         if (!memory_entry_is_section(current)) {
             continue;
         }
@@ -187,9 +194,9 @@ void *memory_addr_from_entry(struct memory_entry *memory_entry) {
 }
 
 void memory_print_entries(void) {
-    struct memory_entry *current = g_memory_meta.last_memory_entry;
+    struct memory_entry *current = get_first_memory_entry();
 
-    for (; current; current = memory_get_next_entry(current)) {
+    for (; current; current = get_next_memory_entry(current)) {
         if (memory_entry_is_section(current)) {
             io_printf("SECTION @ %x SIZE %u\r\n", current->addr, current->section.size);
         } else if (memory_entry_is_label(current)) {

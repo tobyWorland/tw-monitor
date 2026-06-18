@@ -53,9 +53,8 @@ SECTIONS {
 
     /* Stack */
     stack_initial_top = sram_end;
-    stack_ceiling = stack_initial_top - stack_size;
-
-    /* Put this just below the end of stack space */
-    /* TODO: Try to preserve between resets? */
-    g_memory_meta = stack_ceiling - 8;
+    . = stack_initial_top - stack_size;
+    stack_ceiling = ALIGN(8);
+    /* Align to 8 so it can be used to place the memory_entry below
+     * which needs 8 byte alignment due to ldrd/strd instructions when -Os */
 }
