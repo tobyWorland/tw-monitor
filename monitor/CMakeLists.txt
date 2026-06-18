@@ -39,6 +39,7 @@ set(TARGET_SOURCE
     hardware.s
     startup.s
     vector.s
+    clobber_sram.s
     stm32f411xce_timer.c
 )
 

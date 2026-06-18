@@ -7,6 +7,7 @@
  */
 
 #include <fcntl.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -83,7 +84,7 @@ bool transfer_byte(uint8_t byte) {
     }
 
     if (byte == ACK) {
-        printf("ACKd\n");
+        //printf("ACKd\n");
         return true;
     } else {
         fprintf(stderr, "Target didn't ACK!\n");
@@ -117,11 +118,20 @@ int main(int argc, char **argv) {
         exit(5);
     }
 
+    printf("Size: %d bytes\n", file_size);
     transfer_bytes((void*)&len_u16, sizeof(len_u16));
 
+    printf("Length sent. Sending file bytes...\n");
+    int last_i = INT_MIN + 1;
     for (int i = 0; i < file_size; i++) {
+        // Redisplay sending message if more than 50 bytes was sent since the last message
+        if ((i - last_i) > 50) {
+            printf("\rSending %d of %d (%.02f%)...", i, file_size, 100.0f / file_size * i);
+            fflush(stdout);
+            last_i = i;
+        }
         int b = fgetc(file);
-        printf("Putting %02X\n", b);
+        //printf("Putting %02X\n", b);
         if (b == EOF) {
             fprintf(stderr, "Error on reading byte from serial\n");
             break;
@@ -131,6 +141,7 @@ int main(int argc, char **argv) {
             break;
         }
     }
+    putchar('\n');
 
     fclose(file);
     close(serial_fd);
