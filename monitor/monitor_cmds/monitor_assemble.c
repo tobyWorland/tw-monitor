@@ -11,6 +11,22 @@
 
 static struct thumb_instruction_spec instruction = {};
 
+static void add_reg_rt(void) {
+    thumb_add_operand_reg(&instruction, menu_preset_register("Rt? "));
+}
+
+static void add_reg_rd(void) {
+    thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+}
+
+static void add_reg_rn(void) {
+    thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+}
+
+static void add_reg_rm(void) {
+    thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+}
+
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
     switch (result) {
@@ -44,17 +60,17 @@ static void assemble_a(thumb_t **paddr) {
             instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
         }
 
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        add_reg_rd();
+        add_reg_rn();
         thumb_add_operand_immediate(&instruction, gethexword(0));
         assemble_and_show_result(paddr, &instruction);
         break;
     }
     case 'r': { // ADD{S} (Register)
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        add_reg_rd();
+        add_reg_rn();
+        add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -94,13 +110,13 @@ static void assemble_b(thumb_t **paddr) {
     }
     case 'L': {
         instruction.mnemonic = TM_BLX;
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
     case 'x': {
         instruction.mnemonic = TM_BX;
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -130,15 +146,15 @@ static void assemble_m(thumb_t **paddr) {
             instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
         }
 
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
+        add_reg_rd();
         thumb_add_operand_immediate(&instruction, gethexword(0));
         assemble_and_show_result(paddr, &instruction);
         break;
     }
     case 'r': { // MOV{S} (Register)
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        add_reg_rd();
+        add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -198,17 +214,17 @@ static void assemble_s(thumb_t **paddr) {
             instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
         }
 
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+        add_reg_rd();
+        add_reg_rn();
         thumb_add_operand_immediate(&instruction, gethexword(0));
         assemble_and_show_result(paddr, &instruction);
         break;
     }
     case 'r': { // SUB{S} (Register)
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
-        thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+        add_reg_rd();
+        add_reg_rn();
+        add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
     }
@@ -266,7 +282,7 @@ void monitor_assemble(thumb_t *addr) {
         }
         case 'c': { // CMP
             instruction.mnemonic = TM_CMP;
-            thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+            add_reg_rn();
 
             static const struct menu_option cmp_opts[] = {
                 {'i', "Immediate"},
@@ -278,7 +294,7 @@ void monitor_assemble(thumb_t *addr) {
                 thumb_add_operand_immediate(&instruction, gethexword(0));
                 break;
             case 'r':
-                thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+                add_reg_rm();
                 break;
             default:
                 menu_print_missing_action_message();
@@ -293,7 +309,7 @@ void monitor_assemble(thumb_t *addr) {
             // Default to regular offset
             thumb_set_operand_addressing_mode(&instruction, AM_OFFSET);
 
-            thumb_add_operand_reg(&instruction, menu_preset_register("Rt? "));
+            add_reg_rt();
 
             static const struct menu_option ldr1_opts[] = {
                 {'i', "PC Relative Immediate"},
@@ -314,7 +330,7 @@ void monitor_assemble(thumb_t *addr) {
                                             menu_preset_relative_label("Label? ", addr, true));
                 break;
             case 'r': {
-                thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
+                add_reg_rn();
 
                 static const struct menu_option ldr2_opts[] = {
                     {'0', "Zero Offset"     },
@@ -358,7 +374,7 @@ void monitor_assemble(thumb_t *addr) {
                     break;
                 }
                 case 'r': {
-                    thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
+                    add_reg_rm();
 
                     static const struct menu_option ldr4_opts[] = {
                         {' ', "No Shift"},
