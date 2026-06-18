@@ -364,20 +364,21 @@ static void assemble_ldr(thumb_t **paddr) {
 
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
-        {'a',       "A.."           },
-        {'b',       "B..."          },
-        {'c',       "CMP"           },
-        {'l',       "LDR"           },
-        {'m',       "M..."          },
-        {'n',       "NOP"           },
-        {'p',       "P..."          },
-        {'s',       "S..."          },
-        {'u',       "UDF"           },
-        {'x',       "BKPT"          },
-        {'.',       "Specify Width" },
-        {CTRL('c'), "Call Assembly" },
-        {CTRL('p'), "Print Assembly"},
-        {CTRL('q'), "Quit"          },
+        {'a',       "A.."               },
+        {'b',       "B..."              },
+        {'c',       "CMP"               },
+        {'l',       "LDR"               },
+        {'m',       "M..."              },
+        {'n',       "NOP"               },
+        {'p',       "P..."              },
+        {'s',       "S..."              },
+        {'u',       "UDF"               },
+        {'x',       "BKPT"              },
+        {'.',       "Specify Width"     },
+        {CTRL('c'), "Call Assembly"     },
+        {CTRL('p'), "Print Assembly"    },
+        {CTRL('r'), "Rewind Instruction"},
+        {CTRL('q'), "Quit"              },
     };
     bool quit = false;
     thumb_t *starting_addr = addr;
@@ -464,6 +465,23 @@ void monitor_assemble(thumb_t *addr) {
                 struct thumb_instruction_spec ins_spec = thumb_disassemble(p);
                 thumb_print_instruction(&ins_spec, p);
                 putnewline();
+            }
+            break;
+        case CTRL('r'): // "Rewind Instruction"
+            if (addr > starting_addr) {
+                thumb_t *last = starting_addr;
+
+                // Find pointer of last instruction and then set the current address to it
+                while (1) {
+                    thumb_t *next = thumb_ins_ptr_increment(last);
+                    if (next == addr) {
+                        break;
+                    } else {
+                        last = next;
+                    }
+                }
+
+                addr = last;
             }
             break;
         case CTRL('q'): // Quit
