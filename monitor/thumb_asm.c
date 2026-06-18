@@ -459,9 +459,11 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
             thumb_print_register_list(instruction->operands[i].reglist);
             break;
         case OT_IMMEDIATE:
+            putstring("0x");
             putstring(utoa_pad(instruction->operands[i].imm, 16));
             break;
         case OT_SIGNED_IMMEDIATE:
+            putstring("0x");
             putstring(itoa_pad(instruction->operands[i].simm, 16));
             break;
         case OT_LSL_SHIFT:
