@@ -10,6 +10,7 @@
 #include <stddef.h>
 
 static enum thumb_width_specifier width_specifier;
+static struct thumb_instruction_spec instruction = {};
 
 static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruction_spec *instruction) {
     enum thumb_assemble_result result = thumb_assemble(*paddr, instruction);
@@ -38,8 +39,6 @@ static void assemble_a(thumb_t **paddr) {
     switch (opt) {
     case 'i': // ADD{S} (Immediate)
     case 'w': { // ADDW
-        struct thumb_instruction_spec instruction = {};
-
         if (opt == 'w') {
             instruction.mnemonic = TM_ADDW;
         } else { // 'i'
@@ -54,7 +53,6 @@ static void assemble_a(thumb_t **paddr) {
         break;
     }
     case 'r': { // ADD{S} (Register)
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
@@ -83,7 +81,6 @@ static void assemble_b(thumb_t **paddr) {
     char opt = menu("ASM B> ", ARR_LEN(b_options), b_options, NULL);
     switch (opt) {
     case 'b': {
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_B;
         thumb_set_condition(&instruction, menu_preset_instruction_set_condition_menu());
         instruction.width = width_specifier;
@@ -93,7 +90,6 @@ static void assemble_b(thumb_t **paddr) {
         break;
     }
     case 'l': {
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_BL;
         instruction.width = width_specifier;
         thumb_add_operand_signed_immediate(&instruction,
@@ -102,7 +98,6 @@ static void assemble_b(thumb_t **paddr) {
         break;
     }
     case 'L': {
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_BLX;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
@@ -110,7 +105,6 @@ static void assemble_b(thumb_t **paddr) {
         break;
     }
     case 'x': {
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_BX;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rm? "));
@@ -137,8 +131,6 @@ static void assemble_m(thumb_t **paddr) {
     switch (opt) {
     case 'i': // MOV{S} (Immediate)
     case 'w': { // MOVW
-        struct thumb_instruction_spec instruction = {};
-
         if (opt == 'w') {
             instruction.mnemonic = TM_MOVW;
         } else { // 'i'
@@ -152,7 +144,6 @@ static void assemble_m(thumb_t **paddr) {
         break;
     }
     case 'r': { // MOV{S} (Register)
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
@@ -178,7 +169,6 @@ static void assemble_p(thumb_t **paddr) {
     char opt = menu("ASM P> ", ARR_LEN(p_options), p_options, NULL);
     switch (opt) {
     case 'u': { // PUSH
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_PUSH;
         instruction.width = width_specifier;
         thumb_add_operand_reglist(&instruction, menu_preset_register_list("To push? "));
@@ -186,7 +176,6 @@ static void assemble_p(thumb_t **paddr) {
         break;
     }
     case 'o': { // POP
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_POP;
         instruction.width = width_specifier;
         thumb_add_operand_reglist(&instruction, menu_preset_register_list("To pop? "));
@@ -214,8 +203,6 @@ static void assemble_s(thumb_t **paddr) {
     switch (opt) {
     case 'i': // SUB{S} (Immediate)
     case 'w': { // SUBW
-        struct thumb_instruction_spec instruction = {};
-
         if (opt == 'w') {
             instruction.mnemonic = TM_SUBW;
         } else { // 'i'
@@ -230,7 +217,6 @@ static void assemble_s(thumb_t **paddr) {
         break;
     }
     case 'r': { // SUB{S} (Register)
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
         instruction.width = width_specifier;
         thumb_add_operand_reg(&instruction, menu_preset_register("Rd? "));
@@ -242,7 +228,6 @@ static void assemble_s(thumb_t **paddr) {
     case 'v': { // SVC
         // TODO: Should have a way of getting a byte or arbitrary width number
         uint32_t immediate = gethexword(0);
-        struct thumb_instruction_spec instruction = {};
         instruction.mnemonic = TM_SVC;
         instruction.width = width_specifier;
         thumb_add_operand_immediate(&instruction, immediate);
@@ -278,6 +263,9 @@ void monitor_assemble(thumb_t *addr) {
     width_specifier = TWS_AUTO;
 
     while (!quit) {
+        instruction = (struct thumb_instruction_spec){};
+        instruction.width = width_specifier;
+
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
         case 'a': { // A...
@@ -289,7 +277,6 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case 'c': { // CMP
-            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_CMP;
             instruction.width = width_specifier;
             thumb_add_operand_reg(&instruction, menu_preset_register("Rn? "));
@@ -315,7 +302,6 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case 'l': { // LDR
-            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_LDR;
             // Default to regular offset
             thumb_set_operand_addressing_mode(&instruction, AM_OFFSET);
@@ -421,7 +407,6 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case 'n': { // NOP
-            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_NOP;
             instruction.width = width_specifier;
             assemble_and_show_result(&addr, &instruction);
@@ -438,7 +423,6 @@ void monitor_assemble(thumb_t *addr) {
         case 'u': { // UDF
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
-            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_UDF;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
@@ -448,7 +432,6 @@ void monitor_assemble(thumb_t *addr) {
         case 'x': { // BKPT
             // TODO: Should have a way of getting a byte or arbitrary width number
             uint32_t immediate = gethexword(0);
-            struct thumb_instruction_spec instruction = {};
             instruction.mnemonic = TM_BKPT;
             instruction.width = width_specifier;
             thumb_add_operand_immediate(&instruction, immediate);
