@@ -154,31 +154,27 @@ static void assemble_b(thumb_t **paddr) {
 
     char opt = menu("ASM B> ", ARR_LEN(b_options), b_options, NULL);
     switch (opt) {
-    case 'b': {
+    case 'b':
         instruction.mnemonic = TM_B;
         thumb_set_condition(&instruction, menu_preset_instruction_set_condition_menu());
         add_label("Branch to? ", *paddr, true);
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'l': {
+    case 'l':
         instruction.mnemonic = TM_BL;
         add_label("Branch to? ", *paddr, true);
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'L': {
+    case 'L':
         instruction.mnemonic = TM_BLX;
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'x': {
+    case 'x':
         instruction.mnemonic = TM_BX;
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'q':
         break;
     default:
@@ -236,18 +232,16 @@ static void assemble_p(thumb_t **paddr) {
 
     char opt = menu("ASM P> ", ARR_LEN(p_options), p_options, NULL);
     switch (opt) {
-    case 'u': { // PUSH
+    case 'u': // PUSH
         instruction.mnemonic = TM_PUSH;
         thumb_add_operand_reglist(&instruction, menu_preset_register_list("To push? "));
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'o': { // POP
+    case 'o': // POP
         instruction.mnemonic = TM_POP;
         thumb_add_operand_reglist(&instruction, menu_preset_register_list("To pop? "));
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'q':
         break;
     default:
@@ -291,13 +285,12 @@ static void assemble_s(thumb_t **paddr) {
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    case 'v': { // SVC
+    case 'v': // SVC
         // TODO: Should have a way of getting a byte or arbitrary width number
         instruction.mnemonic = TM_SVC;
         add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'q':
         break;
     default:
@@ -331,7 +324,7 @@ static void assemble_ldr(thumb_t **paddr) {
         thumb_add_operand_reg(&instruction, 15); // PC
         add_label("Label? ", *paddr, true);
         break;
-    case 'r': { // Register Base
+    case 'r': // Register Base
         add_reg_rn();
 
         static const struct menu_option ldr2_opts[] = {
@@ -360,7 +353,6 @@ static void assemble_ldr(thumb_t **paddr) {
         }
 
         break;
-    }
     default:
         menu_print_missing_action_message();
         break;
@@ -397,14 +389,12 @@ void monitor_assemble(thumb_t *addr) {
         // Display menu to user
         char opt = menu("ASM> ", ARR_LEN(assemble_options), assemble_options, NULL);
         switch (opt) {
-        case 'a': { // A...
+        case 'a': // A...
             assemble_a(&addr);
             break;
-        }
-        case 'b': { // B...
+        case 'b': // B...
             assemble_b(&addr);
             break;
-        }
         case 'c': { // CMP
             instruction.mnemonic = TM_CMP;
             add_reg_rn();
@@ -429,48 +419,39 @@ void monitor_assemble(thumb_t *addr) {
             assemble_and_show_result(&addr, &instruction);
             break;
         }
-        case 'l': { // LDR
+        case 'l': // LDR
             assemble_ldr(&addr);
             break;
-        }
-        case 'm': { // M...
+        case 'm': // M...
             assemble_m(&addr);
             break;
-        }
-        case 'n': { // NOP
+        case 'n': // NOP
             instruction.mnemonic = TM_NOP;
             assemble_and_show_result(&addr, &instruction);
             break;
-        }
-        case 'p': { // P...
+        case 'p': // P...
             assemble_p(&addr);
             break;
-        }
-        case 's': { // S...
+        case 's': // S...
             assemble_s(&addr);
             break;
-        }
-        case 'u': { // UDF
+        case 'u': // UDF
             // TODO: Should have a way of getting a byte or arbitrary width number
             instruction.mnemonic = TM_UDF;
             add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
-        }
-        case 'x': { // BKPT
+        case 'x': // BKPT
             // TODO: Should have a way of getting a byte or arbitrary width number
             instruction.mnemonic = TM_BKPT;
             add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
-        }
-        case '.': {
+        case '.':
             width_specifier = menu_preset_instruction_width_menu(width_specifier);
             break;
-        }
-        case CTRL('p'): {
-            for (thumb_t *p = starting_addr; p < addr;
-                 p = thumb_ins_ptr_increment(p)) {
+        case CTRL('p'):
+            for (thumb_t *p = starting_addr; p < addr; p = thumb_ins_ptr_increment(p)) {
                 puthexword((uint32_t)p);
                 putchar(' ');
                 struct thumb_instruction_spec ins_spec = thumb_disassemble(p);
@@ -478,7 +459,6 @@ void monitor_assemble(thumb_t *addr) {
                 putnewline();
             }
             break;
-        }
         case CTRL('q'):
             quit = true;
             break;
