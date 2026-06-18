@@ -131,6 +131,33 @@ void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction, unsi
     };
 }
 
+struct thumb_referenced_address_result
+thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction) {
+    intptr_t address = 0;
+    bool found = false;
+
+    switch (instruction->mnemonic) {
+    case TM_B:
+        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
+            found = true;
+            address = (int)address_of_instruction + instruction->operands[0].simm;
+        }
+        break;
+    case TM_BL:
+        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
+            found = true;
+            address = (int)address_of_instruction + instruction->operands[0].simm;
+        }
+        break;
+        // TODO: Add LDR
+    default:
+        break;
+    }
+
+    return (struct thumb_referenced_address_result){found, (void*)address};
+}
+
 struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
     struct thumb_instruction_spec instruction = {};
 
@@ -493,33 +520,6 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
             putchar('>');
         }
     }
-}
-
-struct thumb_referenced_address_result
-thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
-                             void *address_of_instruction) {
-    intptr_t address = 0;
-    bool found = false;
-
-    switch (instruction->mnemonic) {
-    case TM_B:
-        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
-            found = true;
-            address = (int)address_of_instruction + instruction->operands[0].simm;
-        }
-        break;
-    case TM_BL:
-        if (instruction->operand_count == 1 && instruction->operands[0].type == OT_SIGNED_IMMEDIATE) {
-            found = true;
-            address = (int)address_of_instruction + instruction->operands[0].simm;
-        }
-        break;
-        // TODO: Add LDR
-    default:
-        break;
-    }
-
-    return (struct thumb_referenced_address_result){found, (void*)address};
 }
 
 static enum thumb_assemble_result

@@ -166,10 +166,8 @@ void thumb_set_condition(struct thumb_instruction_spec *instruction, enum thumb_
 // TODO: Drop the "operand" from the name for addressing mode
 void thumb_set_operand_addressing_mode(struct thumb_instruction_spec *instruction,
                                        enum thumb_operand_addressing_mode addressing_mode);
-void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction, unsigned shift);
-struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr);
-void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
-                             void *address_of_instruction);
+void thumb_add_operand_lslshift(struct thumb_instruction_spec *instruction,
+                                unsigned shift);
 
 struct thumb_referenced_address_result {
     bool found;
@@ -179,6 +177,12 @@ struct thumb_referenced_address_result
 thumb_get_referenced_address(const struct thumb_instruction_spec *instruction,
                              void *address_of_instruction);
 
+// Disassemble interface
+struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr);
+void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
+                             void *address_of_instruction);
+
+// Assemble interface
 enum thumb_assemble_result {
     AR_FAIL_BAD_MNEMONIC,
     AR_FAIL_INVALID_WIDTH,
