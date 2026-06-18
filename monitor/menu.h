@@ -41,5 +41,9 @@ enum menu_warning_fix_result menu_preset_warning_fix(const char *prompt);
 unsigned menu_preset_register(const char *prompt);
 intptr_t menu_preset_relative_label(const char *prompt, void *relative_from, bool is_code);
 uint16_t menu_preset_register_list(const char *prompt);
+enum thumb_width_specifier menu_preset_instruction_width_menu(enum thumb_width_specifier current);
+enum thumb_condition menu_preset_instruction_set_condition_menu(void);
+
+void menu_print_missing_action_message(void);
 
 #endif

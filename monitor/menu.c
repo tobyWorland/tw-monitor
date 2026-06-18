@@ -416,3 +416,64 @@ uint16_t menu_preset_register_list(const char *prompt) {
 
     return reg_list;
 }
+
+enum thumb_width_specifier menu_preset_instruction_width_menu(enum thumb_width_specifier current) {
+    // NOTE: Make sure these line up with the order in the enum as I use it to print them
+    static const struct menu_option width_menu[] = {
+        {'a', "AUTO"  },
+        {'n', "NARROW"},
+        {'w', "WIDE"  },
+    };
+
+    putstring("Current: ");
+    putstring(width_menu[current].name);
+    putnewline();
+
+    char opt = menu("New width? ", ARR_LEN(width_menu), width_menu, NULL);
+    // TODO: feels like there would be a way to reuse the struct instead of a switch
+    switch (opt) {
+    case 'n': return TWS_NARROW;
+    case 'w': return TWS_WIDE;
+    default: return TWS_AUTO;
+    }
+}
+
+enum thumb_condition menu_preset_instruction_set_condition_menu(void) {
+    static const struct menu_option set_condition_options[] = {
+        {' ', "No condition"},
+
+        // TODO: Should reuse the strings "condition_strs" from thumb_asm
+        {'e', "EQ"          },
+        {'n', "NE"          },
+        {'c', "CS"          },
+        {'C', "CC"          },
+        {'m', "MI"          },
+        {'p', "PL"          },
+        {'v', "VS"          },
+        {'V', "VC"          },
+        {'h', "HI"          },
+        {'l', "LS"          },
+        {'g', "GE"          },
+        {'L', "LT"          },
+        {'G', "GT"          },
+        {'E', "LE"          },
+        {'a', "AL"          },
+    };
+
+    char opt = menu("Condition? ",
+                    ARR_LEN(set_condition_options),
+                    set_condition_options,
+                    NULL);
+    enum thumb_condition condition_result = TC_NONE;
+
+    for (unsigned i = 0; i < ARR_LEN(set_condition_options); i++) {
+        if (set_condition_options[i].key == opt) {
+            return i;
+        }
+    }
+    return condition_result;
+}
+
+void menu_print_missing_action_message(void) {
+    putstring("Error: Missing action\r\n");
+}
