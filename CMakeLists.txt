@@ -5,6 +5,11 @@ enable_language(C ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+message(WARNING "Build type not given, defaulting to DEBUG")
+set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 add_subdirectory(monitor)
 if(NOT CMAKE_CROSSCOMPILING)
 add_subdirectory(demos)
