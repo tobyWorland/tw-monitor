@@ -103,20 +103,23 @@ static void assemble_and_show_result(thumb_t **paddr, const struct thumb_instruc
 
 static void assemble_a(thumb_t **paddr) {
     static const struct menu_option a_options[] = {
-        {'i', "ADD{S} Immediate"},
-        {'w', "ADD Immediate Wide (ADDW)"},
-        {'r', "ADD{S} Register"},
+        {'i', "ADD  Immediate"},
+        {'I', "ADDS Immediate"},
+        {'w', "ADD  Immediate Wide (ADDW)"},
+        {'r', "ADD  Register"},
+        {'R', "ADDS Register"},
         {'q', "Quit Menu"},
     };
 
     char opt = menu("ASM A> ", ARR_LEN(a_options), a_options, NULL);
     switch (opt) {
-    case 'i': // ADD{S} (Immediate)
-    case 'w': { // ADDW
+    case 'i': // ADD  (Immediate)
+    case 'I': // ADDS (Immediate)
+    case 'w': // ADDW
         if (opt == 'w') {
             instruction.mnemonic = TM_ADDW;
-        } else { // 'i'
-            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
+        } else { // 'i' or 'I'
+            instruction.mnemonic = opt == 'I' ? TM_ADDS : TM_ADD;
         }
 
         add_reg_rd();
@@ -124,15 +127,14 @@ static void assemble_a(thumb_t **paddr) {
         add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'r': { // ADD{S} (Register)
-        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_ADDS : TM_ADD;
+    case 'r': // ADD  (Register)
+    case 'R': // ADDS (Register)
+        instruction.mnemonic = opt == 'R' ? TM_ADDS : TM_ADD;
         add_reg_rd();
         add_reg_rn();
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'q':
         break;
     default:
@@ -187,34 +189,36 @@ static void assemble_b(thumb_t **paddr) {
 
 static void assemble_m(thumb_t **paddr) {
     static const struct menu_option m_options[] = {
-        {'i', "MOV{S} Immediate"},
-        {'w', "MOV Immediate Wide (MOVW)"},
-        {'r', "MOV{S} Register"},
+        {'i', "MOV  Immediate"},
+        {'I', "MOVS Immediate"},
+        {'w', "MOV  Immediate Wide (MOVW)"},
+        {'r', "MOV  Register"},
+        {'R', "MOVS Register"},
         {'q', "Quit Menu"},
     };
 
     char opt = menu("ASM M> ", ARR_LEN(m_options), m_options, NULL);
     switch (opt) {
-    case 'i': // MOV{S} (Immediate)
-    case 'w': { // MOVW
+    case 'i': // MOV  (Immediate)
+    case 'I': // MOVS (Immediate)
+    case 'w': // MOVW
         if (opt == 'w') {
             instruction.mnemonic = TM_MOVW;
-        } else { // 'i'
-            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
+        } else { // 'i' or 'I'
+            instruction.mnemonic = opt == 'I' ? TM_MOVS : TM_MOV;
         }
 
         add_reg_rd();
         add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'r': { // MOV{S} (Register)
-        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_MOVS : TM_MOV;
+    case 'r': // MOV  (Register)
+    case 'R': // MOVS (Register)
+        instruction.mnemonic = opt == 'R' ? TM_MOVS : TM_MOV;
         add_reg_rd();
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'q':
         break;
     default:
@@ -254,21 +258,24 @@ static void assemble_p(thumb_t **paddr) {
 
 static void assemble_s(thumb_t **paddr) {
     static const struct menu_option s_options[] = {
-        {'i', "SUB{S} Immediate"         },
-        {'w', "SUB Immediate Wide (SUBW)"},
-        {'r', "SUB{S} Register"          },
+        {'i', "SUB  Immediate"         },
+        {'I', "SUBS Immediate"         },
+        {'w', "SUB  Immediate Wide (SUBW)"},
+        {'r', "SUB  Register"          },
+        {'R', "SUBS Register"          },
         {'v', "SVC"},
         {'q', "Quit Menu"},
     };
 
     char opt = menu("ASM S> ", ARR_LEN(s_options), s_options, NULL);
     switch (opt) {
-    case 'i': // SUB{S} (Immediate)
-    case 'w': { // SUBW
+    case 'i': // SUB  (Immediate)
+    case 'I': // SUBS (Immediate)
+    case 'w': // SUBW
         if (opt == 'w') {
             instruction.mnemonic = TM_SUBW;
-        } else { // 'i'
-            instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
+        } else { // 'i' or 'I'
+            instruction.mnemonic = opt == 'I' ? TM_SUBS : TM_SUB;
         }
 
         add_reg_rd();
@@ -276,15 +283,14 @@ static void assemble_s(thumb_t **paddr) {
         add_immediate();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
-    case 'r': { // SUB{S} (Register)
-        instruction.mnemonic = menu_preset_instruction_set_flags_menu() ? TM_SUBS : TM_SUB;
+    case 'r': // SUB  (Register)
+    case 'R': // SUBS (Register)
+        instruction.mnemonic = opt == 'R' ? TM_SUBS : TM_SUB;
         add_reg_rd();
         add_reg_rn();
         add_reg_rm();
         assemble_and_show_result(paddr, &instruction);
         break;
-    }
     case 'v': { // SVC
         // TODO: Should have a way of getting a byte or arbitrary width number
         instruction.mnemonic = TM_SVC;

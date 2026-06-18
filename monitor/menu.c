@@ -438,16 +438,6 @@ enum thumb_width_specifier menu_preset_instruction_width_menu(enum thumb_width_s
     }
 }
 
-bool menu_preset_instruction_set_flags_menu(void) {
-    static const struct menu_option set_flags_options[] = {
-        {'s', "Set Flags"      },
-        {' ', "Don't Set Flags"},
-    };
-
-    return menu("Set Flags? ", ARR_LEN(set_flags_options), set_flags_options,
-                NULL) == 's';
-}
-
 enum thumb_condition menu_preset_instruction_set_condition_menu(void) {
     static const struct menu_option set_condition_options[] = {
         {' ', "No condition"},
