@@ -44,7 +44,7 @@ pipeline {
                 }
                 stage('Build for Flash') {
                     steps {
-                        sh 'cmake -DSRAM_ONLY=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_flash && cmake --build builds/target_flash'
+                        sh 'cmake -DSRAM_ONLY=OFF -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_flash && cmake --build builds/target_flash'
                         sh './scripts/size.sh flash > size_flash.txt'
                         sh '. /matplot-venv/bin/activate && ./scripts/gen_size_piechart.py -s flash'
                     }
@@ -56,7 +56,7 @@ pipeline {
                 }
                 stage('Build for SRAM') {
                     steps {
-                        sh 'cmake -DSRAM_ONLY=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_sram && cmake --build builds/target_sram'
+                        sh 'cmake -DSRAM_ONLY=ON -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_TOOLCHAIN_FILE=cmake_toolchains/arm_cortex_m4.cmake -B builds/target_sram && cmake --build builds/target_sram'
                         sh './scripts/size.sh sram > size_sram.txt'
                         sh '. /matplot-venv/bin/activate && ./scripts/gen_size_piechart.py -s sram'
                     }
