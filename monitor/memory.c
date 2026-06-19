@@ -215,4 +215,24 @@ void memory_print_entries(void) {
     }
 }
 
+struct memory_entry *memory_get_user_section(void) {
+    // User section is the first one created, so just return this pointer
+    return get_first_memory_entry();
+}
+
+void memory_update_section_size(struct memory_entry *section_entry, unsigned new_size) {
+    assert(memory_entry_is_section(section_entry));
+    section_entry->section.size = new_size;
+}
+
+void *memory_get_section_address(struct memory_entry *section_entry) {
+    assert(memory_entry_is_section(section_entry));
+    return section_entry->addr;
+}
+
+unsigned memory_get_section_size(struct memory_entry *section_entry) {
+    assert(memory_entry_is_section(section_entry));
+    return section_entry->section.size;
+}
+
 #endif

@@ -23,4 +23,9 @@ void *memory_addr_from_entry(struct memory_entry *memory_entry);
 
 void memory_print_entries(void);
 
+struct memory_entry *memory_get_user_section(void);
+void memory_update_section_size(struct memory_entry *section_entry, unsigned new_size);
+void *memory_get_section_address(struct memory_entry *section_entry);
+unsigned memory_get_section_size(struct memory_entry *section_entry);
+
 #endif
