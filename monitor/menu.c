@@ -144,7 +144,7 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
 
     int number = init_number;
     int base = 10;
-    bool sign = false;
+    bool sign = number < 0;
 
     static const struct menu_option number_options[] = {
         {CTRL('b'), "Toggle Base 16 <==> 10"},
@@ -169,12 +169,12 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
         uint8_t digit = char_to_digit(c);
         if (digit < base) {
             if (sign) {
-                if ((INT_MIN + digit) / base < number) {
+                if ((INT_MIN + digit) / base <= number) {
                     number *= base;
                     number -= digit;
                 }
             } else {
-                if ((INT_MAX - digit) / base > number) {
+                if ((INT_MAX - digit) / base >= number) {
                     number *= base;
                     number += digit;
                 }
