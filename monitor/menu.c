@@ -329,6 +329,7 @@ intptr_t menu_preset_relative_label(const char *prompt, void *relative_from, boo
         {'l', "Label"},
     };
 
+    // TODO: Use menu_number
     char opt = menu(prompt, ARR_LEN(label_options), label_options, NULL);
     switch (opt) {
     case '+': {
@@ -473,6 +474,142 @@ enum thumb_condition menu_preset_instruction_set_condition_menu(void) {
     }
     return condition_result;
 }
+
+#ifndef HOST
+// TODO: Should share more code
+struct absolute_address_result
+menu_preset_absolute_address(const char *prompt, void *initial_address,
+                             bool label_drop_interwork_bit,
+                             bool accept_sections) {
+    static const struct menu_option abs_address_options[] = {
+        // Section options
+        // Only show these options if accept_sections is true
+        {'u', "User Section"},
+        // TODO: Take section by name (Use 's'?)
+
+        // Main options
+        {'l',       "Label"            },
+        {CTRL('i'), "Initial Address"  },
+        {CTRL('z'), "Zero Address"     },
+        {'\r',      "Submit"           },
+        {'\b',      "Remove Last Digit"},
+    };
+
+    uintptr_t address = (uintptr_t)initial_address;
+
+    while (1) {
+        terminal_clearline();
+        putstring(prompt);
+        putstring(utoa_pad_w(address, 16, 8, true));
+
+        char c = getchar();
+
+        // Handle digits
+        uint8_t digit = char_to_digit(c);
+        if (digit < 16) {
+            if (((UINTPTR_MAX - digit) >> 4) >= address) {
+                address <<= 4;
+                address += digit;
+            }
+            continue;
+        }
+
+        // Drop section options with an offset if accept_sections is false
+        const unsigned options_offset = 1 * !accept_sections;
+
+        // Help
+        if (c == '?') {
+            print_menu_help(ARR_LEN(abs_address_options) - options_offset,
+                            abs_address_options + options_offset,
+                            true);
+            putstring(prompt);
+            continue;
+        }
+
+        // Check options
+        const struct menu_option *num_opt = find_menu_option(c,
+                                                             ARR_LEN(abs_address_options) - options_offset,
+                                                             abs_address_options + options_offset);
+        if (num_opt != NULL) {
+            switch (c) {
+                // Section options
+            case 'u': { // User Section
+                struct memory_entry *user = memory_get_user_section();
+                address = (uintptr_t)memory_get_section_address(user);
+
+                terminal_clearline();
+                putstring(prompt);
+                putstring(utoa_pad_w(address, 16, 8, true));
+                putstring(" USER\r\n");
+
+                return (struct absolute_address_result){
+                    .address = NULL, // Don't give the address just the section
+                    .section = memory_get_user_section(),
+                };
+            }
+
+                // Main options
+            case 'l': { // Label
+                io_printf(" %s? ", num_opt->name);
+                const char *name = io_getline();
+                unsigned name_len = strlen(name);
+
+                num_opt = NULL; // Suppress printing the option name and pretend label was never picked
+
+                if (!name_len) {
+                    // No name given, so exit back to menu and let another option be picked
+                    putstring("None\r\n");
+                    break;
+                }
+
+                struct memory_entry *label = memory_lookup_label(name, name_len);
+
+                if (label) {
+                    void *label_addr = memory_addr_from_entry(label);
+                    if (label_drop_interwork_bit) {
+                        label_addr = arm_address_set_thumb_intwrk_bit(label_addr, false);
+                    }
+
+                    putnewline();
+                    return (struct absolute_address_result) {
+                        .address = label_addr,
+                        .section = accept_sections ? memory_lookup_section((void*)address) : NULL,
+                    };
+                } else {
+                    putstring("Error: Label does not exist.\r\n");
+                }
+                break;
+            }
+            case CTRL('i'): // Initial Address
+                address = (uintptr_t)initial_address;
+                continue;
+            case CTRL('z'): // Zero Address
+                address = 0;
+                continue;
+            case '\r': // Submit
+                putnewline();
+                return (struct absolute_address_result) {
+                    .address = (void *)address,
+                    .section = accept_sections ? memory_lookup_section((void*)address) : NULL,
+                };
+            case '\b': // Remove Last Digit
+                address >>= 4;
+                continue;
+            default:
+                menu_print_missing_action_message();
+                break;
+            }
+
+            if (num_opt) {
+                putchar(' ');
+                putstring(num_opt->name);
+                putnewline();
+            }
+            continue;
+        }
+    }
+}
+#endif
 
 void menu_print_missing_action_message(void) {
     putstring("Error: Missing action\r\n");

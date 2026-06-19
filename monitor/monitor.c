@@ -104,41 +104,15 @@ void monitor_main(bool surpress_init) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
         case 'a': {
-            struct menu_option opts[] = {
-                {'a', "Memory Address"},
-                {'l', "Label"         },
-                {'u', "User Section"  },
-                {'q', "Quit"          },
-            };
+          struct absolute_address_result absolute_address =
+              menu_preset_absolute_address("? ", (void *)addr, true, true);
 
-            char opt = menu("Memory? ", ARR_LEN(opts), opts, NULL);
+          if (absolute_address.address) {
+              addr = (uint32_t)absolute_address.address;
+          }
 
-            // TODO: Should have a "menu_preset_absolute_address"
-
-            switch (opt) {
-            case 'a': // Memory Address
-                addr = gethexword(addr);
-                monitor_assemble((void*)addr, NULL);
-                break;
-            case 'l': { // Label
-                void *label = (void*)menu_preset_relative_label("Label? ", NULL, true);
-                struct memory_entry *section = memory_lookup_section(label);
-
-                addr = (uint32_t) label;
-
-                monitor_assemble(label, section);
-                break;
-            }
-            case 'u': // User Section
-                monitor_assemble(NULL, memory_get_user_section());
-                break;
-            case 'q': // Quit
-                break;
-            default:
-                menu_print_missing_action_message();
-                break;
-            }
-            break;
+          monitor_assemble(absolute_address.address, absolute_address.section);
+          break;
         }
         case 'c':
             addr = gethexword(addr);

@@ -44,6 +44,15 @@ uint16_t menu_preset_register_list(const char *prompt);
 enum thumb_width_specifier menu_preset_instruction_width_menu(enum thumb_width_specifier current);
 enum thumb_condition menu_preset_instruction_set_condition_menu(void);
 
+struct absolute_address_result {
+    void *address;
+    struct memory_entry *section;
+};
+struct absolute_address_result
+menu_preset_absolute_address(const char *prompt, void *default_address,
+                             bool label_drop_interwork_bit,
+                             bool accept_sections);
+
 void menu_print_missing_action_message(void);
 
 #endif
