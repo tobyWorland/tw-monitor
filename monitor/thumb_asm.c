@@ -385,7 +385,7 @@ struct thumb_instruction_spec thumb_disassemble(const thumb_t *insptr) {
             const struct push_t1_parts parts = decode_push_t1(ins);
 
             instruction.mnemonic = TM_PUSH;
-            thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 15));
+            thumb_add_operand_reglist(&instruction, parts.regs | (parts.lr << 14));
         } else if (match_cmp_i_t1(ins)) {
             const struct cmp_i_t1_parts parts = decode_cmp_i_t1(ins);
 
