@@ -83,6 +83,7 @@ _syscall:
         ldr     r0,     [sp, EXCEPTION_FRAME_OFF_PC]
         ldrh    r0,     [r0, -2] // Go back 2 (size of SVC instruction) as the program counter has already moved on
         ands    r0,     0xFF // Pull the immediate from the SVC (least significant 8bits)
+        mov     r1,     sp // Pass exception frame pointer to handler
         b       syscall_handler
 
         .type   fault_exit_unwind_exceptions, %function
