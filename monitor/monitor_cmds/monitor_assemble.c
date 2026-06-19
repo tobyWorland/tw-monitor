@@ -5,8 +5,10 @@
 #include "../assert.h"
 #include "../char.h"
 #include "../io.h"
+#include "../memory.h"
 #include "../menu.h"
 #include "../util.h"
+#include "../string.h"
 #include "../thumb_asm.h"
 
 #include <stddef.h>
@@ -362,6 +364,37 @@ static void assemble_ldr(thumb_t **paddr) {
     assemble_and_show_result(paddr, &instruction);
 }
 
+void define_new_label(thumb_t **paddr) {
+    static const struct menu_option define_label_options[] = {
+        {'c', "New Code Label"},
+        {'d', "New Data Label"},
+        {'q', "Quit"          },
+    };
+    const char *name = NULL;
+    bool created = false;
+
+    while (!created) {
+        char opt = menu("Label? ",
+                        ARR_LEN(define_label_options),
+                        define_label_options,
+                        NULL);
+        switch (opt) {
+        case 'c':
+        case 'd': {
+            putstring("New name? ");
+            name = io_getline();
+            created = memory_create_label(name, strlen(name), *paddr, opt == 'c');
+            if (!created) {
+                putstring("Error: Failed to define new label.\r\n");
+            }
+            break;
+        }
+        case 'q':
+            return;
+        }
+    }
+}
+
 void monitor_assemble(thumb_t *addr) {
     static const struct menu_option assemble_options[] = {
         {'a',       "A.."               },
@@ -374,6 +407,7 @@ void monitor_assemble(thumb_t *addr) {
         {'s',       "S..."              },
         {'u',       "UDF"               },
         {'x',       "BKPT"              },
+        {':',       "Define Label"      },
         {'.',       "Specify Width"     },
         {CTRL('c'), "Call Assembly"     },
         {CTRL('p'), "Print Assembly"    },
@@ -450,6 +484,10 @@ void monitor_assemble(thumb_t *addr) {
             add_immediate();
             assemble_and_show_result(&addr, &instruction);
             break;
+        case ':': { // Define Label
+            define_new_label(&addr);
+            break;
+        }
         case '.': // Specify Width
             width_specifier = menu_preset_instruction_width_menu(width_specifier);
             break;
