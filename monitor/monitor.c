@@ -103,10 +103,43 @@ void monitor_main(bool surpress_init) {
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
-        case 'a':
-            addr = gethexword(addr);
-            monitor_assemble((void*)addr);
+        case 'a': {
+            struct menu_option opts[] = {
+                {'a', "Memory Address"},
+                {'l', "Label"         },
+                {'u', "User Section"  },
+                {'q', "Quit"          },
+            };
+
+            char opt = menu("Memory? ", ARR_LEN(opts), opts, NULL);
+
+            // TODO: Should have a "menu_preset_absolute_address"
+
+            switch (opt) {
+            case 'a': // Memory Address
+                addr = gethexword(addr);
+                monitor_assemble((void*)addr, NULL);
+                break;
+            case 'l': { // Label
+                void *label = (void*)menu_preset_relative_label("Label? ", NULL, true);
+                struct memory_entry *section = memory_lookup_section(label);
+
+                addr = (uint32_t) label;
+
+                monitor_assemble(label, section);
+                break;
+            }
+            case 'u': // User Section
+                monitor_assemble(NULL, memory_get_user_section());
+                break;
+            case 'q': // Quit
+                break;
+            default:
+                menu_print_missing_action_message();
+                break;
+            }
             break;
+        }
         case 'c':
             addr = gethexword(addr);
             monitor_call_function((void *)addr, false);
@@ -143,7 +176,7 @@ void monitor_main(bool surpress_init) {
             terminal_clearscreen();
             break;
         default:
-            putstring("Error: Missing action\r\n");
+            menu_print_missing_action_message();
             break;
         }
     }

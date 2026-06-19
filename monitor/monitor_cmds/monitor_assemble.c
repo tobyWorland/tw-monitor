@@ -413,7 +413,7 @@ void define_new_label(thumb_t **paddr) {
     }
 }
 
-void monitor_assemble(thumb_t *addr) {
+void monitor_assemble(thumb_t *addr, struct memory_entry *memory_section) {
     static const struct menu_option assemble_options[] = {
         {'a',       "A.."               },
         {'b',       "B..."              },
@@ -439,10 +439,29 @@ void monitor_assemble(thumb_t *addr) {
     thumb_t *end_addr = addr;
     enum thumb_width_specifier width_specifier = TWS_AUTO;
 
+    // If we have a section use it to set the starting_addr and end_addr
+    if (memory_section) {
+        void *section_address = memory_get_section_address(memory_section);
+        starting_addr = section_address;
+        end_addr = section_address + memory_get_section_size(memory_section);
+
+        // Clamp address to section
+        if (addr < starting_addr) {
+            addr = starting_addr;
+        } else if (addr > end_addr) {
+            addr = end_addr;
+        }
+    }
+
     while (!quit) {
         // Check if addr has moved past end_addr
         if (addr > end_addr) {
             end_addr = addr;
+
+            // If we have a section bump the size
+            if (memory_section) {
+                memory_update_section_size(memory_section, (void*)end_addr - (void*)starting_addr);
+            }
         }
 
         // Reset instruction spec
