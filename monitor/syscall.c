@@ -2,6 +2,7 @@
 
 #include "assert.h"
 #include "io.h"
+#include "startup.h"
 
 #define SYSCALL_TRACE 0
 
@@ -14,7 +15,7 @@ void syscall_handler(uint8_t syscall_number, struct syscall_frame *frame) {
     switch (syscall_number) {
     case 0: // Exit
         io_printf("Exit %u\r\n", frame->r0);
-        ASSERT_NOT_REACHED(); // TODO: Implement a proper exit
+        exit_to_monitor();
     case 1: // Output decimal, new line
         io_printf("%d\r\n", frame->r0);
         break;

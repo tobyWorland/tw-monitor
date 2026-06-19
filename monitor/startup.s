@@ -57,6 +57,12 @@ hang:
         bkpt    90
         b       hang
 
+        // TODO: Temporary
+        .global exit_to_monitor
+        .type   exit_to_monitor, %function
+exit_to_monitor:
+        // Fall through
+
         .type   fault_exit, %function
 fault_exit:
         bl      reset_stack

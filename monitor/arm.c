@@ -4,6 +4,7 @@
 #include "util.h"
 #include "io.h"
 #include "menu.h"
+#include "monitor_cmds/monitor_disassemble.h"
 #include "startup.h"
 
 #include <stddef.h>
@@ -58,9 +59,11 @@ void arm_enable_debug_stepping(bool on) {
 }
 
 const struct menu_option debug_options[] = {
-    {'r', "Return"          },
-    {'s', "Skip Instruction"},
-    {'c', "Continue"        },
+    {'s', "Step"                    },
+    {'z', "Skip Instruction"        },
+    {'c', "Continue (Stop stepping)"},
+    {'u', "Un-assemble from PC"     },
+    {'m', "Exit to monitor"         },
 };
 
 static void increment_pc(void **pc) {
@@ -68,6 +71,8 @@ static void increment_pc(void **pc) {
 }
 
 void *debug_monitor(void *pc) {
+    bool step = true;
+
     putstring("**DEBUG**\r\n");
     print_registers();
 
@@ -81,19 +86,28 @@ void *debug_monitor(void *pc) {
 
     char opt = menu("DEBUG> ", ARR_LEN(debug_options), debug_options, NULL);
     switch (opt) {
-    case 'r':
-        break;
     case 's':
+        break;
+    case 'z':
         increment_pc(&pc);
         break;
     case 'c':
-        increment_pc(&pc);
-        arm_enable_debug_stepping(false);
+        step = false;
+        break;
+    case 'u':
+        monitor_disassemble(pc);
+        break;
+    case 'm':
+        pc = exit_to_monitor;
+        step = false;
+        exit_to_monitor();
         break;
     default:
         putstring("HANG");
         while(1);
     }
+
+    arm_enable_debug_stepping(step);
 
 #if 0
     putstring("New PC: ");
