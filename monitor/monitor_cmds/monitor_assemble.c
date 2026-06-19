@@ -15,6 +15,24 @@
 
 static struct thumb_instruction_spec instruction = {};
 
+static thumb_t *previous_thumb_instruction(thumb_t *start, thumb_t *current) {
+    thumb_t *previous = start;
+
+    assert(start <= current);
+
+    // Find pointer of last instruction and then set the current address to it
+    while (1) {
+        thumb_t *next = thumb_ins_ptr_increment(previous);
+        if (next == current) {
+            break;
+        } else {
+            previous = next;
+        }
+    }
+
+    return previous;
+}
+
 static void add_reg_rt(void) {
     thumb_add_operand_reg(&instruction, menu_preset_register("Rt? "));
 }
@@ -411,14 +429,22 @@ void monitor_assemble(thumb_t *addr) {
         {'.',       "Specify Width"     },
         {CTRL('c'), "Call Assembly"     },
         {CTRL('p'), "Print Assembly"    },
+        {CTRL('u'), "Up"                },
+        {CTRL('d'), "Down"              },
         {CTRL('r'), "Rewind Instruction"},
         {CTRL('q'), "Quit"              },
     };
     bool quit = false;
     thumb_t *starting_addr = addr;
+    thumb_t *end_addr = addr;
     enum thumb_width_specifier width_specifier = TWS_AUTO;
 
     while (!quit) {
+        // Check if addr has moved past end_addr
+        if (addr > end_addr) {
+            end_addr = addr;
+        }
+
         // Reset instruction spec
         instruction = (struct thumb_instruction_spec){};
         instruction.width = width_specifier;
@@ -497,29 +523,34 @@ void monitor_assemble(thumb_t *addr) {
             break;
         }
         case CTRL('p'): // Print Assembly
-            for (thumb_t *p = starting_addr; p < addr; p = thumb_ins_ptr_increment(p)) {
+            for (thumb_t *p = starting_addr; p < end_addr; p = thumb_ins_ptr_increment(p)) {
+                putchar(p == addr ? '*' : ' ');
                 puthexword((uint32_t)p);
                 putchar(' ');
                 struct thumb_instruction_spec ins_spec = thumb_disassemble(p);
                 thumb_print_instruction(&ins_spec, p);
                 putnewline();
             }
+            if (addr == end_addr) {
+                putstring("*\r\n");
+            }
+            break;
+        case CTRL('u'): // "Up"
+            if (addr > starting_addr) {
+                addr = previous_thumb_instruction(starting_addr, addr);
+            }
+            break;
+        case CTRL('d'): // "Down"
+            if (addr < end_addr) {
+                addr = thumb_ins_ptr_increment(addr);
+            }
             break;
         case CTRL('r'): // "Rewind Instruction"
-            if (addr > starting_addr) {
-                thumb_t *last = starting_addr;
-
-                // Find pointer of last instruction and then set the current address to it
-                while (1) {
-                    thumb_t *next = thumb_ins_ptr_increment(last);
-                    if (next == addr) {
-                        break;
-                    } else {
-                        last = next;
-                    }
+            if (end_addr > starting_addr) {
+                end_addr = previous_thumb_instruction(starting_addr, end_addr);
+                if (addr > end_addr) {
+                    addr = end_addr;
                 }
-
-                addr = last;
             }
             break;
         case CTRL('q'): // Quit
