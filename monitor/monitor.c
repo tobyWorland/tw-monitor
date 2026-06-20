@@ -105,7 +105,7 @@ void monitor_main(bool surpress_init) {
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
-        case 'a': {
+        case 'a': { // Assemble
             struct absolute_address_result absolute_address =
                 menu_preset_absolute_address("Assemble to? ", (void *)addr,
                                              true, true);
@@ -117,42 +117,42 @@ void monitor_main(bool surpress_init) {
             monitor_assemble(absolute_address.address, absolute_address.section);
             break;
         }
-        case 'c':
+        case 'c': // Call Address
             addr = gethexword(addr);
             monitor_call_function((void *)addr, false);
             break;
-        case 'd':
+        case 'd': // Memory Dump
             addr = gethexword(addr);
             monitor_memdump((void *)addr);
             break;
-        case 'e': {
+        case 'e': { // Enter
             enum enter_type ent_type = enter_ent_type_submenu();
             addr = gethexword(addr);
             monitor_enter((void *)addr, ent_type);
             break;
         }
-        case 'm':
+        case 'm': // Memory State
             monitor_memory();
             break;
-        case 'u':
+        case 'u': // Un/Disassemble
             addr = gethexword(addr);
             monitor_disassemble((void *)addr);
             break;
-        case 'r':
+        case 'r': // Receive File
             addr = gethexword(addr);
             transfer_receive((void*)addr);
             break;
-        case 's':
+        case 's': // Call Address with Step
             addr = gethexword(addr);
             monitor_call_function((void *)addr, true);
             break;
-        case ';':
+        case ';': // Development Menu
             monitor_dev();
             break;
-        case CTRL('l'):
+        case CTRL('l'): // Clear Screen
             terminal_clearscreen();
             break;
-        case CTRL('r'):
+        case CTRL('r'): // Reset
             scb_sys_reset_request();
             break;
         default:
