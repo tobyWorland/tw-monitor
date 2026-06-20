@@ -15,7 +15,8 @@ void syscall_handler(uint8_t syscall_number, struct syscall_frame *frame) {
     switch (syscall_number) {
     case 0: // Exit
         io_printf("Exit %u\r\n", frame->r0);
-        exit_to_monitor();
+        frame->pc = exit_to_monitor;
+        break;
     case 1: // Output decimal, new line
         io_printf("%d\r\n", frame->r0);
         break;
