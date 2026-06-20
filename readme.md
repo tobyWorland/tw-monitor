@@ -14,7 +14,7 @@ NOTE: Currently only a subset of the instruction set is supported for
 assmebling and disassembling.
 
 ## Supported targets (so far)
-* NUCLEO-F411RE
+* [NUCLEO-F411RE](https://www.st.com/en/evaluation-tools/nucleo-f411re.html)
 
 ## Build Dependencies
 * Binutils (--target arm-none-eabi)
