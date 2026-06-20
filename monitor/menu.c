@@ -150,6 +150,7 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
         {CTRL('b'), "Toggle Base 16 <==> 10"},
         {CTRL('i'), "Initial Number"        },
         {CTRL('z'), "Zero Current"          },
+        {'\'',      "Character Value"       },
         {'-',       "Toggle Sign"           },
         {'\r',      "Submit"                },
         {'\b',      "Remove Last Digit"     },
@@ -205,6 +206,13 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
                 sign = false;
                 number = 0;
                 continue;
+            case '\'': // Character Value
+                sign = false;
+                io_printf(" %s: ", num_opt->name);
+                number = getchar();
+                putchar(number);
+                num_opt = NULL; // Suppress printing
+                break;
             case '-': // Toggle Sign
                 if (number == 0) {
                     // Allow flipping sign on zero for easily entering negative numbers
@@ -225,8 +233,10 @@ int menu_number(const char *prompt, int init_number, unsigned option_count,
                 break;
             }
 
-            putchar(' ');
-            putstring(num_opt->name);
+            if (num_opt) {
+                putchar(' ');
+                putstring(num_opt->name);
+            }
             putnewline();
             continue;
         }
