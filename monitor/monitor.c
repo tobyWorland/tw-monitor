@@ -104,15 +104,16 @@ void monitor_main(bool surpress_init) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
         case 'a': {
-          struct absolute_address_result absolute_address =
-              menu_preset_absolute_address("? ", (void *)addr, true, true);
+            struct absolute_address_result absolute_address =
+                menu_preset_absolute_address("Assemble to? ", (void *)addr,
+                                             true, true);
 
-          if (absolute_address.address) {
-              addr = (uint32_t)absolute_address.address;
-          }
+            if (absolute_address.address) {
+                addr = (uint32_t)absolute_address.address;
+            }
 
-          monitor_assemble(absolute_address.address, absolute_address.section);
-          break;
+            monitor_assemble(absolute_address.address, absolute_address.section);
+            break;
         }
         case 'c':
             addr = gethexword(addr);
