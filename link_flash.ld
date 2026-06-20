@@ -10,12 +10,14 @@ flash_end   = flash_start + flash_size;
 
 stack_size = 4k;
 
+boot_start = 0;
+
 ENTRY(startup_entry);
 
 SECTIONS {
-    . = flash_start;
+    . = boot_start;
 
-    .vect : {
+    .vect : AT(flash_start) {
         *(.vect);
     }
 
@@ -25,6 +27,7 @@ SECTIONS {
         *(.rodata*);
     }
 
+    . = ADDR(.text) + SIZEOF(.text) - boot_start + flash_start;
     . = ALIGN(4);
     data_lma_start = .;
 
