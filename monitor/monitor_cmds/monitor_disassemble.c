@@ -4,7 +4,39 @@
 #include "../assert.h"
 #include "../io.h"
 #include "../menu.h"
-#include "../thumb_asm.h"
+#include "../memory.h"
+
+void monitor_disassemble_print_instruction_at(thumb_t *addr) {
+    // Check if there is a label at this address
+    struct memory_entry *label = memory_rlookup_label(addr);
+    if (label) {
+        // Found a label, print the name out
+        memory_print_name_from_label(label);
+        putstring(":\r\n");
+    }
+
+    puthexword((uint32_t)addr);
+    putstring(": ");
+
+    puthexhalfword(addr->as_halfwords[0]);
+
+    // If wide instruction, include the 2nd half word otherwise fill with spaces
+    if (thumb_is_wide_instruction(*addr)) {
+        putchar(' ');
+        puthexhalfword(addr->as_halfwords[1]);
+    } else {
+        putstring("     ");
+    }
+
+    // TODO: Should have CMake option to include disassemble code
+#if 1
+    struct thumb_instruction_spec ins_spec = thumb_disassemble(addr);
+    putchar(' ');
+    thumb_print_instruction(&ins_spec, addr);
+#endif
+
+    putnewline();
+}
 
 #ifndef HOST
 void monitor_disassemble(void *addr) {
@@ -23,31 +55,10 @@ void monitor_disassemble(void *addr) {
     }
 
     thumb_t *addr_as_thumb_ptr = addr;
-
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
-            puthexword((uint32_t)addr_as_thumb_ptr);
-            putstring(": ");
-
-            puthexhalfword(addr_as_thumb_ptr->as_halfwords[0]);
-
-            // If wide instruction, include the 2nd half word otherwise fill with spaces
-            if (thumb_is_wide_instruction(*addr_as_thumb_ptr)) {
-                putchar(' ');
-                puthexhalfword(addr_as_thumb_ptr->as_halfwords[1]);
-            } else {
-                putstring("     ");
-            }
-
-            // TODO: Should have CMake option to include disassemble code
-#if 1
-            struct thumb_instruction_spec ins_spec = thumb_disassemble(addr_as_thumb_ptr);
-            putchar(' ');
-            thumb_print_instruction(&ins_spec, addr_as_thumb_ptr);
-#endif
-
+            monitor_disassemble_print_instruction_at(addr_as_thumb_ptr);
             addr_as_thumb_ptr = thumb_ins_ptr_increment(addr_as_thumb_ptr);
-            putnewline();
         }
 
     } while (menu_preset_continue("More? ", true));
