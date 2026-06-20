@@ -43,6 +43,8 @@ git submodule update --init
 "Halting debug" means the hardware debugger is connected. The hardware debugger will akways take priority over the debug monitor exception on debug events.
 
 ## Help system
-Most user input is handled with menus defined in `menu.c` You can hit '?' to get a list of actions at any menu.
+Most user input is handled with menus defined in `menu.c`.
+
+You can hit '?' to get a list of actions at any menu.
 
 Keys prefixed with "C-" are keys with control held. So "C-r" means press `ctrl` with `r`.
