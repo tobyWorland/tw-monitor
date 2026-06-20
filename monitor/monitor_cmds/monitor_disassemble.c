@@ -6,7 +6,7 @@
 #include "../menu.h"
 #include "../memory.h"
 
-void monitor_disassemble_print_instruction_at(thumb_t *addr) {
+void monitor_disassemble_print_label_at(thumb_t *addr) {
     // Check if there is a label at this address
     struct memory_entry *label = memory_rlookup_label(addr);
     if (label) {
@@ -14,7 +14,9 @@ void monitor_disassemble_print_instruction_at(thumb_t *addr) {
         memory_print_name_from_label(label);
         putstring(":\r\n");
     }
+}
 
+void monitor_disassemble_print_instruction_at(thumb_t *addr) {
     puthexword((uint32_t)addr);
     putstring(": ");
 
@@ -57,6 +59,7 @@ void monitor_disassemble(void *addr) {
     thumb_t *addr_as_thumb_ptr = addr;
     do {
         for (int i = 0; i < 8; i++) { // Disassemble the next 8 instructions
+            monitor_disassemble_print_label_at(addr_as_thumb_ptr);
             monitor_disassemble_print_instruction_at(addr_as_thumb_ptr);
             addr_as_thumb_ptr = thumb_ins_ptr_increment(addr_as_thumb_ptr);
         }
