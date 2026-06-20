@@ -543,6 +543,14 @@ void monitor_assemble(thumb_t *addr, struct memory_entry *memory_section) {
         }
         case CTRL('p'): // Print Assembly
             for (thumb_t *p = starting_addr; p < end_addr; p = thumb_ins_ptr_increment(p)) {
+                // Check if there is a label at this address
+                struct memory_entry *label = memory_rlookup_label(p);
+                if (label) {
+                    // Found a label, print the name out
+                    memory_print_name_from_label(label);
+                    putstring(":\r\n");
+                }
+
                 putchar(p == addr ? '*' : ' ');
                 puthexword((uint32_t)p);
                 putchar(' ');
