@@ -37,7 +37,12 @@ git submodule update --init
 
 1. You will want to flash `builds/target_flash/monitor/monitor_flash` to your board.
 2. Check the serial console (115200bps, no parity, one stop bit, no flow control) for the menu.
-3. Disconnect your debugger and reset, you may need to cut power.
-4. If the serial terminal reports "Halting debug? YES" try step 3 again. This means the hardware debugger will take priority and the debug monitor exception will NOT get triggered on breakpoints.
+3. Disconnect your debugger and reset, you will need to cut power.
+4. If the serial terminal reports "Halting debug? YES" try step 3 again.
 
-Hit '?' to get a list of actions when given a prompt.
+"Halting debug" means the hardware debugger is connected. The hardware debugger will akways take priority over the debug monitor exception on debug events.
+
+## Help system
+Most user input is handled with menus defined in `menu.c` You can hit '?' to get a list of actions at any menu.
+
+Keys prefixed with "C-" are keys with control held. So "C-r" means press `ctrl` with `r`.
