@@ -5,6 +5,11 @@
 
 #include <stdint.h>
 
+volatile uint32_t *scb_aircr = (void*)0xE000ED0C; // Application Interrupt and Reset Control Register
+
+#define AIRCR_VECTKEY     (0x05FA << 16)
+#define AIRCR_SYSRESETREQ BIT(2)
+
 // System control block fault registers
 volatile uint32_t *scb_cfsr = (void*)0xE000ED28; // Configurable Fault Status Register
 volatile uint32_t *scb_hfsr = (void*)0xE000ED2C; // Hard Fault Status Register
@@ -110,4 +115,14 @@ void clear_fault_state(void) {
     // So writing the registers to themselves should clear all set faults
     *scb_hfsr = *scb_hfsr;
     *scb_cfsr = *scb_cfsr;
+}
+
+void scb_sys_reset_request(void) {
+    *scb_aircr = AIRCR_VECTKEY | AIRCR_SYSRESETREQ;
+
+    // Recommended by ARMv7m Architecture reference manual
+    // B1.5.16 Reset Management
+    __asm("dsb\n"
+          "b .\n");
+    __builtin_unreachable();
 }

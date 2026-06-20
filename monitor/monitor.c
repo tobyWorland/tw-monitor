@@ -11,6 +11,7 @@
 #include "monitor_cmds/monitor_enter.h"
 #include "monitor_cmds/monitor_memdump.h"
 #include "monitor_cmds/monitor_memory.h"
+#include "scb.h"
 #include "util.h"
 #include "string.h"
 #include "terminal.h"
@@ -52,6 +53,7 @@ void monitor_main(bool surpress_init) {
         {'s',       "Call Address with Step"},
         {';',       "Development Menu"      },
         {CTRL('l'), "Clear Screen"          },
+        {CTRL('r'), "Reset"                 },
     };
     static uint32_t addr = 0;
 
@@ -149,6 +151,9 @@ void monitor_main(bool surpress_init) {
             break;
         case CTRL('l'):
             terminal_clearscreen();
+            break;
+        case CTRL('r'):
+            scb_sys_reset_request();
             break;
         default:
             menu_print_missing_action_message();
