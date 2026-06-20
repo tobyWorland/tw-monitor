@@ -1,6 +1,6 @@
 #include "monitor_disassemble.h"
 
-#include "../arm.h"
+#include "../arm/arm.h"
 #include "../assert.h"
 #include "../io.h"
 #include "../menu.h"

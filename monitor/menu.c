@@ -1,6 +1,6 @@
 #include "menu.h"
 
-#include "arm.h"
+#include "arm/arm.h"
 #include "assert.h"
 #include "char.h"
 #include "io.h"

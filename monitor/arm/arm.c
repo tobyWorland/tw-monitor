@@ -1,12 +1,12 @@
 #include "arm.h"
 
-#include "terminal.h"
-#include "thumb_asm.h"
-#include "util.h"
-#include "io.h"
-#include "menu.h"
-#include "monitor_cmds/monitor_disassemble.h"
-#include "startup.h"
+#include "../terminal.h"
+#include "../thumb_asm.h"
+#include "../util.h"
+#include "../io.h"
+#include "../menu.h"
+#include "../monitor_cmds/monitor_disassemble.h"
+#include "../startup.h"
 
 #include <stddef.h>
 #include <stdint.h>

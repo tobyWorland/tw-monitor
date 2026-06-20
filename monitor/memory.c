@@ -1,6 +1,6 @@
 #include "memory.h"
 
-#include "arm.h"
+#include "arm/arm.h"
 #include "assert.h"
 #include "io.h"
 #include "string.h"

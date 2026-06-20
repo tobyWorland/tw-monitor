@@ -2,7 +2,7 @@
 
 #include "monitor_call.h"
 #include "monitor_disassemble.h"
-#include "../arm.h"
+#include "../arm/arm.h"
 #include "../assert.h"
 #include "../char.h"
 #include "../io.h"

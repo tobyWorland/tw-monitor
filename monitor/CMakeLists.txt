@@ -4,7 +4,7 @@ project(monitor)
 enable_language(C ASM)
 
 set(C_SOURCE
-    arm.c
+    arm/arm.c
     assert.c
     char.c
     io.c
@@ -39,7 +39,7 @@ set(TARGET_SOURCE
     startup.s
     vector.s
     clobber_sram.s
-    scb.c
+    arm/scb.c
     stm32f411xce_timer.c
 )
 
