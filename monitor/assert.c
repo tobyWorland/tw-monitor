@@ -1,5 +1,5 @@
 #include "assert.h"
-#include "hardware.h"
+#include "hardware/hardware.h"
 #include "io.h"
 
 #ifndef HOST

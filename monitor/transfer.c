@@ -1,6 +1,6 @@
 #include "transfer.h"
 
-#include "hardware.h"
+#include "hardware/hardware.h"
 #include "io.h"
 #include "string.h"
 

@@ -2,7 +2,7 @@
 
 #include "assert.h"
 #include "char.h"
-#include "hardware.h"
+#include "hardware/hardware.h"
 #include "util.h"
 #include "string.h"
 #include "terminal.h"
