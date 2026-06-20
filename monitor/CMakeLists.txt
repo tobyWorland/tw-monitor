@@ -18,7 +18,6 @@ set(C_SOURCE
     monitor_cmds/monitor_enter.c
     monitor_cmds/monitor_memory.c
     monitor_cmds/monitor_memdump.c
-    scb.c
     string.c
     syscall.c
     thumb_asm.c
@@ -40,6 +39,7 @@ set(TARGET_SOURCE
     startup.s
     vector.s
     clobber_sram.s
+    scb.c
     stm32f411xce_timer.c
 )
 
