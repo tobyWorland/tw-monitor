@@ -41,6 +41,7 @@ set(TARGET_SOURCE
     clobber_sram.s
     arm/scb.c
     hardware/stm32f411xce/stm32f411xce_board.c
+    hardware/stm32f411xce/stm32f411xce_gpio.c
     hardware/stm32f411xce/stm32f411xce_peripherals.c
     hardware/stm32f411xce/stm32f411xce_rcc.c
     hardware/stm32f411xce/stm32f411xce_timer.c

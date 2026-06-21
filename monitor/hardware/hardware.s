@@ -3,14 +3,6 @@
         .cpu    cortex-m4
         .thumb
 
-        .set    GPIOA_BASE,             0x40020000
-        .set    GPIOA_MODER,            GPIOA_BASE + 0x00
-        .set    GPIOA_AFRL,             GPIOA_BASE + 0x20
-
-        .set    GPIOB_BASE,             0x40020400
-        .set    GPIOB_MODER,            GPIOB_BASE + 0x00
-        .set    GPIOB_AFRL,             GPIOB_BASE + 0x20
-
         .set    GPIO_MODER_CNF_INPUT,   0
         .set    GPIO_MODER_CNF_OUTPUT,  1
         .set    GPIO_MODER_CNF_ALTFUN,  2
@@ -39,40 +31,6 @@
         .type   hardware_init, %function
 hardware_init:
         push    {lr}
-
-        // Change PA2 & PA3 to alternate function mode (for USART2)
-        //   NOTE: Need to OR mode settings as debug pins are also on GPIO A
-        ldr     r0,     =GPIOA_MODER
-        ldr     r1,     [r0]
-        //   (MODE << (pin * 2)) - as 2 bits per pin mode in MODER register
-        ldr     r2,     =((GPIO_MODER_CNF_ALTFUN << (2*2)) | (GPIO_MODER_CNF_ALTFUN << (3*2)))
-        orr     r1,     r2
-        str     r1,     [r0]
-
-        // Set alternate function for PA2 & PA3 to 7 (for USART2)
-        //   NOTE: Need to OR mode settings as debug pins are also on GPIO A
-        ldr     r0,     =GPIOA_AFRL
-        ldr     r1,     [r0]
-        //   (MODE << (pin * 4)) - as 4 bits per pin mode in AFRL register
-        ldr     r2,     =((7 << (2*4)) | (7 << (3*4)))
-        orr     r1,     r2
-        str     r1,     [r0]
-
-        // Change PB6 & PB7 to alternate function mode (for USART1)
-        ldr     r0,     =GPIOB_MODER
-        ldr     r1,     [r0]
-        //   (MODE << (pin * 2)) - as 2 bits per pin mode in MODER register
-        ldr     r2,     =((GPIO_MODER_CNF_ALTFUN << (6*2)) | (GPIO_MODER_CNF_ALTFUN << (7*2)))
-        orr     r1,     r2
-        str     r1,     [r0]
-
-        // Set alternate function for PB6 & PB7 to 7 (for USART1)
-        ldr     r0,     =GPIOB_AFRL
-        ldr     r1,     [r0]
-        //   (MODE << (pin * 4)) - as 4 bits per pin mode in AFRL register
-        ldr     r2,     =((7 << (6*4)) | (7 << (7*4)))
-        orr     r1,     r2
-        str     r1,     [r0]
 
         // Enable USART2
         ldr     r0,     =USART2_CR1

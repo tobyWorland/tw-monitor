@@ -5,6 +5,8 @@
 #include "../../util.h"
 #include "../../vector.h"
 
+// TODO: Update to use peripherals struct
+
 #define TIM10_BASE 0x40014400
 #define TIM11_BASE 0x40014800
 
