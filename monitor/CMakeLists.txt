@@ -40,7 +40,8 @@ set(TARGET_SOURCE
     vector.s
     clobber_sram.s
     arm/scb.c
-    hardware/stm32f411xce_timer.c
+    hardware/stm32f411xce/stm32f411xce_timer.c
+    hardware/stm32f411xce/stm32f411xce_peripherals.c
 )
 
 if(CMAKE_CROSSCOMPILING)
