@@ -3,19 +3,6 @@
         .cpu    cortex-m4
         .thumb
 
-        .set    RCC_BASE,               0x40023800
-        .set    RCC_AHB1_ENR,           RCC_BASE + 0x30
-        .set    RCC_APB1_ENR,           RCC_BASE + 0x40
-        .set    RCC_APB2_ENR,           RCC_BASE + 0x44
-
-        .set    RCC_AHB1_OFF_GPIOA,     0
-        .set    RCC_AHB1_OFF_GPIOB,     1
-
-        .set    RCC_APB1_OFF_USART2,    17
-
-        .set    RCC_APB2_OFF_TIM10,     17
-        .set    RCC_APB2_OFF_USART1,    4
-
         .set    GPIOA_BASE,             0x40020000
         .set    GPIOA_MODER,            GPIOA_BASE + 0x00
         .set    GPIOA_AFRL,             GPIOA_BASE + 0x20
@@ -53,11 +40,6 @@
 hardware_init:
         push    {lr}
 
-        // Enable peripheral clock for GPIO A
-        ldr     r0,     =RCC_AHB1_ENR
-        movs    r1,     (1 << RCC_AHB1_OFF_GPIOA) | (1 << RCC_AHB1_OFF_GPIOB)
-        str     r1,     [r0]
-
         // Change PA2 & PA3 to alternate function mode (for USART2)
         //   NOTE: Need to OR mode settings as debug pins are also on GPIO A
         ldr     r0,     =GPIOA_MODER
@@ -90,16 +72,6 @@ hardware_init:
         //   (MODE << (pin * 4)) - as 4 bits per pin mode in AFRL register
         ldr     r2,     =((7 << (6*4)) | (7 << (7*4)))
         orr     r1,     r2
-        str     r1,     [r0]
-
-        // Enable peripheral clock for USART2
-        ldr     r0,     =RCC_APB1_ENR
-        movs    r1,     (1 << RCC_APB1_OFF_USART2)
-        str     r1,     [r0]
-
-        // Enable peripheral clock for TIM10
-        ldr     r0,     =RCC_APB2_ENR
-        ldr     r1,     =(1 << RCC_APB2_OFF_TIM10) | (1 << RCC_APB2_OFF_USART1)
         str     r1,     [r0]
 
         // Enable USART2

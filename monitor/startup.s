@@ -46,6 +46,7 @@ startup_entry:
         b       1b
 2:
 
+        bl      board_init
         bl      hardware_init
 
         movs    r0,     0
