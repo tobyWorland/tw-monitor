@@ -1,9 +1,9 @@
 #include "stm32f411xce_timer.h"
 
-#include "assert.h"
-#include "io.h"
-#include "util.h"
-#include "vector.h"
+#include "../assert.h"
+#include "../io.h"
+#include "../util.h"
+#include "../vector.h"
 
 #define TIM10_BASE 0x40014400
 #define TIM11_BASE 0x40014800

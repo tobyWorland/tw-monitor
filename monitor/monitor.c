@@ -17,7 +17,7 @@
 #include "terminal.h"
 #include "transfer.h"
 
-#include "stm32f411xce_timer.h"
+#include "hardware/stm32f411xce_timer.h"
 
 #include <stdbool.h>
 #include <stddef.h>
