@@ -1,5 +1,7 @@
 # Monitor
 
+![Example of stepping with debugger](screenshots/example_call.png)
+
 An on-chip stepping debugger, with support for assmebling instructions
 and modifying memory interactivity over the UART. Similar to those found
 on vintage home computers.
