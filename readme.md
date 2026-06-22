@@ -33,16 +33,20 @@ assmebling and disassembling.
 ## Quick Build
 
 ```
+./scripts/quick_build_and_flash.sh
+```
+1. Check the serial console (115200bps, no parity, one stop bit, no flow control) for the menu.
+2. Disconnect your debugger and reset, you will need to cut power.
+3. If the serial terminal reports "Halting debug? YES" try step 3 again.
+
+"Halting debug" means the hardware debugger is connected. The hardware debugger will akways take priority over the debug monitor exception on debug events.
+
+## Build Everything
+
+```
 git submodule update --init
 ./scripts/build.sh
 ```
-
-1. You will want to flash `builds/target_flash/monitor/monitor_flash` to your board.
-2. Check the serial console (115200bps, no parity, one stop bit, no flow control) for the menu.
-3. Disconnect your debugger and reset, you will need to cut power.
-4. If the serial terminal reports "Halting debug? YES" try step 3 again.
-
-"Halting debug" means the hardware debugger is connected. The hardware debugger will akways take priority over the debug monitor exception on debug events.
 
 ## Help system
 Most user input is handled with menus defined in `menu.c`.
