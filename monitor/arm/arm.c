@@ -121,6 +121,7 @@ void *debug_monitor(void *pc) {
             break;
         case 'z':
             increment_pc(&pc);
+            exit = false;
             break;
         case 'c':
             step = false;
