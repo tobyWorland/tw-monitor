@@ -45,6 +45,7 @@ set(TARGET_SOURCE
     hardware/stm32f411xce/stm32f411xce_peripherals.c
     hardware/stm32f411xce/stm32f411xce_rcc.c
     hardware/stm32f411xce/stm32f411xce_timer.c
+    hardware/stm32f411xce/stm32f411xce_usart.c
 )
 
 if(CMAKE_CROSSCOMPILING)
