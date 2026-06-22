@@ -9,4 +9,14 @@ void usart_enable(struct peripheral *usart_periph, bool enable);
 void usart_putbyte(struct peripheral *usart_periph, uint8_t b);
 uint8_t usart_getbyte(struct peripheral *usart_periph);
 
+// TODO: Temporary
+void usart2_putchar(char c);
+void usart2_putstring(const char *string);
+void usart2_putnewline(void);
+char usart2_getchar(void);
+
+void usart1_putchar(char c);
+char usart1_getchar(void);
+// END OF TEMPORARY
+
 #endif

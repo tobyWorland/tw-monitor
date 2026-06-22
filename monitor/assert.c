@@ -1,11 +1,11 @@
 #include "assert.h"
-#include "hardware/hardware.h"
+#include "hardware/board.h"
 #include "io.h"
 
 #ifndef HOST
 void assert(bool flag) {
     if (!flag) {
-        if (g_hardware_inited) {
+        if (g_board_inited) {
             putstring("ASSERT\r\n");
         }
         while (1)

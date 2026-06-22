@@ -35,7 +35,6 @@ set_source_files_properties(
 )
 
 set(TARGET_SOURCE
-    hardware/hardware.s
     startup.s
     vector.s
     clobber_sram.s

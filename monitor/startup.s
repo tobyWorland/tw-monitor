@@ -47,7 +47,6 @@ startup_entry:
 2:
 
         bl      board_init
-        bl      hardware_init
 
         movs    r0,     0
         bl      monitor_main
@@ -112,8 +111,8 @@ fault_exit_unwind_exceptions:
         .type   hardfault_handler, %function
 hardfault_handler:
         push    {lr}
-        ldr     r0,     =g_hardware_inited
-        ldr     r0,     [r0]
+        ldr     r0,     =g_board_inited
+        ldrb    r0,     [r0]
 
         cmp     r0,     0
         beq     . // Hang if usart isn't ready

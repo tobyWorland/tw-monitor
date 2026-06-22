@@ -5,6 +5,8 @@
 #include "stm32f411xce_rcc.h"
 #include "stm32f411xce_usart.h"
 
+bool g_board_inited = false;
+
 void board_init(void) {
     rcc_enable_clock(&g_periph_gpio_a, true);
     rcc_enable_clock(&g_periph_gpio_b, true);
@@ -22,4 +24,6 @@ void board_init(void) {
 
     usart_enable(&g_periph_usart1, true);
     usart_enable(&g_periph_usart2, true);
+
+    g_board_inited = true;
 }

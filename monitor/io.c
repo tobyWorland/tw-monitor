@@ -2,7 +2,7 @@
 
 #include "assert.h"
 #include "char.h"
-#include "hardware/hardware.h"
+#include "hardware/stm32f411xce/stm32f411xce_usart.h"
 #include "util.h"
 #include "string.h"
 #include "terminal.h"
