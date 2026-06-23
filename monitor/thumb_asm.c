@@ -475,7 +475,7 @@ void thumb_print_instruction(const struct thumb_instruction_spec *instruction,
             i == instruction->operand_count - 1) {
             putstring("], ");
         } else {
-            putchar(' ');
+            putstring(i > 0 ? ", " : " ");
         }
 
         switch (instruction->operands[i].type) {
