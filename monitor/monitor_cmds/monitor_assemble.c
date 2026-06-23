@@ -430,6 +430,8 @@ void monitor_assemble(thumb_t *addr, struct memory_entry *memory_section) {
         {'.',       "Specify Width"     },
         {CTRL('c'), "Call Assembly"     },
         {CTRL('p'), "Print Assembly"    },
+        {'0',       "Up to start"       },
+        {'$',       "Down to end"       },
         {CTRL('u'), "Up"                },
         {CTRL('d'), "Down"              },
         {CTRL('r'), "Rewind Instruction"},
@@ -557,6 +559,12 @@ void monitor_assemble(thumb_t *addr, struct memory_entry *memory_section) {
             if (addr == end_addr) {
                 putstring("*\r\n");
             }
+            break;
+        case '0': // Up to start
+            addr = starting_addr;
+            break;
+        case '$': // Down to end
+            addr = end_addr;
             break;
         case CTRL('u'): // "Up"
             if (addr > starting_addr) {
