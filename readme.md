@@ -2,6 +2,8 @@
 
 ![Example of stepping with debugger](screenshots/example_call.png)
 
+[Video Demo](https://www.youtube.com/watch?v=LVVa_f7M40M)
+
 An on-chip stepping debugger, with support for assmebling instructions
 and modifying memory interactivity over the UART. Similar to those found
 on vintage home computers.
