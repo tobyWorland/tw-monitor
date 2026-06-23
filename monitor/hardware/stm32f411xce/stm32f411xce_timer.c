@@ -74,7 +74,7 @@ void stm32f411xce_timer_sleep_init() {
     tim10->event_gen = TIM1X_EGR_UG;
     tim10->status  = 0;
 
-    irq_tim1_up_tim10 = tim10_isr;
+    vector_set_isr_for(TIM10_IRQ, tim10_isr);
     enable_irq(TIM10_IRQ);
 }
 

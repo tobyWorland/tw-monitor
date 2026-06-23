@@ -3,7 +3,6 @@
 
 typedef void (*isr_t)(void);
 
-// Defined in vector.s
-extern volatile isr_t irq_tim1_up_tim10;
+void vector_set_isr_for(unsigned irq, isr_t isr);
 
 #endif

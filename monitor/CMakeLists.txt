@@ -37,6 +37,7 @@ set_source_files_properties(
 set(TARGET_SOURCE
     startup.s
     vector.s
+    vector.c
     clobber_sram.s
     arm/scb.c
     hardware/stm32f411xce/stm32f411xce_board.c
