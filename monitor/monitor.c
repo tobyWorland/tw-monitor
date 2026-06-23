@@ -1,5 +1,6 @@
 #include "assert.h"
 #include "arm/arm.h"
+#include "arm/debug.h"
 #include "arm/scb.h"
 #include "char.h"
 #include "io.h"

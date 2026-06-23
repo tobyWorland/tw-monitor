@@ -1,6 +1,7 @@
 #include "monitor_call.h"
 
 #include "../arm/arm.h"
+#include "../arm/debug.h"
 #include "../assert.h"
 #include "../menu.h"
 

@@ -39,6 +39,7 @@ set(TARGET_SOURCE
     vector.s
     vector.c
     clobber_sram.s
+    arm/debug.c
     arm/scb.c
     hardware/stm32f411xce/stm32f411xce_board.c
     hardware/stm32f411xce/stm32f411xce_gpio.c
