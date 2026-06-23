@@ -112,6 +112,9 @@ void monitor_main(bool surpress_init) {
 
             if (absolute_address.address) {
                 addr = (uint32_t)absolute_address.address;
+            } else if (!absolute_address.address && absolute_address.section) {
+                // Max address so we get capped to end section address in monitor_assemble
+                absolute_address.address = (void*)-1;
             }
 
             monitor_assemble(absolute_address.address, absolute_address.section);
