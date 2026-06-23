@@ -182,7 +182,7 @@ _debug_monitor:
         cmp     r0,     0x0D
         beq     . // Hang if PSP is used // TODO: Handle PSP
 
-        // Print registers
+        // Save registers
         push    {lr}
         bl      save_registers
 
@@ -229,7 +229,7 @@ print_registers:
 
         mov     r0,     r5
         movs    r1,     1
-        bl      thumb_print_register
+        bl      thumb_print_register_name
         mov     r0,     ' '
         bl      putchar
         ldr     r0,     [r4],   4

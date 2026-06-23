@@ -153,7 +153,7 @@ struct thumb_instruction_spec {
 
 bool thumb_is_wide_instruction(thumb_t ins);
 thumb_t *thumb_ins_ptr_increment(thumb_t *insptr);
-void thumb_print_register(unsigned reg, bool pad_named_registers);
+void thumb_print_register_name(unsigned reg, bool pad_named_registers);
 void thumb_print_register_list(uint16_t reglist);
 
 unsigned thumb_count_register_list(uint16_t reglist);
