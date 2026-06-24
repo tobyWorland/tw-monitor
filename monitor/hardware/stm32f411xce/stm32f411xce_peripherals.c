@@ -47,3 +47,13 @@ struct peripheral g_periph_tim10 = {
     },
     .irqs = {25}
 };
+
+struct peripheral g_periph_tim11 = {
+    .name = "TIM11",
+    .base = (void*)0x40014800,
+    .rcc = {
+        .bus = PERIPH_BUS_APB2,
+        .rcc_index = 18,
+    },
+    .irqs = {26}
+};

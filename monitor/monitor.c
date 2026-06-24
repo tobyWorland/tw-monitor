@@ -84,8 +84,6 @@ void monitor_main(bool surpress_init) {
         arm_enable_debug_monitor();
     }
 
-    stm32f411xce_timer_sleep_init();
-
 #if 0
     while (1) {
         putstring("Waiting for 1...\r\n");

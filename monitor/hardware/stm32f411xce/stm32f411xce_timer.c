@@ -1,18 +1,14 @@
 #include "stm32f411xce_timer.h"
 
+#include "stm32f411xce_rcc.h"
 #include "../board.h"
+#include "../../assert.h"
 #include "../../arm/nvic.h"
 #include "../../io.h"
 #include "../../util.h"
 #include "../../vector.h"
 
-// TODO: Update to use peripherals struct
-
-#define TIM10_BASE 0x40014400
-#define TIM11_BASE 0x40014800
-
-#define TIM10_IRQ 25
-#define TIM11_IRQ 26
+#include <stddef.h>
 
 struct tim10x {
     uint32_t control;            // CR1
@@ -41,43 +37,45 @@ struct tim10x {
 
 #define TIM1X_EGR_UG    BIT(0)
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static volatile struct tim10x *const tim10 = (void*)TIM10_BASE;
-static volatile struct tim10x *const tim11 = (void *)TIM11_BASE;
-#pragma GCC diagnostic pop
-
-// TODO: Should be a variable and should be used in board.c
-#define INPUT_CLK MHz(16)
-
-static volatile bool in_sleep = false;
+static volatile bool s_in_sleep = false;
+static volatile struct tim10x *s_sleep_timer = NULL;
 
 static void tim10_isr(void) {
-    tim10->status = 0;
-    in_sleep = false;
+    s_sleep_timer->status = 0;
+    s_in_sleep = false;
 }
 
-void stm32f411xce_timer_sleep_init() {
-    tim10->int_enable = TIM1X_DIER_UE;
+void stm32f411xce_timer_sleep_init(struct peripheral *timer_periph) {
+    if (s_sleep_timer) {
+        // Disable old timer if set
+        s_sleep_timer->control = 0;
+        // TODO: Disable old timer clock in RCC
+    }
 
-    tim10->prescaler = board_get_sysclock_MHz() / 1000;  // 1 ms per count
-    tim10->auto_reload = 1000; // 1 second
-    tim10->control = TIM1X_CR1_OPM | TIM1X_CR1_URS;
+    // Replace sleep timer with the one passed
+    rcc_enable_clock(timer_periph, true);
+    s_sleep_timer = timer_periph->base;
 
-    tim10->event_gen = TIM1X_EGR_UG;
-    tim10->status  = 0;
+    s_sleep_timer->int_enable = TIM1X_DIER_UE;
 
-    vector_set_isr_for(TIM10_IRQ, tim10_isr);
-    nvic_enable_irq(TIM10_IRQ);
+    s_sleep_timer->prescaler = board_get_sysclock_MHz() / 1000;  // 1 ms per count
+    s_sleep_timer->auto_reload = 1000; // 1 second
+    s_sleep_timer->control = TIM1X_CR1_OPM | TIM1X_CR1_URS;
+
+    s_sleep_timer->event_gen = TIM1X_EGR_UG;
+    s_sleep_timer->status  = 0;
+
+    vector_set_isr_for(timer_periph->irqs[0], tim10_isr);
+    nvic_enable_irq(timer_periph->irqs[0]);
 }
 
 // TODO: Adjust the reload value instead
 void sleep(unsigned seconds) {
     while (seconds--) {
-        in_sleep = true;
-        tim10->control |= TIM1X_CR1_CEN;
+        s_in_sleep = true;
+        s_sleep_timer->control |= TIM1X_CR1_CEN;
         do {
             __asm("wfi");
-        } while (in_sleep);
+        } while (s_in_sleep);
     }
 }
