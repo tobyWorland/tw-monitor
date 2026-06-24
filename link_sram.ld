@@ -1,16 +1,17 @@
 
-sram_start = 0x20000000;
-sram_size  = 128k;
-sram_end   = sram_start + sram_size;
-
 stack_size = 4k;
+
+MEMORY {
+    sram  (wx) : ORIGIN = 0x20000000, LENGTH = 128k
+}
 
 ENTRY(startup_entry);
 
 SECTIONS {
-    . = sram_start;
+    sram_start = ORIGIN(sram);
 
-    .vect : {
+    . = sram_start;
+    .vect : ALIGN(128) {
         *(.vect);
     }
 
@@ -39,7 +40,7 @@ SECTIONS {
     user_start = .;
 
     /* Stack */
-    stack_initial_top = sram_end;
+    stack_initial_top = ORIGIN(sram) + LENGTH(sram);
     . = stack_initial_top - stack_size;
     stack_ceiling = ALIGN(8);
     /* Align to 8 so it can be used to place the memory_entry below
