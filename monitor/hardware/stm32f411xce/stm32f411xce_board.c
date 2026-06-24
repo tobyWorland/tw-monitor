@@ -10,6 +10,8 @@
 bool g_board_inited = false;
 
 void board_init(void) {
+    rcc_disable_all_clocks();
+
     rcc_enable_clock(&g_periph_gpio_a, true);
     rcc_enable_clock(&g_periph_gpio_b, true);
     rcc_enable_clock(&g_periph_usart1, true);

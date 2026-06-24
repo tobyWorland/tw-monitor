@@ -34,6 +34,13 @@ static volatile uint32_t *rcc_get_bus_enable_reg(enum periph_bus bus) {
     return ptr;
 }
 
+void rcc_disable_all_clocks(void) {
+    *(volatile uint32_t*)(RCC_AHB1_ENR) = 0;
+    *(volatile uint32_t*)(RCC_AHB2_ENR) = 0;
+    *(volatile uint32_t*)(RCC_APB1_ENR) = 0;
+    *(volatile uint32_t*)(RCC_APB2_ENR) = 0;
+}
+
 void rcc_enable_clock(struct peripheral *periph, bool enable) {
     volatile uint32_t *enable_register = rcc_get_bus_enable_reg(periph->rcc.bus);
 

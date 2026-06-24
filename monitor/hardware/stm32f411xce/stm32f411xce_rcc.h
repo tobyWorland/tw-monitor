@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 
+void rcc_disable_all_clocks(void);
 void rcc_enable_clock(struct peripheral *periph, bool enable);
 
 #endif
