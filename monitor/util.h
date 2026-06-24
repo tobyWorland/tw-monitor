@@ -7,6 +7,8 @@
 #define OFFSET_OF(STRUCT, FIELD) ((unsigned)&((STRUCT*)NULL)->FIELD)
 #define __BKPT(IMM)              __asm("bkpt " #IMM)
 
+#define MHz(X)                   ((X) * 1000000UL)
+
 struct size {
     unsigned width;
     unsigned height;

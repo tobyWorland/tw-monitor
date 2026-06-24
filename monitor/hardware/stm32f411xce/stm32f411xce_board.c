@@ -5,6 +5,8 @@
 #include "stm32f411xce_rcc.h"
 #include "stm32f411xce_usart.h"
 
+#include "../../util.h"
+
 bool g_board_inited = false;
 
 void board_init(void) {
@@ -26,4 +28,11 @@ void board_init(void) {
     usart_enable(&g_periph_usart2, true);
 
     g_board_inited = true;
+}
+
+unsigned board_get_sysclock_MHz(void) {
+    // TODO: Should be pulled from RCC and be based on whatever is driving the sysclk
+
+    // Default sysclk is RC oscillator @ 16MHz
+    return MHz(16);
 }

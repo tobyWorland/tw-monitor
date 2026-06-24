@@ -7,4 +7,6 @@ extern bool g_board_inited;
 
 void board_init(void);
 
+unsigned board_get_sysclock_MHz(void);
+
 #endif

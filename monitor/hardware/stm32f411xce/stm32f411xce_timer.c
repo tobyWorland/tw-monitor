@@ -47,8 +47,7 @@ static volatile struct tim10x *const tim10 = (void*)TIM10_BASE;
 static volatile struct tim10x *const tim11 = (void *)TIM11_BASE;
 #pragma GCC diagnostic pop
 
-// TODO: Should be a variable and should be used in hardware.s
-#define MHz(x) (x * 1000000UL)
+// TODO: Should be a variable and should be used in board.c
 #define INPUT_CLK MHz(16)
 
 static volatile bool in_sleep = false;
@@ -61,7 +60,7 @@ static void tim10_isr(void) {
 void stm32f411xce_timer_sleep_init() {
     tim10->int_enable = TIM1X_DIER_UE;
 
-    tim10->prescaler = INPUT_CLK / 1000;  // 1 ms per count
+    tim10->prescaler = board_get_sysclock_MHz() / 1000;  // 1 ms per count
     tim10->auto_reload = 1000; // 1 second
     tim10->control = TIM1X_CR1_OPM | TIM1X_CR1_URS;
 
