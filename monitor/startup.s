@@ -16,12 +16,19 @@ startup_entry:
 .ifdef STARTUP_FROM_SRAM
         // Setup stack
         bl      reset_stack
-
-        // Set VTOR to vector table in ram
-        ldr     r0,     =vector_table
-        ldr     r1,     =SCB_VTOR
-        str     r0,     [r1]
 .else
+        // Copy .vect if started from flash
+        ldr     r0,     =vect_lma_start
+        ldr     r1,     =vect_vma_start
+        ldr     r2,     =vect_size_words
+1:
+        cbz     r2,     2f
+        ldr     r3,     [r0],   4
+        str     r3,     [r1],   4
+        subs    r2,     1
+        b       1b
+2:
+
         // Copy .data if started from flash
         ldr     r0,     =data_lma_start
         ldr     r1,     =data_vma_start
@@ -34,6 +41,10 @@ startup_entry:
         b       1b
 2:
 .endif
+        // Set VTOR to vector table in ram
+        ldr     r0,     =vector_table
+        ldr     r1,     =SCB_VTOR
+        str     r0,     [r1]
 
         // Clear .bss
         ldr     r0,     =bss_vma_start

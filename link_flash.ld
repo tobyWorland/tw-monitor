@@ -14,10 +14,18 @@ SECTIONS {
     sram_start = ORIGIN(sram);
 
     .vect : ALIGN(128) {
+        vect_vma_start = .;
         *(.vect);
-    } >boot AT>flash
+        . = ALIGN(4); /* Ensure the size of .vect is in words for copy code */
+        vect_vma_end = .;
+    } >sram AT>flash
+    /* This must be outside the section */
+    vect_size_words = (vect_vma_end - vect_vma_start) / 4;
+    vect_lma_start = LOADADDR(.vect);
 
-    .text : {
+    . = ORIGIN(BOOT) + SIZEOF(.vect);
+
+    .text . : {
         *(.text);
         *(.rodata*);
     } >boot AT>flash
