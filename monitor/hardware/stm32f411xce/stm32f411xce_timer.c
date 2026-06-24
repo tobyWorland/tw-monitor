@@ -1,6 +1,7 @@
 #include "stm32f411xce_timer.h"
 
-#include "../../assert.h"
+#include "../board.h"
+#include "../../arm/nvic.h"
 #include "../../io.h"
 #include "../../util.h"
 #include "../../vector.h"
@@ -57,13 +58,6 @@ static void tim10_isr(void) {
     in_sleep = false;
 }
 
-// TW: Put somewhere else
-static void enable_irq(unsigned irq) {
-    assert(irq < 32); // TODO: Support all IRQs
-    volatile uint32_t *NVIC_ISER0 = (void*)0xE000E100;
-    *NVIC_ISER0 |= (1U << irq);
-}
-
 void stm32f411xce_timer_sleep_init() {
     tim10->int_enable = TIM1X_DIER_UE;
 
@@ -75,7 +69,7 @@ void stm32f411xce_timer_sleep_init() {
     tim10->status  = 0;
 
     vector_set_isr_for(TIM10_IRQ, tim10_isr);
-    enable_irq(TIM10_IRQ);
+    nvic_enable_irq(TIM10_IRQ);
 }
 
 // TODO: Adjust the reload value instead
