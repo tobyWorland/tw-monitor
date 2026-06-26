@@ -4,7 +4,7 @@
 
 [Video Demo](https://www.youtube.com/watch?v=LVVa_f7M40M)
 
-An on-chip stepping debugger, with support for assmebling instructions
+An on-chip stepping debugger, with support for assembling instructions
 and modifying memory interactivity over the UART. Similar to those found
 on vintage home computers.
 
@@ -15,7 +15,7 @@ available on some ARM cores.
 * Unit test code is written in C and C++ with googletest
 
 NOTE: Currently only a subset of the instruction set is supported for
-assmebling and disassembling.
+assembling and disassembling.
 
 ## Supported targets (so far)
 * [NUCLEO-F411RE](https://www.st.com/en/evaluation-tools/nucleo-f411re.html)
@@ -41,7 +41,7 @@ assmebling and disassembling.
 2. Disconnect your debugger and reset, you will need to cut power.
 3. If the serial terminal reports "Halting debug? YES" try step 3 again.
 
-"Halting debug" means the hardware debugger is connected. The hardware debugger will akways take priority over the debug monitor exception on debug events.
+"Halting debug" means the hardware debugger is connected. The hardware debugger will always take priority over the debug monitor exception on debug events.
 
 ## Build Everything
 

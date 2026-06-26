@@ -42,7 +42,7 @@ void breakpoint() { // TOOD: Remove
           "bx lr");
 }
 
-void monitor_main(bool surpress_init) {
+void monitor_main(bool suppress_init) {
     static const struct menu_option options[] = {
         {'a',       "Assemble"              },
         {'c',       "Call Address"          },
@@ -58,7 +58,7 @@ void monitor_main(bool surpress_init) {
     };
     static uint32_t addr = 0;
 
-    if (!surpress_init) {
+    if (!suppress_init) {
         terminal_clearscreen();
 
         memory_init();
