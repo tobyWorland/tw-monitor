@@ -53,8 +53,11 @@ static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
     return entry->next;
 }
 
-static struct memory_entry *create_memory_entry() {
-    struct memory_entry *result = s_last_memory_entry - 1;
+static struct memory_entry *create_memory_entry(unsigned extra_size) {
+    unsigned extra_size_in_memory_entries = extra_size / sizeof(struct memory_entry);
+    extra_size_in_memory_entries += !!(extra_size % sizeof(struct memory_entry));
+
+    struct memory_entry *result = s_last_memory_entry - 1 - extra_size_in_memory_entries;
 
     s_last_memory_entry->next = result;
     s_last_memory_entry = result;
@@ -66,7 +69,7 @@ void memory_init(void) {
     // Add +1 to create the new memory entry at the first memory entry position
     s_last_memory_entry = get_first_memory_entry() + 1;
 
-    struct memory_entry *entry = create_memory_entry();
+    struct memory_entry *entry = create_memory_entry(0);
     *entry = (struct memory_entry) {
         .type = ET_SECTION,
         .addr = &user_start,
@@ -89,7 +92,7 @@ bool memory_create_label(const char *name, unsigned name_len, void *ptr,
     }
 
     // Create new_label
-    struct memory_entry *new_label = create_memory_entry();
+    struct memory_entry *new_label = create_memory_entry(0);
     *new_label = (struct memory_entry) {
         .type = is_code ? ET_LABEL_CODE : ET_LABEL_DATA,
         .addr = ptr,
