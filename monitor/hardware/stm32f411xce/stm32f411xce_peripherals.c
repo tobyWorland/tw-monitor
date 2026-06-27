@@ -18,24 +18,24 @@ struct peripheral g_periph_gpio_b = {
     }
 };
 
-// TODO: IRQ
 struct peripheral g_periph_usart1 = {
     .name = "USART1",
     .base = (void*)0x40011000,
     .rcc = {
         .bus = PERIPH_BUS_APB2,
         .rcc_index = 4,
-    }
+    },
+    .irqs = {37}
 };
 
-// TODO: IRQ
 struct peripheral g_periph_usart2 = {
     .name = "USART2",
     .base = (void*)0x40004400,
     .rcc = {
         .bus = PERIPH_BUS_APB1,
         .rcc_index = 17,
-    }
+    },
+    .irqs = {38}
 };
 
 struct peripheral g_periph_tim10 = {
