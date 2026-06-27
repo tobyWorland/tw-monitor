@@ -1,5 +1,7 @@
 #include "stm32f411xce_peripherals.h"
 
+#include <stddef.h>
+
 struct peripheral g_periph_gpio_a = {
     .name = "GPIO_A",
     .base = (void*)0x40020000,
@@ -57,3 +59,16 @@ struct peripheral g_periph_tim11 = {
     },
     .irqs = {26}
 };
+
+struct peripheral *peripheral_usart_periph_from_irq(unsigned irq) {
+    // USART2 is first as it's more likely to be used
+    if (g_periph_usart2.irqs[0] == irq) {
+        return &g_periph_usart2;
+    }
+
+    if (g_periph_usart1.irqs[0] == irq) {
+        return &g_periph_usart1;
+    }
+
+    return NULL;
+}
