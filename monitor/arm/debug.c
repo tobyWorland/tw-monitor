@@ -42,6 +42,10 @@ void arm_enable_debug_stepping(bool on) {
     }
 }
 
+void arm_pend_debug_monitor(void) {
+    *DEMCR |= DEMCR_MON_PEND;
+}
+
 const struct menu_option debug_options[] = {
     {'s', "Step"                    },
     {'z', "Skip Instruction"        },
