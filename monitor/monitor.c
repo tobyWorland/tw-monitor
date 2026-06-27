@@ -3,6 +3,7 @@
 #include "arm/debug.h"
 #include "arm/scb.h"
 #include "char.h"
+#include "hardware/board.h"
 #include "io.h"
 #include "menu.h"
 #include "memory.h"
@@ -83,6 +84,9 @@ void monitor_main(bool suppress_init) {
         }
         arm_enable_debug_monitor();
     }
+
+    // Ensure debug break to not accidentally enter debugger outside of calling or stepping
+    board_enable_debug_user_break(false);
 
 #if 0
     while (1) {

@@ -9,4 +9,6 @@ void board_init(void);
 
 unsigned board_get_sysclock_MHz(void);
 
+void board_enable_debug_user_break(bool enable);
+
 #endif

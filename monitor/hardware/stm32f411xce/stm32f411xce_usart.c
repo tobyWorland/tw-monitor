@@ -28,8 +28,9 @@ struct usart {
 #define USART_CR1_RE     BIT(2)
 
 // TODO: Rework
-static char usart2_byte = 0;
+static char s_usart2_byte = 0;
 static bool s_usart2_enable_break = false;
+static bool s_usart2_poll = true;
 
 static struct usart *usart_from_irq(unsigned irq) {
     struct peripheral *usart_periph = peripheral_usart_periph_from_irq(irq);
@@ -54,8 +55,8 @@ static void _usart_isr() {
             }
         }
 
-        if (!usart2_byte) {
-            usart2_byte = b;
+        if (!s_usart2_byte) {
+            s_usart2_byte = b;
         }
     }
 }
@@ -89,10 +90,12 @@ void usart_enable(struct peripheral *usart_periph, bool enable) {
 
     // Set ISR
     vector_set_isr_for(usart_periph->irqs[0], _usart_isr);
-    nvic_enable_irq(usart_periph->irqs[0]);
 
-    // Enable interrupt for RX not empty
-    usart->control1 |= USART_CR1_RXNEIE;
+    // TODO: Temp should support all usarts
+    if (usart_periph == &g_periph_usart2) {
+        // Set polling off, to enable interrupts
+        usart_set_polling(usart_periph, false);
+    }
 
     // Enable TX and RX
     usart->control1 |= USART_CR1_TE | USART_CR1_RE;
@@ -111,11 +114,12 @@ void usart_putbyte(struct peripheral *usart_periph, uint8_t b) {
 uint8_t usart_getbyte(struct peripheral *usart_periph) {
     volatile struct usart *usart = usart_periph->base;
 
-    if (usart_periph == &g_periph_usart2) {
+    // TODO: Temp - should rework to support all usarts
+    if (usart_periph == &g_periph_usart2 && !s_usart2_poll) {
         do {
-            if (usart2_byte) {
-                uint8_t b = usart2_byte;
-                usart2_byte = 0;
+            if (s_usart2_byte) {
+                uint8_t b = s_usart2_byte;
+                s_usart2_byte = 0;
                 return b;
             }
             __WFI();
@@ -132,6 +136,39 @@ uint8_t usart_getbyte(struct peripheral *usart_periph) {
 void usart_enable_debug_break(struct peripheral *usart_periph, bool enable_break) {
     assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
     s_usart2_enable_break = enable_break;
+}
+
+bool usart_get_polling(struct peripheral *usart_periph) {
+    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
+    return s_usart2_poll;
+}
+
+void usart_set_polling(struct peripheral *usart_periph, bool should_poll) {
+    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
+
+    struct usart *usart = usart_periph->base;
+
+    s_usart2_poll = should_poll;
+
+    if (s_usart2_poll) {
+        // Disable to prevent IRQ from becoming active
+        nvic_disable_irq(usart_periph->irqs[0]);
+
+        // Disable interrupt for RX not empty
+        usart->control1 &= ~USART_CR1_RXNEIE;
+
+        // Clear pending
+        nvic_clear_irq(usart_periph->irqs[0]);
+    } else {
+        // Clear buffer before enabling IRQ
+        s_usart2_byte = 0;
+
+        // Enable IRQ
+        nvic_enable_irq(usart_periph->irqs[0]);
+
+        // Enable interrupt for RX not empty
+        usart->control1 |= USART_CR1_RXNEIE;
+    }
 }
 
 // FIXME: Temporary

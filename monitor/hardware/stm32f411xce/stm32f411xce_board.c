@@ -42,3 +42,7 @@ unsigned board_get_sysclock_MHz(void) {
     // Default sysclk is RC oscillator @ 16MHz
     return MHz(16);
 }
+
+void board_enable_debug_user_break(bool enable) {
+    usart_enable_debug_break(&g_periph_usart2, enable);
+}

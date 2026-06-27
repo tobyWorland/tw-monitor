@@ -3,6 +3,7 @@
 #include "../arm/arm.h"
 #include "../arm/debug.h"
 #include "../assert.h"
+#include "../hardware/board.h"
 #include "../menu.h"
 
 #ifndef HOST
@@ -21,6 +22,8 @@ void monitor_call_function(void (*fn)(), bool step) {
         }
     }
 
+    board_enable_debug_user_break(true);
+
     // Do call
     if (step) {
         if (!arm_halting_debug_active()) {
@@ -31,5 +34,7 @@ void monitor_call_function(void (*fn)(), bool step) {
         }
     }
     fn();
+
+    board_enable_debug_user_break(false);
 }
 #endif
