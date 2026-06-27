@@ -41,7 +41,7 @@ struct memory_entry {
     };
 };
 
-static struct memory_entry *s_next_free_memory_entry = NULL;
+static struct memory_entry *s_last_memory_entry = NULL;
 
 static struct memory_entry *get_first_memory_entry(void) {
     void *ptr = &stack_ceiling;
@@ -51,7 +51,7 @@ static struct memory_entry *get_first_memory_entry(void) {
 static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
     entry--;
 
-    if (entry == s_next_free_memory_entry) {
+    if (entry == s_last_memory_entry-1) {
         return NULL;
     } else {
         return entry;
@@ -59,13 +59,13 @@ static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
 }
 
 static struct memory_entry *create_memory_entry() {
-    struct memory_entry *result = s_next_free_memory_entry;
-    s_next_free_memory_entry = result - 1;
+    struct memory_entry *result = --s_last_memory_entry;
     return result;
 }
 
 void memory_init(void) {
-    s_next_free_memory_entry = get_first_memory_entry();
+    // Add +1 to create the new memory entry at the first memory entry position
+    s_last_memory_entry = get_first_memory_entry() + 1;
 
     struct memory_entry *entry = create_memory_entry();
     *entry = (struct memory_entry) {
