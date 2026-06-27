@@ -8,6 +8,7 @@
 void usart_enable(struct peripheral *usart_periph, bool enable);
 void usart_putbyte(struct peripheral *usart_periph, uint8_t b);
 uint8_t usart_getbyte(struct peripheral *usart_periph);
+void usart_enable_debug_break(struct peripheral *usart_periph, bool enable_break);
 
 // TODO: Temporary
 void usart2_putchar(char c);

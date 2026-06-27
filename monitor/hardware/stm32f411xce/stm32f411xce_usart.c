@@ -1,6 +1,8 @@
 #include "stm32f411xce_usart.h"
 
 #include "../../assert.h"
+#include "../../char.h"
+#include "../../arm/debug.h"
 #include "../../arm/nvic.h"
 #include "../../vector.h"
 #include "../../util.h"
@@ -27,6 +29,7 @@ struct usart {
 
 // TODO: Rework
 static char usart2_byte = 0;
+static bool s_usart2_enable_break = false;
 
 static struct usart *usart_from_irq(unsigned irq) {
     struct peripheral *usart_periph = peripheral_usart_periph_from_irq(irq);
@@ -42,6 +45,15 @@ static void _usart_isr() {
 
     if (usart == g_periph_usart2.base && usart->status & USART_SR_RXNE) {
         char b = usart->data_reg;
+
+        if (s_usart2_enable_break) {
+            if (b == CTRL('c')) {
+                usart2_putstring("***USER DEBUG BREAK***\r\n");
+                arm_pend_debug_monitor();
+                return;
+            }
+        }
+
         if (!usart2_byte) {
             usart2_byte = b;
         }
@@ -115,6 +127,11 @@ uint8_t usart_getbyte(struct peripheral *usart_periph) {
 
     // Read byte from data register
     return usart->data_reg;
+}
+
+void usart_enable_debug_break(struct peripheral *usart_periph, bool enable_break) {
+    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
+    s_usart2_enable_break = enable_break;
 }
 
 // FIXME: Temporary
