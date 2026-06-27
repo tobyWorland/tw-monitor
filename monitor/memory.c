@@ -28,6 +28,7 @@ enum entry_type {
 
 struct memory_entry {
     enum entry_type type;
+    struct memory_entry *next;
     void *addr;
     union {
         struct {
@@ -49,17 +50,15 @@ static struct memory_entry *get_first_memory_entry(void) {
 }
 
 static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
-    entry--;
-
-    if (entry == s_last_memory_entry-1) {
-        return NULL;
-    } else {
-        return entry;
-    }
+    return entry->next;
 }
 
 static struct memory_entry *create_memory_entry() {
-    struct memory_entry *result = --s_last_memory_entry;
+    struct memory_entry *result = s_last_memory_entry - 1;
+
+    s_last_memory_entry->next = result;
+    s_last_memory_entry = result;
+
     return result;
 }
 
