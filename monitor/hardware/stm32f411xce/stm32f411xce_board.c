@@ -6,7 +6,7 @@
 #include "stm32f411xce_timer.h"
 #include "stm32f411xce_usart.h"
 #include "../../arm/nvic.h"
-
+#include "../../memory.h"
 #include "../../util.h"
 
 bool g_board_inited = false;
@@ -14,6 +14,9 @@ bool g_board_inited = false;
 void board_init(void) {
     nvic_disable_all_irqs();
     rcc_disable_all_clocks();
+
+    // Some drivers may dynamically allocate
+    memory_init();
 
     rcc_enable_clock(&g_periph_gpio_a, true);
     rcc_enable_clock(&g_periph_gpio_b, true);

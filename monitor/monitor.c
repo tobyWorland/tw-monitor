@@ -62,8 +62,6 @@ void monitor_main(bool suppress_init) {
     if (!suppress_init) {
         terminal_clearscreen();
 
-        memory_init();
-
         putstring("** Monitor ready **\r\n");
         putstring("hidden address: ");
         puthexword((uint32_t)hidden | 1); // | 1 for the interwork bit
