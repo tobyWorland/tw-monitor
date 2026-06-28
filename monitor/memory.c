@@ -40,6 +40,10 @@ struct memory_entry {
             // NOTE: name is **NOT** null terminated
             char name[MAX_NAME_LEN];
         } label;
+        struct {
+            bool is_allocated;
+            unsigned size;
+        } alloc;
     };
 };
 
@@ -219,7 +223,9 @@ void memory_print_entries(void) {
                 putnewline();
             }
         } else if (memory_entry_is_allocation(current)) {
-            io_printf("S_ALLOC @ %x\r\n", current->addr);
+            io_printf("S_ALLOC @ %x ALLOCATED %s SIZE %u\r\n",
+                      current->addr, (current->alloc.is_allocated ? "USED" : "FREE"),
+                      current->alloc.size);
         } else {
             io_printf("UNKNWN  @ %x\r\n", current->addr);
         }
@@ -247,6 +253,7 @@ unsigned memory_get_section_size(struct memory_entry *section_entry) {
 }
 
 void *memory_sys_alloc(unsigned size) {
+    struct memory_entry *original_last = s_last_memory_entry;
     struct memory_entry *new_alloc = create_memory_entry(size);
 
     *new_alloc = (struct memory_entry) {
@@ -254,6 +261,10 @@ void *memory_sys_alloc(unsigned size) {
 
         // Address after struct which is the extra size reserved with create_memory_entry
         .addr = new_alloc + 1,
+        .alloc = {
+            .is_allocated = true,
+            .size = (intptr_t)original_last - (intptr_t)(new_alloc + 1),
+        }
     };
 
     return new_alloc->addr;
