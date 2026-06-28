@@ -69,6 +69,7 @@ static void intqueue_init(struct usart_driver_state *driver_state) {
 static void intqueue_free(struct usart_driver_state *driver_state) {
     char *buffer = driver_state->intqueue.buffer;
     if (buffer) {
+        driver_state->intqueue.buffer = NULL;
         memory_sys_free(buffer);
     }
 }
@@ -116,12 +117,10 @@ static void _usart_isr(void) {
     if (usart->status & USART_SR_RXNE) {
         char b = usart->data_reg;
 
-        if (driver_state->enable_break) {
-            if (b == CTRL('c')) {
-                usart2_putstring("***USER DEBUG BREAK***\r\n");
-                arm_pend_debug_monitor();
-                return;
-            }
+        if (driver_state->enable_break && b == CTRL('c')) {
+            usart2_putstring("***USER DEBUG BREAK***\r\n");
+            arm_pend_debug_monitor();
+            return;
         }
 
         intqueue_put_from_isr(driver_state, b);

@@ -83,7 +83,7 @@ void monitor_main(bool suppress_init) {
         arm_enable_debug_monitor();
     }
 
-    // Ensure debug break to not accidentally enter debugger outside of calling or stepping
+    // Ensure debug break is disabled to not accidentally enter debugger outside of calling or stepping
     board_enable_debug_user_break(false);
 
 #if 0
