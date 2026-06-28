@@ -24,6 +24,7 @@ enum entry_type {
     ET_SECTION,
     ET_LABEL_CODE,
     ET_LABEL_DATA,
+    ET_SYS_DYN_ALLOC,
 };
 
 struct memory_entry {
@@ -128,6 +129,10 @@ bool memory_entry_is_section(struct memory_entry *memory_entry) {
     return memory_entry->type == ET_SECTION;
 }
 
+bool memory_entry_is_allocation(struct memory_entry *memory_entry) {
+    return memory_entry->type == ET_SYS_DYN_ALLOC;
+}
+
 struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
     struct memory_entry *current = get_first_memory_entry();
 
@@ -213,6 +218,10 @@ void memory_print_entries(void) {
                 putnstring(current->label.name, current->label.name_len);
                 putnewline();
             }
+        } else if (memory_entry_is_allocation(current)) {
+            io_printf("S_ALLOC @ %x\r\n", current->addr);
+        } else {
+            io_printf("UNKNWN  @ %x\r\n", current->addr);
         }
     }
 }
@@ -235,6 +244,23 @@ void *memory_get_section_address(struct memory_entry *section_entry) {
 unsigned memory_get_section_size(struct memory_entry *section_entry) {
     assert(memory_entry_is_section(section_entry));
     return section_entry->section.size;
+}
+
+void *memory_sys_alloc(unsigned size) {
+    struct memory_entry *new_alloc = create_memory_entry(size);
+
+    *new_alloc = (struct memory_entry) {
+        .type = ET_SYS_DYN_ALLOC,
+
+        // Address after struct which is the extra size reserved with create_memory_entry
+        .addr = new_alloc + 1,
+    };
+
+    return new_alloc->addr;
+}
+
+void memory_sys_free(void *ptr) {
+    // TODO: Implement
 }
 
 #endif
