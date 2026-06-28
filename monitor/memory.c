@@ -252,26 +252,65 @@ unsigned memory_get_section_size(struct memory_entry *section_entry) {
     return section_entry->section.size;
 }
 
-void *memory_sys_alloc(unsigned size) {
-    struct memory_entry *original_last = s_last_memory_entry;
-    struct memory_entry *new_alloc = create_memory_entry(size);
+// TODO: Cache the last free allocations?
+static struct memory_entry *find_free_allocation(unsigned size) {
+    struct memory_entry *current = get_first_memory_entry();
 
-    *new_alloc = (struct memory_entry) {
-        .type = ET_SYS_DYN_ALLOC,
-
-        // Address after struct which is the extra size reserved with create_memory_entry
-        .addr = new_alloc + 1,
-        .alloc = {
-            .is_allocated = true,
-            .size = (intptr_t)original_last - (intptr_t)(new_alloc + 1),
+    for (; current; current = get_next_memory_entry(current)) {
+        if (!memory_entry_is_allocation(current) || current->alloc.is_allocated) {
+            continue;
         }
-    };
 
-    return new_alloc->addr;
+        if (current->alloc.size >= size) {
+            return current;
+        }
+    }
+
+    return NULL;
 }
 
+void *memory_sys_alloc(unsigned size) {
+    struct memory_entry *new_alloc = find_free_allocation(size);
+
+    if (new_alloc) {
+        // Found a free allocation big enough
+        new_alloc->alloc.is_allocated = true;
+        return new_alloc->addr;
+    } else {
+        // No free allocation is available, create a new entry
+        const struct memory_entry *original_last = s_last_memory_entry;
+        new_alloc = create_memory_entry(size);
+
+        // Address after struct which is the extra size reserved with create_memory_entry
+        void *addr = new_alloc + 1;
+
+        // Calculate actual size as size passed is the minimum needed
+        unsigned actual_size = (intptr_t)original_last - (intptr_t)addr;
+
+        *new_alloc = (struct memory_entry) {
+            .type = ET_SYS_DYN_ALLOC,
+            .addr = addr,
+            .alloc = {
+                .is_allocated = true,
+                .size = actual_size,
+            }
+        };
+
+        return new_alloc->addr;
+    }
+}
+
+// Ptr must be the one returned form memory_sys_alloc
 void memory_sys_free(void *ptr) {
-    // TODO: Implement
+    struct memory_entry *alloc_entry = ptr;
+    alloc_entry--; // memory_entry is directly before the pointer
+
+    assert(alloc_entry->type == ET_SYS_DYN_ALLOC);
+    assert(alloc_entry->alloc.is_allocated);
+
+    alloc_entry->alloc.is_allocated = false;
+
+    // TODO: Delete entry if at the end, or consolidate with another free entry
 }
 
 #endif
