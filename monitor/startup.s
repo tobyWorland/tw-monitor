@@ -259,6 +259,22 @@ print_registers:
 2:
         pop     {r4, r5, pc}
 
+        .global get_active_exception
+        .type   get_active_exception, %function
+get_active_exception:
+        mrs     r0,     IPSR
+        bx      lr
+
+        .global get_active_irq
+        .type   get_active_irq, %function
+get_active_irq:
+        mrs     r0,     IPSR
+        cmp     r0,     16 // 16 is IRQ0
+        ite     lt
+        movlt   r0,     0
+        subge   r0,     16
+        bx      lr
+
         .section ".rodata", "a"
 str_hardfault:  .asciz "\r\n\r\n***HARDFAULT***\r\n"
 str_exc_return: .asciz "EXC_RET "

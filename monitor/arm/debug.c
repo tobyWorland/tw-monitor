@@ -1,6 +1,8 @@
 #include "debug.h"
 
 #include "arm.h"
+#include "../hardware/stm32f411xce/stm32f411xce_peripherals.h"
+#include "../hardware/stm32f411xce/stm32f411xce_usart.h"
 #include "../terminal.h"
 #include "../thumb_asm.h"
 #include "../util.h"
@@ -40,6 +42,10 @@ void arm_enable_debug_stepping(bool on) {
     } else {
         *DEMCR &= ~DEMCR_MON_STEP;
     }
+}
+
+void arm_pend_debug_monitor(void) {
+    *DEMCR |= DEMCR_MON_PEND;
 }
 
 const struct menu_option debug_options[] = {
@@ -83,6 +89,13 @@ void *debug_monitor(void *pc) {
         }
     }
 
+    // TODO: Make more generic (not specific to USART2)
+    bool usart_poll = usart_get_polling(&g_periph_usart2);
+    if (!usart_poll) {
+        // Interrupts for USART won't work in debug monitor - temporary disable
+        usart_set_polling(&g_periph_usart2, true);
+    }
+
     while (!exit) {
         exit = true;
         putstring("**DEBUG**\r\n");
@@ -122,6 +135,12 @@ void *debug_monitor(void *pc) {
     }
 
     arm_enable_debug_stepping(step);
+
+    // TODO: Make more generic (not specific to USART2)
+    if (!usart_poll) {
+        // Re-enable USART2 interrupt
+        usart_set_polling(&g_periph_usart2, false);
+    }
 
 #if 0
     putstring("New PC: ");

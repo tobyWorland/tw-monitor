@@ -23,7 +23,7 @@ SECTIONS {
     vect_size_words = (vect_vma_end - vect_vma_start) / 4;
     vect_lma_start = LOADADDR(.vect);
 
-    . = ORIGIN(BOOT) + SIZEOF(.vect);
+    . = ORIGIN(boot) + SIZEOF(.vect);
 
     .text . : {
         *(.text);

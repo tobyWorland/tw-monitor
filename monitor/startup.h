@@ -3,6 +3,9 @@
 
 void print_registers(void);
 
+unsigned get_active_exception(void);
+unsigned get_active_irq(void);
+
 // TODO: Remove and implement a proper exit
 __attribute__((noreturn))
 void exit_to_monitor(void);

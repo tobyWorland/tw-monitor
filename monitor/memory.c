@@ -24,10 +24,12 @@ enum entry_type {
     ET_SECTION,
     ET_LABEL_CODE,
     ET_LABEL_DATA,
+    ET_SYS_DYN_ALLOC,
 };
 
 struct memory_entry {
     enum entry_type type;
+    struct memory_entry *next;
     void *addr;
     union {
         struct {
@@ -38,10 +40,14 @@ struct memory_entry {
             // NOTE: name is **NOT** null terminated
             char name[MAX_NAME_LEN];
         } label;
+        struct {
+            bool is_allocated;
+            unsigned size;
+        } alloc;
     };
 };
 
-static struct memory_entry *s_next_free_memory_entry = NULL;
+static struct memory_entry *s_last_memory_entry = NULL;
 
 static struct memory_entry *get_first_memory_entry(void) {
     void *ptr = &stack_ceiling;
@@ -49,25 +55,26 @@ static struct memory_entry *get_first_memory_entry(void) {
 }
 
 static struct memory_entry *get_next_memory_entry(struct memory_entry *entry) {
-    entry--;
-
-    if (entry == s_next_free_memory_entry) {
-        return NULL;
-    } else {
-        return entry;
-    }
+    return entry->next;
 }
 
-static struct memory_entry *create_memory_entry() {
-    struct memory_entry *result = s_next_free_memory_entry;
-    s_next_free_memory_entry = result - 1;
+static struct memory_entry *create_memory_entry(unsigned extra_size) {
+    unsigned extra_size_in_memory_entries = extra_size / sizeof(struct memory_entry);
+    extra_size_in_memory_entries += !!(extra_size % sizeof(struct memory_entry));
+
+    struct memory_entry *result = s_last_memory_entry - 1 - extra_size_in_memory_entries;
+
+    s_last_memory_entry->next = result;
+    s_last_memory_entry = result;
+
     return result;
 }
 
 void memory_init(void) {
-    s_next_free_memory_entry = get_first_memory_entry();
+    // Add +1 to create the new memory entry at the first memory entry position
+    s_last_memory_entry = get_first_memory_entry() + 1;
 
-    struct memory_entry *entry = create_memory_entry();
+    struct memory_entry *entry = create_memory_entry(0);
     *entry = (struct memory_entry) {
         .type = ET_SECTION,
         .addr = &user_start,
@@ -90,7 +97,7 @@ bool memory_create_label(const char *name, unsigned name_len, void *ptr,
     }
 
     // Create new_label
-    struct memory_entry *new_label = create_memory_entry();
+    struct memory_entry *new_label = create_memory_entry(0);
     *new_label = (struct memory_entry) {
         .type = is_code ? ET_LABEL_CODE : ET_LABEL_DATA,
         .addr = ptr,
@@ -124,6 +131,10 @@ bool memory_entry_is_label(struct memory_entry *memory_entry) {
 
 bool memory_entry_is_section(struct memory_entry *memory_entry) {
     return memory_entry->type == ET_SECTION;
+}
+
+bool memory_entry_is_allocation(struct memory_entry *memory_entry) {
+    return memory_entry->type == ET_SYS_DYN_ALLOC;
 }
 
 struct memory_entry *memory_lookup_label(const char* name, unsigned name_len) {
@@ -211,6 +222,12 @@ void memory_print_entries(void) {
                 putnstring(current->label.name, current->label.name_len);
                 putnewline();
             }
+        } else if (memory_entry_is_allocation(current)) {
+            io_printf("S_ALLOC @ %x ALLOCATED %s SIZE %u\r\n",
+                      current->addr, (current->alloc.is_allocated ? "USED" : "FREE"),
+                      current->alloc.size);
+        } else {
+            io_printf("UNKNWN  @ %x\r\n", current->addr);
         }
     }
 }
@@ -233,6 +250,67 @@ void *memory_get_section_address(struct memory_entry *section_entry) {
 unsigned memory_get_section_size(struct memory_entry *section_entry) {
     assert(memory_entry_is_section(section_entry));
     return section_entry->section.size;
+}
+
+// TODO: Cache the last free allocations?
+static struct memory_entry *find_free_allocation(unsigned size) {
+    struct memory_entry *current = get_first_memory_entry();
+
+    for (; current; current = get_next_memory_entry(current)) {
+        if (!memory_entry_is_allocation(current) || current->alloc.is_allocated) {
+            continue;
+        }
+
+        if (current->alloc.size >= size) {
+            return current;
+        }
+    }
+
+    return NULL;
+}
+
+void *memory_sys_alloc(unsigned size) {
+    struct memory_entry *new_alloc = find_free_allocation(size);
+
+    if (new_alloc) {
+        // Found a free allocation big enough
+        new_alloc->alloc.is_allocated = true;
+        return new_alloc->addr;
+    } else {
+        // No free allocation is available, create a new entry
+        const struct memory_entry *original_last = s_last_memory_entry;
+        new_alloc = create_memory_entry(size);
+
+        // Address after struct which is the extra size reserved with create_memory_entry
+        void *addr = new_alloc + 1;
+
+        // Calculate actual size as size passed is the minimum needed
+        unsigned actual_size = (intptr_t)original_last - (intptr_t)addr;
+
+        *new_alloc = (struct memory_entry) {
+            .type = ET_SYS_DYN_ALLOC,
+            .addr = addr,
+            .alloc = {
+                .is_allocated = true,
+                .size = actual_size,
+            }
+        };
+
+        return new_alloc->addr;
+    }
+}
+
+// Ptr must be the one returned form memory_sys_alloc
+void memory_sys_free(void *ptr) {
+    struct memory_entry *alloc_entry = ptr;
+    alloc_entry--; // memory_entry is directly before the pointer
+
+    assert(alloc_entry->type == ET_SYS_DYN_ALLOC);
+    assert(alloc_entry->alloc.is_allocated);
+
+    alloc_entry->alloc.is_allocated = false;
+
+    // TODO: Delete entry if at the end, or consolidate with another free entry
 }
 
 #endif
