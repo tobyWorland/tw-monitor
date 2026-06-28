@@ -158,10 +158,6 @@ void usart_enable(struct peripheral *usart_periph, bool enable) {
     //   thus mantissa = 8, fractional = 0.681 * (2**4) = 10 as integer
     usart->baud_rate_div = 8 << 4 | 10;
 
-    while ((usart->status & USART_SR_RXNE)) {
-        (void)usart->data_reg;
-    }
-
     // Set ISR
     vector_set_isr_for(usart_periph->irqs[0], _usart_isr);
 
