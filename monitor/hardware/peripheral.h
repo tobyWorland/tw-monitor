@@ -22,6 +22,11 @@ struct peripheral {
         int8_t rcc_index : 8;
     } rcc;
     uint8_t irqs[MAX_IRQ_PER_PERIPH];
+
+    // Index of the peripheral for the driver
+    // Starts from 1. 0 is N/A. e.g. USART2 is 2, USART1 is 1, etc
+    // Meant for driver use and has no relevance to the hardware itself.
+    uint8_t driver_idx;
 };
 
 #endif

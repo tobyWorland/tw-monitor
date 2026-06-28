@@ -27,27 +27,34 @@ struct usart {
 #define USART_CR1_TE     BIT(3)
 #define USART_CR1_RE     BIT(2)
 
-// TODO: Rework
-static char s_usart2_byte = 0;
-static bool s_usart2_enable_break = false;
-static bool s_usart2_poll = true;
+struct usart_driver_state {
+    char byte;
+    bool enable_break;
+    bool poll;
+};
+#define USART_DRIVER_STATE_INIT (struct usart_driver_state){ .poll = true }
 
-static struct usart *usart_from_irq(unsigned irq) {
-    struct peripheral *usart_periph = peripheral_usart_periph_from_irq(irq);
-    if (!usart_periph) {
-        return NULL;
-    }
-    return usart_periph->base;
+static struct usart_driver_state s_usart_states[USART_COUNT];
+
+static struct usart_driver_state *get_driver_state(struct peripheral *usart_periph) {
+    assert(usart_periph);
+    assert(usart_periph->driver_idx);
+
+    // Index starts from 1, not 0.
+    return &s_usart_states[usart_periph->driver_idx-1];
 }
 
-static void _usart_isr() {
-    struct usart *usart = usart_from_irq(get_active_irq());
-    assert(usart);
+static void _usart_isr(void) {
+    struct peripheral *usart_periph = peripheral_usart_periph_from_irq(get_active_irq());
+    assert(usart_periph);
 
-    if (usart == g_periph_usart2.base && usart->status & USART_SR_RXNE) {
+    struct usart *usart = usart_periph->base;
+    struct usart_driver_state *driver_state = get_driver_state(usart_periph);
+
+    if (usart->status & USART_SR_RXNE) {
         char b = usart->data_reg;
 
-        if (s_usart2_enable_break) {
+        if (driver_state->enable_break) {
             if (b == CTRL('c')) {
                 usart2_putstring("***USER DEBUG BREAK***\r\n");
                 arm_pend_debug_monitor();
@@ -55,8 +62,8 @@ static void _usart_isr() {
             }
         }
 
-        if (!s_usart2_byte) {
-            s_usart2_byte = b;
+        if (!driver_state->byte) {
+            driver_state->byte = b;
         }
     }
 }
@@ -68,6 +75,9 @@ void usart_enable(struct peripheral *usart_periph, bool enable) {
         usart->control1 = 0;
         return;
     }
+
+    // Initialise driver state
+    *get_driver_state(usart_periph) = USART_DRIVER_STATE_INIT;
 
     // Enable USART
     usart->control1 = USART_CR1_UE;
@@ -91,11 +101,8 @@ void usart_enable(struct peripheral *usart_periph, bool enable) {
     // Set ISR
     vector_set_isr_for(usart_periph->irqs[0], _usart_isr);
 
-    // TODO: Temp should support all usarts
-    if (usart_periph == &g_periph_usart2) {
-        // Set polling off, to enable interrupts
-        usart_set_polling(usart_periph, false);
-    }
+    // Set polling off, to enable interrupts
+    usart_set_polling(usart_periph, false);
 
     // Enable TX and RX
     usart->control1 |= USART_CR1_TE | USART_CR1_RE;
@@ -113,44 +120,46 @@ void usart_putbyte(struct peripheral *usart_periph, uint8_t b) {
 
 uint8_t usart_getbyte(struct peripheral *usart_periph) {
     volatile struct usart *usart = usart_periph->base;
+    struct usart_driver_state *driver_state = get_driver_state(usart_periph);
 
-    // TODO: Temp - should rework to support all usarts
-    if (usart_periph == &g_periph_usart2 && !s_usart2_poll) {
+    if (driver_state->poll) {
+        // Use polling to get a byte
+
+        // Wait for usart to have a byte for us
+        while (!(usart->status & USART_SR_RXNE));
+
+        // Read byte from data register
+        return usart->data_reg;
+    } else {
+        // Use interrupt to get a byte
+
         do {
-            if (s_usart2_byte) {
-                uint8_t b = s_usart2_byte;
-                s_usart2_byte = 0;
+            if (driver_state->byte) {
+                uint8_t b = driver_state->byte;
+                driver_state->byte = 0;
                 return b;
             }
             __WFI();
         } while(1);
     }
-
-    // Wait for usart to have a byte for us
-    while (!(usart->status & USART_SR_RXNE));
-
-    // Read byte from data register
-    return usart->data_reg;
 }
 
 void usart_enable_debug_break(struct peripheral *usart_periph, bool enable_break) {
-    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
-    s_usart2_enable_break = enable_break;
+    get_driver_state(usart_periph)->enable_break = enable_break;
 }
 
 bool usart_get_polling(struct peripheral *usart_periph) {
-    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
-    return s_usart2_poll;
+    return get_driver_state(usart_periph)->poll;
 }
 
 void usart_set_polling(struct peripheral *usart_periph, bool should_poll) {
-    assert(usart_periph == &g_periph_usart2); // TODO: Support all USARTs
+    struct usart_driver_state *driver_state = get_driver_state(usart_periph);
 
     struct usart *usart = usart_periph->base;
 
-    s_usart2_poll = should_poll;
+    driver_state->poll = should_poll;
 
-    if (s_usart2_poll) {
+    if (driver_state->poll) {
         // Disable to prevent IRQ from becoming active
         nvic_disable_irq(usart_periph->irqs[0]);
 
@@ -161,7 +170,7 @@ void usart_set_polling(struct peripheral *usart_periph, bool should_poll) {
         nvic_clear_irq(usart_periph->irqs[0]);
     } else {
         // Clear buffer before enabling IRQ
-        s_usart2_byte = 0;
+        driver_state->byte = 0;
 
         // Enable IRQ
         nvic_enable_irq(usart_periph->irqs[0]);

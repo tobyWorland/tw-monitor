@@ -3,6 +3,8 @@
 
 #include "../peripheral.h"
 
+#define USART_COUNT 2
+
 extern struct peripheral g_periph_gpio_a;
 extern struct peripheral g_periph_gpio_b;
 extern struct peripheral g_periph_usart1;

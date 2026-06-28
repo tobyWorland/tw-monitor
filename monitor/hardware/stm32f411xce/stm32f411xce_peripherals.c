@@ -27,7 +27,8 @@ struct peripheral g_periph_usart1 = {
         .bus = PERIPH_BUS_APB2,
         .rcc_index = 4,
     },
-    .irqs = {37}
+    .irqs = {37},
+    .driver_idx = 1,
 };
 
 struct peripheral g_periph_usart2 = {
@@ -37,7 +38,8 @@ struct peripheral g_periph_usart2 = {
         .bus = PERIPH_BUS_APB1,
         .rcc_index = 17,
     },
-    .irqs = {38}
+    .irqs = {38},
+    .driver_idx = 2,
 };
 
 struct peripheral g_periph_tim10 = {
