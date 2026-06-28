@@ -20,4 +20,7 @@ struct position {
     unsigned y;
 };
 
+void util_enter_critical(void);
+void util_leave_critical(void);
+
 #endif

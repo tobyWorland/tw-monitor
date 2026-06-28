@@ -24,6 +24,7 @@ set(C_SOURCE
     vt.c
     terminal.c
     transfer.c
+    util.c
 
     autogen_encodings/t32_encoding.c
 )
