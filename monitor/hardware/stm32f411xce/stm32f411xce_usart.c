@@ -8,6 +8,7 @@
 #include "../../vector.h"
 #include "../../util.h"
 #include "../../startup.h"
+#include "../board.h"
 #include "stm32f411xce_peripherals.h"
 
 #include <stddef.h>
@@ -107,6 +108,27 @@ static void intqueue_put_from_isr(struct usart_driver_state *driver_state, uint8
     driver_state->intqueue.len++;
 }
 
+static uint32_t calculate_baudrate_divider_reg(int64_t input_clock, int64_t baudrate) {
+    // Reference: ST RM0383 - 19.3.4 Fractional baud rate generation
+    // In short: clock freq / baud rate / 16 = USARTDIV
+    // Only the lower 16bit of the BRR register are used
+    // 15-4 Mantissa
+    //  3-0 Fractional
+    // For the baud rate 115200 using the starting RC oscillator @ 16MHz:
+    //   16e6 / 115200 / 16 = 8.681 approx
+    //   thus mantissa = 8, fractional = 0.681 * (2**4) = 10 as integer
+
+    // Values can be x100 to perform the calculation using only integers
+    // NOTE: / 16 - Assumes oversampling by 16
+    uint64_t calc_100 = input_clock * 100 / baudrate / 16;
+
+    uint64_t mantissa = calc_100 / 100;
+    uint64_t fractional = calc_100 % 100 * BIT(4) / 100;
+
+    uint32_t reg = (mantissa << 4) | fractional;
+    return reg;
+}
+
 static void _usart_isr(void) {
     struct peripheral *usart_periph = peripheral_usart_periph_from_irq(get_active_irq());
     assert(usart_periph);
@@ -145,17 +167,7 @@ void usart_enable(struct peripheral *usart_periph, bool enable) {
     // Enable USART
     usart->control1 = USART_CR1_UE;
 
-    // TODO: Need to calculate this in C
-    // Set USART2 baud rate
-    // Reference: ST RM0383 - 19.3.4 Fractional baud rate generation
-    // In short: clock freq / baud rate / 16 = USARTDIV
-    // Only the lower 16bit of the BRR register are used
-    // 15-4 Mantissa
-    //  3-0 Fractional
-    // For the baud rate 115200 using the starting RC oscillator @ 16MHz:
-    //   16e6 / 115200 / 16 = 8.681 approx
-    //   thus mantissa = 8, fractional = 0.681 * (2**4) = 10 as integer
-    usart->baud_rate_div = 8 << 4 | 10;
+    usart->baud_rate_div = calculate_baudrate_divider_reg(board_get_sysclock_MHz(), 115200);
 
     // Set ISR
     vector_set_isr_for(usart_periph->irqs[0], _usart_isr);
