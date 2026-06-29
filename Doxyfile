@@ -1,0 +1,20 @@
+PROJECT_NAME           = TW-Monitor
+EXTRACT_ALL            = YES
+OPTIMIZE_OUTPUT_FOR_C  = YES
+FILE_PATTERNS          = *.c \
+                         *.h \
+						 *.dox \
+                         *.md
+RECURSIVE			   = YES
+EXCLUDE				   = third_party \
+						 build \
+                         monitor/autogen_encodings
+HAVE_DOT = YES
+CALL_GRAPH = YES
+CALLER_GRAPH = YES
+
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+SOURCE_BROWSER         = YES
+
+GENERATE_LATEX         = NO
