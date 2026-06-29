@@ -41,6 +41,7 @@ set(TARGET_SOURCE
     vector.c
     clobber_sram.s
     arm/debug.c
+    arm/runtime-abi.c
     arm/nvic.c
     arm/scb.c
     hardware/stm32f411xce/stm32f411xce_board.c
