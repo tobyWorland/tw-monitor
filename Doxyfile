@@ -3,6 +3,7 @@ EXTRACT_ALL            = YES
 OPTIMIZE_OUTPUT_FOR_C  = YES
 FILE_PATTERNS          = *.c \
                          *.h \
+                         *.s \
 						 *.dox \
                          *.md
 RECURSIVE			   = YES
