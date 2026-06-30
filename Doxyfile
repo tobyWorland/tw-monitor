@@ -11,6 +11,10 @@ EXCLUDE				   = third_party \
 						 builds \
 						 demos \
                          monitor/autogen_encodings
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = __attribute__((attrs))=
 HAVE_DOT = YES
 CALL_GRAPH = YES
 CALLER_GRAPH = YES
