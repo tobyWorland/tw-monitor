@@ -9,5 +9,5 @@ set(CMAKE_CXX_COMPILER "/bin/true")
 set(CMAKE_CXX_LINK_EXECUTABLE "/bin/true")
 
 set(CMAKE_C_FLAGS_DEBUG "-Og")
-set(CMAKE_C_FLAGS_MINSIZEREL "-Os -fno-strict-aliasing -Wno-array-bounds")
+set(CMAKE_C_FLAGS_MINSIZEREL "-Os -Wno-array-bounds")
 set(CMAKE_ASM_FLAGS_MINSIZEREL "") # CMake tries to give assembler -Os flag

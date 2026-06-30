@@ -28,13 +28,13 @@ struct enter_state {
 static void load_current(struct enter_state *state) {
     switch (state->ent_type) {
     case ET_BYTE:
-        *(uint8_t*)&state->current = *(uint8_t*)state->addr;
+        state->current = *(uint8_t*)state->addr;
         break;
     case ET_HWORD:
-        *(uint16_t*)&state->current = *(uint16_t*)state->addr;
+        state->current = *(uint16_t*)state->addr;
         break;
     case ET_WORD:
-        *(uint32_t*)&state->current = *(uint32_t*)state->addr;
+        state->current = *(uint32_t*)state->addr;
         break;
     default:
         ASSERT_NOT_REACHED();
@@ -44,13 +44,13 @@ static void load_current(struct enter_state *state) {
 static void store_current(struct enter_state *state) {
     switch (state->ent_type) {
     case ET_BYTE:
-        *(uint8_t*)state->addr = *(uint8_t*)&state->current;
+        *(uint8_t*)state->addr = state->current;
         break;
     case ET_HWORD:
-        *(uint16_t*)state->addr = *(uint16_t*)&state->current;
+        *(uint16_t*)state->addr = state->current;
         break;
     case ET_WORD:
-        *(uint32_t*)state->addr = *(uint32_t*)&state->current;
+        *(uint32_t*)state->addr = state->current;
         break;
     default:
         ASSERT_NOT_REACHED();
