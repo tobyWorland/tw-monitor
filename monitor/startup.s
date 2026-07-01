@@ -271,7 +271,7 @@ get_active_irq:
         mrs     r0,     IPSR
         cmp     r0,     16 // 16 is IRQ0
         ite     lt
-        movlt   r0,     0
+        movlt   r0,     -1
         subge   r0,     16
         bx      lr
 
