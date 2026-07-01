@@ -25,7 +25,7 @@ static void print_menu_help(unsigned option_count,
     for (unsigned i = 0; i < option_count; i++) {
         const struct menu_option *opt = &options[i];
         putstring(" * ");
-        switch (opt->key) {  // TODO: TEST
+        switch (opt->key) {
         case '\r':
             putstring("RET");
             break;
