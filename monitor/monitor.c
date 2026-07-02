@@ -86,23 +86,6 @@ void monitor_main(bool suppress_init) {
     // Ensure debug break is disabled to not accidentally enter debugger outside of calling or stepping
     board_enable_debug_user_break(false);
 
-#if 0
-    while (1) {
-        putstring("Waiting for 1...\r\n");
-        sleep(1);
-        putstring("Waiting for 3...\r\n");
-        sleep(3);
-        putstring("Waiting for 10...\r\n");
-        sleep(10);
-    }
-#endif
-
-#if 0
-    io_printf("Hello!\r\n");
-    io_printf("Hello %s!\r\nX = %x, Y = %x\r\nC = '%c'\r\n",
-              "world", 4, 7, 'V');
-#endif
-
     while (1) {
         char opt = menu("> ", ARR_LEN(options), options, "e");
         switch (opt) {
